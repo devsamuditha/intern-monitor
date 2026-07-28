@@ -67,3 +67,4 @@ export const getTaskStatusColor = (status: 'todo' | 'in_progress' | 'done') => {
       return 'bg-slate-100 text-slate-700';
   }
 };
+

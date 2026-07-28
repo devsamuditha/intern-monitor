@@ -5,10 +5,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { api } from '../../services/api.js';
-import { User, Project } from '../../types.js';
+import { api } from '../../services/api';
+import { User, Project } from '../../types.ts';
 import { Plus, Folder, Github, ExternalLink, Tag, Edit, Sparkles, X } from 'lucide-react';
-import { scaleIn } from '../../utils/motion.js';
+import { scaleIn } from '../../utils/motion';
 
 interface MyProjectsProps {
   currentUser: User;
@@ -324,3 +324,6 @@ export const MyProjects: React.FC<MyProjectsProps> = ({ currentUser, readOnly = 
     </div>
   );
 };
+
+
+

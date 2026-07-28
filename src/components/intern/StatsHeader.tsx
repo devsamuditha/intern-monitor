@@ -6,7 +6,7 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { Flame, Award, CheckSquare, Clock } from 'lucide-react';
-import { fadeInUp, hoverLift } from '../../utils/motion.js';
+import { fadeInUp, hoverLift } from '../../utils/motion';
 
 interface StatsHeaderProps {
   streak: number;
@@ -87,3 +87,4 @@ export const StatsHeader: React.FC<StatsHeaderProps> = ({
     </div>
   );
 };
+

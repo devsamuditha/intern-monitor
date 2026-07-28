@@ -6,9 +6,9 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { CheckSquare, AlertTriangle, Github, ExternalLink, Check, Play, ArrowRight } from 'lucide-react';
-import { Task } from '../../types.js';
-import { formatDate } from '../../utils/helpers.js';
-import { staggerContainer, fadeInUp } from '../../utils/motion.js';
+import { Task } from '../../types.ts';
+import { formatDate } from '../../utils/helpers';
+import { staggerContainer, fadeInUp } from '../../utils/motion';
 
 interface TasksBoardProps {
   tasks: Task[];
@@ -132,3 +132,6 @@ export const TasksBoard: React.FC<TasksBoardProps> = ({ tasks, onTaskStatusToggl
     </div>
   );
 };
+
+
+

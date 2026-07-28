@@ -7,7 +7,7 @@ import React from 'react';
 import {
   Zap, CheckCircle2, Sun, FolderGit2, FileText, HelpCircle, Github, ExternalLink
 } from 'lucide-react';
-import { DaySession } from '../../types.js';
+import { DaySession } from '../../types.ts';
 
 interface StartDayHeroProps {
   todaySession: DaySession | null;
@@ -156,3 +156,5 @@ export const StartDayHero: React.FC<StartDayHeroProps> = ({
     </div>
   );
 };
+
+

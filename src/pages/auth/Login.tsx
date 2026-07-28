@@ -4,8 +4,8 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../context/AuthContext.js';
-import { api } from '../../services/api.js';
+import { useAuth } from '../../context/AuthContext';
+import { api } from '../../services/api';
 import { Target, Sparkles, ArrowRight, User as UserIcon, Mail, Lock, Landmark, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -597,4 +597,7 @@ export const Login: React.FC = () => {
     </div>
   );
 };
+
+
+
 

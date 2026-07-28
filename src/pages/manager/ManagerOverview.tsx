@@ -5,18 +5,18 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { api } from '../../services/api.js';
-import { User, Task } from '../../types.js';
-import { InternDetail } from '../../components/techlead/InternDetail.js';
-import { UserManagement } from '../../components/manager/UserManagement.js';
-import { getSupabaseClient } from '../../lib/supabaseClient.js';
+import { api } from '../../services/api';
+import { User, Task } from '../../types.ts';
+import { InternDetail } from '../../components/techlead/InternDetail';
+import { UserManagement } from '../../components/manager/UserManagement';
+import { getSupabaseClient } from '../../lib/supabaseClient';
 import { 
   TrendingUp, Award, Clock, Users, Building, 
   ExternalLink, ArrowRight, ChevronRight, Star, Calendar, ShieldCheck,
   BarChart3, X, CheckCircle2, Layers, Zap, User as UserIcon, RefreshCw, AlertTriangle
 } from 'lucide-react';
-import { formatDate } from '../../utils/helpers.js';
-import { scaleIn } from '../../utils/motion.js';
+import { formatDate } from '../../utils/helpers';
+import { scaleIn } from '../../utils/motion';
 
 interface ManagerOverviewProps {
   currentUser: User;
@@ -587,3 +587,6 @@ export const ManagerOverview: React.FC<ManagerOverviewProps> = ({ currentUser })
     </div>
   );
 };
+
+
+

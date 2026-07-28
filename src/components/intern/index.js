@@ -3,10 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-export { StatsHeader } from './StatsHeader.js';
-export { StartDayHero } from './StartDayHero.js';
-export { StartDayModal } from './StartDayModal.js';
-export { EndDayPromptModal } from './EndDayPromptModal.js';
-export { TasksBoard } from './TasksBoard.js';
-export { DailyLogTimeline } from './DailyLogTimeline.js';
-export { FlaggedMistakesBanner } from './FlaggedMistakesBanner.js';
+export { StatsHeader } from './StatsHeader';
+export { StartDayHero } from './StartDayHero';
+export { StartDayModal } from './StartDayModal';
+export { EndDayPromptModal } from './EndDayPromptModal';
+export { TasksBoard } from './TasksBoard';
+export { DailyLogTimeline } from './DailyLogTimeline';
+export { FlaggedMistakesBanner } from './FlaggedMistakesBanner';

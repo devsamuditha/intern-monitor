@@ -5,10 +5,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { api } from '../../services/api.js';
-import { User, DailyLog, Task, Mistake, Mark, DaySession, TaskStatus } from '../../types.js';
-import { getSupabaseClient } from '../../lib/supabaseClient.js';
-import { DailyLogForm } from '../../components/intern/DailyLogForm.js';
+import { api } from '../../services/api';
+import { User, DailyLog, Task, Mistake, Mark, DaySession, TaskStatus } from '../../types';
+import { getSupabaseClient } from '../../lib/supabaseClient';
+import { DailyLogForm } from '../../components/intern/DailyLogForm';
 import {
   StatsHeader,
   StartDayHero,
@@ -17,8 +17,8 @@ import {
   TasksBoard,
   DailyLogTimeline,
   FlaggedMistakesBanner
-} from '../../components/intern/index.js';
-import { formatDate } from '../../utils/helpers.js';
+} from '../../components/intern';
+import { formatDate } from '../../utils/helpers';
 
 interface InternDashboardProps {
   user: User;
@@ -58,7 +58,7 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
       const [allLogs, allTasks, allMistakes, allMarks, todaySessions, allProjects] = await Promise.all([
         api.getLogs({ intern_id: user.id }),
         api.getTasks({ assigned_to: user.id }),
-        api.getMistakes(user.id),
+        api.getMistakes({ intern_id: user.id }),
         api.getMarks(user.id),
         api.getTodayDaySessions(user.id),
         api.getProjects()
@@ -380,3 +380,7 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
     </div>
   );
 };
+
+
+
+

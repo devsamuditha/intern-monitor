@@ -5,8 +5,8 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from "motion/react";
-import { api } from '../../services/api.js';
-import { User, Project } from '../../types.js';
+import { api } from '../../services/api';
+import { User, Project } from '../../types.ts';
 import { Plus, X, Upload, Github, Sparkles, Check, Save, RotateCcw, CheckCircle2 } from 'lucide-react';
 
 interface DailyLogFormProps {
@@ -530,3 +530,6 @@ export const DailyLogForm: React.FC<DailyLogFormProps> = ({ user, onSuccess }) =
     </div>
   );
 };
+
+
+

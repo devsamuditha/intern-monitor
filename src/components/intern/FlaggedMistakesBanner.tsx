@@ -5,8 +5,8 @@
 
 import React from 'react';
 import { ShieldAlert, FileText } from 'lucide-react';
-import { Mistake } from '../../types.js';
-import { formatDate } from '../../utils/helpers.js';
+import { Mistake } from '../../types.ts';
+import { formatDate } from '../../utils/helpers';
 
 interface FlaggedMistakesBannerProps {
   mistakes: Mistake[];
@@ -39,3 +39,6 @@ export const FlaggedMistakesBanner: React.FC<FlaggedMistakesBannerProps> = ({ mi
     </div>
   );
 };
+
+
+

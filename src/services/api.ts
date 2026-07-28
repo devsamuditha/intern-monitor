@@ -2,8 +2,10 @@
  * @license
  * SPDX-License-Identifier: Apache-2.0
  */
+ 
+"use client";
 
-import { 
+import {
   User, 
   Project, 
   DailyLog, 
@@ -42,7 +44,7 @@ const getHeaders = (): Record<string, string> => {
 const getAuthHeaders = async (): Promise<Record<string, string>> => {
   const headers = getHeaders();
   try {
-    const { getSupabaseClient } = await import('../lib/supabaseClient.js');
+    const { getSupabaseClient } = await import('../lib/supabaseClient');
     const supabase = await getSupabaseClient();
     const { data: { session } } = await supabase.auth.getSession();
     if (session?.access_token) {
@@ -536,3 +538,4 @@ export const api = {
     return handleResponse(res);
   }
 };
+

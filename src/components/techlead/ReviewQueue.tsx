@@ -5,15 +5,15 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { api } from '../../services/api.js';
-import { User, DailyLog, Task, MistakeSeverity } from '../../types.js';
+import { api } from '../../services/api';
+import { User, DailyLog, Task, MistakeSeverity } from '../../types.ts';
 import { 
   CheckSquare, FileText, Filter, Search, Star, AlertTriangle, 
   ChevronLeft, ChevronRight, CheckCircle2, Clock, X, ExternalLink, 
   Github, Sparkles, MessageSquare, Award, RefreshCw, User as UserIcon
 } from 'lucide-react';
-import { formatDate } from '../../utils/helpers.js';
-import { scaleIn } from '../../utils/motion.js';
+import { formatDate } from '../../utils/helpers';
+import { scaleIn } from '../../utils/motion';
 
 interface ReviewQueueProps {
   currentUser: User;
@@ -801,3 +801,6 @@ export const ReviewQueue: React.FC<ReviewQueueProps> = ({ currentUser, onSelectI
     </div>
   );
 };
+
+
+

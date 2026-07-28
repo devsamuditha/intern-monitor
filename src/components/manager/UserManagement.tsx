@@ -5,13 +5,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { api } from '../../services/api.js';
-import { User, UserRole } from '../../types.js';
+import { api } from '../../services/api';
+import { User, UserRole } from '../../types.ts';
 import { 
   Users, UserPlus, Shield, ShieldAlert, ShieldCheck, Search, Filter, 
   Edit3, UserX, UserCheck, RefreshCw, X, Check, CheckCircle2, AlertTriangle, Sparkles
 } from 'lucide-react';
-import { scaleIn } from '../../utils/motion.js';
+import { scaleIn } from '../../utils/motion';
 
 interface UserManagementProps {
   currentUser: User;
@@ -709,3 +709,6 @@ export const UserManagement: React.FC<UserManagementProps> = ({ currentUser, onR
     </div>
   );
 };
+
+
+

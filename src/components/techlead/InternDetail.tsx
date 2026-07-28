@@ -5,16 +5,16 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
-import { api } from '../../services/api.js';
-import { User, DailyLog, Task, Mark, Mistake, Message, DaySession } from '../../types.js';
-import { getSupabaseClient } from '../../lib/supabaseClient.js';
+import { api } from '../../services/api';
+import { User, DailyLog, Task, Mark, Mistake, Message, DaySession } from '../../types.ts';
+import { getSupabaseClient } from '../../lib/supabaseClient';
 import { 
   ArrowLeft, Star, AlertTriangle, Send, CheckCircle, Plus, Calendar, 
   MessageSquare, FileText, CheckSquare, ShieldAlert, Sparkles, ExternalLink, Zap, Sun, CheckCircle2,
   Github, FolderGit2, HelpCircle, CheckCheck, Check, X
 } from 'lucide-react';
-import { formatDate, getTaskPriorityColor, getTaskStatusColor } from '../../utils/helpers.js';
-import { scaleIn } from '../../utils/motion.js';
+import { formatDate, getTaskPriorityColor, getTaskStatusColor } from '../../utils/helpers';
+import { scaleIn } from '../../utils/motion';
 
 interface InternDetailProps {
   internId: string;
@@ -1042,3 +1042,6 @@ export const InternDetail: React.FC<InternDetailProps> = ({ internId, currentUse
      </div>
    );
 };
+
+
+

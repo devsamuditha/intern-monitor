@@ -2,15 +2,17 @@
  * @license
  * SPDX-License-Identifier: Apache-2.0
  */
+ 
+"use client";
 
 import React, { useState } from 'react';
-import { useAuth } from '../../context/AuthContext.js';
-import { useTheme } from '../../context/ThemeContext.js';
+import { useAuth } from '../../context/AuthContext.tsx';
+import { useTheme } from '../../context/ThemeContext.tsx';
 import { 
   LayoutDashboard, FolderKanban, MessageSquare, Sun, Moon, 
   Users, TrendingUp, LogOut, Shield, Power, ChevronDown, CheckCircle, Flame, Target, Settings, AlertTriangle
 } from 'lucide-react';
-import { api } from '../../services/api.js';
+import { api } from '../../services/api';
 
 interface DashboardShellProps {
   children: React.ReactNode;
@@ -280,6 +282,10 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
     </div>
   );
 };
+
+
+
+
 
 
 

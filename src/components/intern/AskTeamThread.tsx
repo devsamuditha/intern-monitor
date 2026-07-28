@@ -5,11 +5,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { api } from '../../services/api.js';
-import { User, Question, Reply } from '../../types.js';
+import { api } from '../../services/api.ts';
+import { User, Question, Reply } from '../../types.ts';
 import { MessageSquare, Send, Sparkles, UserCheck, CornerDownRight } from 'lucide-react';
-import { formatRelativeTime } from '../../utils/helpers.js';
-import { getSupabaseClient } from '../../lib/supabaseClient.js';
+import { formatRelativeTime } from '../../utils/helpers.ts';
+import { getSupabaseClient } from '../../lib/supabaseClient.ts';
 
 interface AskTeamThreadProps {
   currentUser: User;
@@ -306,3 +306,7 @@ export const AskTeamThread: React.FC<AskTeamThreadProps> = ({ currentUser }) => 
     </div>
   );
 };
+
+
+
+

@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { motion } from 'motion/react';
-import { scaleIn } from '../../utils/motion.js';
+import { scaleIn } from '../../utils/motion';
 import { FileText } from 'lucide-react';
 
 interface EndDayPromptModalProps {
@@ -69,3 +69,4 @@ export const EndDayPromptModal: React.FC<EndDayPromptModalProps> = ({
     </div>
   );
 };
+

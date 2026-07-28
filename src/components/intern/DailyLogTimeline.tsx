@@ -5,8 +5,8 @@
 
 import React from 'react';
 import { Search, Award, Clock } from 'lucide-react';
-import { DailyLog, Mark } from '../../types.js';
-import { formatDate } from '../../utils/helpers.js';
+import { DailyLog, Mark } from '../../types.ts';
+import { formatDate } from '../../utils/helpers';
 
 interface DailyLogTimelineProps {
   logs: DailyLog[];
@@ -132,3 +132,6 @@ export const DailyLogTimeline: React.FC<DailyLogTimelineProps> = ({
     </div>
   );
 };
+
+
+

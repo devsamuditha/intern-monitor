@@ -5,8 +5,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { api } from '../../services/api.js';
-import { scaleIn } from '../../utils/motion.js';
+import { api } from '../../services/api';
+import { scaleIn } from '../../utils/motion';
 import { RefreshCw, Save, Settings as SettingsIcon, AlertTriangle, CheckCircle2, XCircle } from 'lucide-react';
 
 interface SettingRow {
@@ -213,3 +213,5 @@ export const SuperAdminSettings: React.FC = () => {
     </motion.div>
   );
 };
+
+

@@ -5,9 +5,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { api } from '../../services/api.js';
-import { User } from '../../types.js';
-import { scaleIn } from '../../utils/motion.js';
+import { api } from '../../services/api';
+import { User } from '../../types.ts';
+import { scaleIn } from '../../utils/motion';
 import { RefreshCw, ChevronDown, ChevronUp, Calendar, User as UserIcon, Filter } from 'lucide-react';
 
 interface SuperAdminAuditProps {
@@ -466,3 +466,5 @@ export const SuperAdminAudit: React.FC<SuperAdminAuditProps> = ({ currentUser })
     </motion.div>
   );
 };
+
+

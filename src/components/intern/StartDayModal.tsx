@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { motion } from 'motion/react';
-import { scaleIn } from '../../utils/motion.js';
+import { scaleIn } from '../../utils/motion';
 import { X, Zap, Github } from 'lucide-react';
 
 interface StartDayModalProps {
@@ -143,3 +143,4 @@ export const StartDayModal: React.FC<StartDayModalProps> = ({
     </div>
   );
 };
+

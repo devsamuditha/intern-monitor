@@ -2,10 +2,12 @@
  * @license
  * SPDX-License-Identifier: Apache-2.0
  */
+ 
+"use client";
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User } from '../types.js';
-import { api } from '../services/api.js';
+import { User } from '../types.ts';
+import { api } from '../services/api.ts';
 
 interface AuthContextType {
   user: User | null;
@@ -55,7 +57,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     const checkAuth = async () => {
       try {
-        const { getSupabaseClient } = await import('../lib/supabaseClient.js');
+        const { getSupabaseClient } = await import('../lib/supabaseClient');
         const supabase = await getSupabaseClient();
         
         // Check current session
@@ -131,7 +133,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(true);
     try {
       if (password && !DEMO_EMAILS.has(email.toLowerCase())) {
-        const { getSupabaseClient } = await import('../lib/supabaseClient.js');
+        const { getSupabaseClient } = await import('../lib/supabaseClient');
         const supabase = await getSupabaseClient();
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
@@ -168,7 +170,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (signUpData.password) {
         // 2. Create standard Supabase account
-        const { getSupabaseClient } = await import('../lib/supabaseClient.js');
+        const { getSupabaseClient } = await import('../lib/supabaseClient');
         const supabase = await getSupabaseClient();
         const { data, error } = await supabase.auth.signUp({
           email: signUpData.email,
@@ -208,7 +210,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = async () => {
     try {
-      const { getSupabaseClient } = await import('../lib/supabaseClient.js');
+      const { getSupabaseClient } = await import('../lib/supabaseClient');
       const supabase = await getSupabaseClient();
       await supabase.auth.signOut();
     } catch (e) {
@@ -260,3 +262,5 @@ export const useAuth = () => {
   }
   return context;
 };
+
+

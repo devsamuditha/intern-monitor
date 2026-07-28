@@ -59,3 +59,4 @@ export async function uploadBase64Image(base64Data: string): Promise<string> {
   return publicUrlData.publicUrl;
 }
 
+

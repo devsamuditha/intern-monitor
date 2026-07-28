@@ -5,9 +5,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { api } from '../../services/api.js';
-import { ContentFlag } from '../../types.js';
-import { scaleIn } from '../../utils/motion.js';
+import { api } from '../../services/api';
+import { ContentFlag } from '../../types.ts';
+import { scaleIn } from '../../utils/motion';
 import { RefreshCw, CheckCircle2, XCircle, AlertTriangle, Filter, ChevronDown, ChevronUp, MessageSquare, HelpCircle, ArrowUpCircle, FileText } from 'lucide-react';
 
 type StatusFilter = 'pending' | 'dismissed' | 'resolved' | 'all';
@@ -327,3 +327,5 @@ export const SuperAdminModeration: React.FC = () => {
     </motion.div>
   );
 };
+
+

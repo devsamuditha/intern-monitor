@@ -5,9 +5,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { api } from '../../services/api.js';
-import { User, UserRole } from '../../types.js';
-import { scaleIn } from '../../utils/motion.js';
+import { api } from '../../services/api';
+import { User, UserRole } from '../../types.ts';
+import { scaleIn } from '../../utils/motion';
 import { RefreshCw, Shield, UserPlus, X, CheckCircle2, AlertTriangle } from 'lucide-react';
 
 interface SuperAdminUsersProps {
@@ -469,3 +469,6 @@ const CreateModal: React.FC<CreateModalProps> = ({ title, icon, name, email, onN
     </div>
   );
 };
+
+
+

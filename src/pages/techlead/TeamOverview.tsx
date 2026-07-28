@@ -5,18 +5,18 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { api } from '../../services/api.js';
-import { User, TeamStats } from '../../types.js';
-import { InternDetail } from '../../components/techlead/InternDetail.js';
-import { ReviewQueue } from '../../components/techlead/ReviewQueue.js';
-import { getSupabaseClient } from '../../lib/supabaseClient.js';
+import { api } from '../../services/api';
+import { User, TeamStats } from '../../types.ts';
+import { InternDetail } from '../../components/techlead/InternDetail';
+import { ReviewQueue } from '../../components/techlead/ReviewQueue';
+import { getSupabaseClient } from '../../lib/supabaseClient';
 import { 
   Users, CheckCircle, Clock, Star, Flame, AlertTriangle, 
   TrendingUp, Sparkles, ChevronRight, Check, X, ShieldCheck,
   Zap, Sun, CheckCircle2, MessageSquare, PlusCircle, Github, ExternalLink, CheckSquare
 } from 'lucide-react';
-import { formatDate } from '../../utils/helpers.js';
-import { scaleIn } from '../../utils/motion.js';
+import { formatDate } from '../../utils/helpers';
+import { scaleIn } from '../../utils/motion';
 
 interface TeamOverviewProps {
   currentUser: User;
@@ -521,3 +521,6 @@ export const TeamOverview: React.FC<TeamOverviewProps> = ({ currentUser }) => {
     </div>
   );
 };
+
+
+

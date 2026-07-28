@@ -5,11 +5,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { api } from '../../services/api.js';
-import { User } from '../../types.js';
-import { scaleIn } from '../../utils/motion.js';
+import { api } from '../../services/api';
+import { User } from '../../types.ts';
+import { scaleIn } from '../../utils/motion';
 import { TrendingUp, Users, Flag, Activity, RefreshCw, Server, Shield, AlertTriangle, ArrowRight, BarChart3, Award, Clock, Target, Zap, Globe, Code, Terminal, Rocket, Layers, ChevronRight } from 'lucide-react';
-import { getSupabaseClient } from '../../lib/supabaseClient.js';
+import { getSupabaseClient } from '../../lib/supabaseClient';
 
 interface SuperAdminOverviewProps {
   currentUser: User;
@@ -324,3 +324,5 @@ export const SuperAdminOverview: React.FC<SuperAdminOverviewProps> = ({ currentU
     </motion.div>
   );
 };
+
+
