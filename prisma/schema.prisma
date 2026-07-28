@@ -1,0 +1,293 @@
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  INTERN
+  TECH_LEAD
+  MANAGER
+  SUPER_ADMIN
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum MistakeSeverity {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+model User {
+  id               String    @id @default(uuid())
+  name             String
+  email            String    @unique
+  role             Role
+  avatarUrl        String
+  techLeadId       String?
+  isActive         Boolean   @default(true)
+  createdAt        DateTime  @default(now())
+
+  // Self-relation: Tech Lead has many Interns
+  techLead         User?     @relation("TechLeadInterns", fields: [techLeadId], references: [id], onDelete: SetNull)
+  interns          User[]    @relation("TechLeadInterns")
+
+  // Relationships
+  projects         Project[] @relation("ProjectOwner")
+  dailyLogs        DailyLog[]
+  assignedTasks    Task[]    @relation("TaskAssignedTo")
+  createdTasks     Task[]    @relation("TaskAssignedBy")
+  receivedMarks    Mark[]    @relation("MarkIntern")
+  givenMarks       Mark[]    @relation("MarkGivenBy")
+  flaggedMistakes  Mistake[] @relation("MistakeIntern")
+  createdMistakes  Mistake[] @relation("MistakeFlaggedBy")
+  sentMessages     Message[] @relation("MessageFrom")
+  receivedMessages Message[] @relation("MessageTo")
+  questions        Question[]
+  replies          Reply[]
+  daySessions      DaySession[]
+  auditLogs        AuditLog[]
+  settingsUpdated  SystemSetting[]
+  flagsReviewed    ContentFlag[]
+
+  @@index([role])
+  @@index([techLeadId])
+}
+
+model Project {
+  id          String     @id @default(uuid())
+  name        String
+  description String
+  githubUrl   String
+  techStack   String[]
+  ownerId     String
+  screenshots String[]   @default([])
+  createdAt   DateTime   @default(now())
+
+  owner       User       @relation("ProjectOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  dailyLogs   DailyLog[]
+
+  @@index([ownerId])
+}
+
+model DailyLog {
+  id            String     @id @default(uuid())
+  internId      String
+  projectId     String
+  summary       String
+  technologies  String[]
+  changes       String
+  screenshotUrl String?
+  githubUrl     String
+  date          String     // YYYY-MM-DD
+  status        String     @default("submitted") // submitted or reviewed
+  isHidden      Boolean    @default(false)
+  createdAt     DateTime   @default(now())
+
+  intern        User       @relation(fields: [internId], references: [id], onDelete: Cascade)
+  project       Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  marks         Mark[]
+  mistakes      Mistake[]
+
+  @@index([internId])
+  @@index([projectId])
+  @@index([date])
+  @@index([isHidden])
+}
+
+model Task {
+  id           String       @id @default(uuid())
+  assignedToId String
+  assignedById String
+  title        String
+  description  String
+  dueDate      String       // YYYY-MM-DD
+  priority     TaskPriority
+  status       TaskStatus   @default(TODO)
+  completedAt  String?      // YYYY-MM-DD
+  score        Int?
+  comment      String?
+  blockers     String?
+  prLink       String?
+  createdAt    DateTime     @default(now())
+
+  assignedTo   User         @relation("TaskAssignedTo", fields: [assignedToId], references: [id], onDelete: Cascade)
+  assignedBy   User         @relation("TaskAssignedBy", fields: [assignedById], references: [id], onDelete: Cascade)
+  marks        Mark[]
+
+  @@index([assignedToId])
+  @@index([assignedById])
+  @@index([status])
+  @@index([dueDate])
+}
+
+model Mark {
+  id            String    @id @default(uuid())
+  internId      String
+  givenById     String
+  relatedLogId  String?
+  relatedTaskId String?
+  score         Int
+  comment       String?
+  date          String    // YYYY-MM-DD
+  createdAt     DateTime  @default(now())
+
+  intern        User      @relation("MarkIntern", fields: [internId], references: [id], onDelete: Cascade)
+  givenBy       User      @relation("MarkGivenBy", fields: [givenById], references: [id], onDelete: Cascade)
+  relatedLog    DailyLog? @relation(fields: [relatedLogId], references: [id], onDelete: Cascade)
+  relatedTask   Task?     @relation(fields: [relatedTaskId], references: [id], onDelete: Cascade)
+
+  @@index([internId])
+  @@index([givenById])
+  @@index([relatedLogId])
+  @@index([relatedTaskId])
+}
+
+model Mistake {
+  id           String          @id @default(uuid())
+  internId     String
+  flaggedById  String
+  relatedLogId String
+  note         String
+  severity     MistakeSeverity
+  date         String          // YYYY-MM-DD
+  resolved     Boolean         @default(false)
+  createdAt    DateTime        @default(now())
+
+  intern       User            @relation("MistakeIntern", fields: [internId], references: [id], onDelete: Cascade)
+  flaggedBy    User            @relation("MistakeFlaggedBy", fields: [flaggedById], references: [id], onDelete: Cascade)
+  relatedLog   DailyLog        @relation(fields: [relatedLogId], references: [id], onDelete: Cascade)
+
+  @@index([internId])
+  @@index([flaggedById])
+  @@index([relatedLogId])
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  fromId    String
+  toId      String
+  content   String
+  read      Boolean  @default(false)
+  isHidden  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  from      User     @relation("MessageFrom", fields: [fromId], references: [id], onDelete: Cascade)
+  to        User     @relation("MessageTo", fields: [toId], references: [id], onDelete: Cascade)
+
+  @@index([fromId])
+  @@index([toId])
+  @@index([isHidden])
+}
+
+model Question {
+  id        String   @id @default(uuid())
+  internId  String
+  title     String
+  content   String
+  isHidden  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  intern    User     @relation(fields: [internId], references: [id], onDelete: Cascade)
+  replies   Reply[]
+
+  @@index([internId])
+  @@index([isHidden])
+}
+
+model Reply {
+  id         String   @id @default(uuid())
+  questionId String
+  authorId   String
+  content    String
+  isHidden   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  author     User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([questionId])
+  @@index([authorId])
+  @@index([isHidden])
+}
+
+model DaySession {
+  id           String   @id @default(uuid())
+  internId     String
+  date         String   // YYYY-MM-DD
+  startedAt    String
+  endedAt      String?
+  status       String   @default("active")
+  todayProject String?
+  todayPlan    String?
+  questions    String?
+  gitLink      String?
+  endJournal   String?
+  createdAt    DateTime @default(now())
+
+  intern       User     @relation(fields: [internId], references: [id], onDelete: Cascade)
+
+    @@index([internId])
+  @@index([date])
+}
+
+model AuditLog {
+  id        String    @id @default(uuid())
+  userId    String
+  action    String
+  targetType String?
+  details   String?
+  timestamp DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([timestamp])
+  @@index([targetType])
+  @@index([action])
+}
+
+model SystemSetting {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     String
+  updatedBy String?
+  updatedAt DateTime @updatedAt
+
+  updater    User?    @relation(fields: [updatedBy], references: [id], onDelete: SetNull)
+
+  @@index([key])
+}
+
+model ContentFlag {
+  id          String   @id @default(uuid())
+  userId      String
+  contentId   String
+  contentType String
+  reason      String
+  status      String   @default("pending")
+  dismissedAt DateTime?
+  createdAt   DateTime @default(now())
+  resolvedAt  DateTime?
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([contentId])
+  @@index([status])
+}
