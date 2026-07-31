@@ -35,7 +35,7 @@ export const Login: React.FC = () => {
   // Dropdowns
   const [techLeads, setTechLeads] = useState<any[]>([]);
 
-  const { login, signUp } = useAuth();
+  const { login, signUp, allDemoUsers } = useAuth();
 
   // Load public tech leads dynamically when we toggle modes, to populate the Intern registration dropdown
   useEffect(() => {
@@ -392,6 +392,25 @@ try {
                   {loading ? 'Authenticating...' : 'Log In to Dashboard'}
                   <ArrowRight className="h-4 w-4" />
                 </button>
+
+                <div className="pt-4 mt-2 border-t border-slate-200 dark:border-slate-800">
+                  <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-3">Quick Test Logins</p>
+                  <div className="flex flex-wrap gap-2">
+                    {allDemoUsers.filter(u => ['sam@intern.com', 'liam@intern.com', 'alex@techlead.com', 'elena@manager.com', 'superadmin@company.com'].includes(u.email)).map((u) => (
+                      <button
+                        key={u.id}
+                        type="button"
+                        onClick={() => {
+                          setEmail(u.email);
+                          setPassword('password123');
+                        }}
+                        className="text-[11px] px-2.5 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 transition-colors shadow-sm font-medium"
+                      >
+                        {u.role === 'super_admin' ? 'Super Admin' : u.role === 'tech_lead' ? 'Tech Lead' : u.role === 'manager' ? 'Manager' : `Intern (${u.name.split(' ')[0]})`}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </motion.form>
             )}
 

@@ -4,6 +4,8 @@ import { getPrisma } from "@/src/db/prisma";
 import { mapDaySession } from "@/app/api/_lib/mappers";
 import { getRelativeDateStr } from "@/app/api/_lib/mappers";
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     await withAuth(request);

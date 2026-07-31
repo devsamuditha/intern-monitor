@@ -4,6 +4,8 @@ import { getPrisma } from "@/src/db/prisma";
 import { Role, TaskStatus } from "@prisma/client";
 import { getRelativeDateStr, mapDaySession } from "@/app/api/_lib/mappers";
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   let user;
   try {
