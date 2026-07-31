@@ -28,8 +28,9 @@ export const InternDetail: React.FC<InternDetailProps> = ({ internId, currentUse
   const [logs, setLogs] = useState<DailyLog[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [mistakes, setMistakes] = useState<Mistake[]>([]);
-  const [chatMessages, setChatMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [todaySession, setTodaySession] = useState<DaySession | null>(null);
+  const [marks, setMarks] = useState<Mark[]>([]);
   const [activeTab, setActiveTab] = useState<'logs' | 'tasks' | 'mistakes' | 'chat'>('logs');
   const [loading, setLoading] = useState(true);
 
@@ -61,13 +62,14 @@ export const InternDetail: React.FC<InternDetailProps> = ({ internId, currentUse
 
   const loadAllInternData = async () => {
     try {
-      const [usersList, allLogs, allTasks, allMistakes, chatMsgs, todaySessions] = await Promise.all([
+      const [usersList, allLogs, allTasks, allMistakes, chatMsgs, todaySessions, allMarks] = await Promise.all([
         api.getUsers(),
         api.getLogs({ intern_id: internId }),
         api.getTasks({ assigned_to: internId }),
         api.getMistakes({ intern_id: internId }),
         api.getMessages(currentUser.id, internId),
-        api.getTodayDaySessions(internId)
+        api.getTodayDaySessions(internId),
+        api.getMarks(internId),
       ]);
 
       const foundIntern = usersList.find(u => u.id === internId);
@@ -77,7 +79,8 @@ export const InternDetail: React.FC<InternDetailProps> = ({ internId, currentUse
       setLogs(allLogs);
       setTasks(allTasks);
       setMistakes(allMistakes);
-      setChatMessages(chatMsgs);
+      setMessages(chatMsgs);
+      setMarks(allMarks);
 
       if (todaySessions && todaySessions.length > 0) {
         setTodaySession(todaySessions[0]);
@@ -112,7 +115,7 @@ export const InternDetail: React.FC<InternDetailProps> = ({ internId, currentUse
                  (newMsg.fromId === internId && newMsg.toId === currentUser.id))
               ) {
                 const msgs = await api.getMessages(currentUser.id, internId);
-                setChatMessages(msgs);
+                setMessages(msgs);
               }
             }
           )
@@ -162,7 +165,7 @@ export const InternDetail: React.FC<InternDetailProps> = ({ internId, currentUse
     if (activeTab === 'chat') {
       chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [activeTab, chatMessages]);
+  }, [activeTab, messages]);
 
   const handleReviewLogSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -237,7 +240,7 @@ export const InternDetail: React.FC<InternDetailProps> = ({ internId, currentUse
         to_id: internId,
         content: text
       });
-      setChatMessages(prev => [...prev, newMsg]);
+      setMessages(prev => [...prev, newMsg]);
       setChatInput('');
       setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
     } catch (err) {
@@ -363,12 +366,9 @@ export const InternDetail: React.FC<InternDetailProps> = ({ internId, currentUse
           <div>
             <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Avg Marks</p>
             <p className="text-lg font-extrabold text-teal-600 dark:text-teal-400 flex items-center gap-1 mt-0.5">
-              {(logs.filter(l => l.status === 'reviewed').length > 0)
-                ? (logs.filter(l => l.status === 'reviewed').reduce((sum, l) => {
-                    const mk = logs.indexOf(l);
-                    return sum + 4.5; // Simulate average score
-                  }, 0) / logs.filter(l => l.status === 'reviewed').length).toFixed(1)
-                : '4.8'} <Star className="h-4 w-4 fill-teal-500 stroke-teal-500" />
+              {marks.length > 0
+                ? (marks.reduce((sum, m) => sum + m.score, 0) / marks.length).toFixed(1)
+                : '0.0'} <Star className="h-4 w-4 fill-teal-500 stroke-teal-500" />
             </p>
           </div>
           <div>
@@ -900,12 +900,12 @@ export const InternDetail: React.FC<InternDetailProps> = ({ internId, currentUse
 
             {/* Chat list */}
             <div className="flex-1 overflow-y-auto p-4 space-y-3.5">
-              {chatMessages.length === 0 ? (
+              {messages.length === 0 ? (
                 <div className="text-center py-10">
                   <p className="text-xs text-slate-400 italic">No chat history. Start the conversation!</p>
                 </div>
               ) : (
-                chatMessages.map(msg => {
+                messages.map(msg => {
                   const isMe = msg.from_id === currentUser.id;
                   const isFlagged = flaggedItems.has(msg.id);
                   return (

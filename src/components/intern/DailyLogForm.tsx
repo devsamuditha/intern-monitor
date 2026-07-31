@@ -6,7 +6,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from "motion/react";
 import { api } from '../../services/api';
-import { User, Project } from '../../types.ts';
+import { User, Project } from '../../types';
 import { Plus, X, Upload, Github, Sparkles, Check, Save, RotateCcw, CheckCircle2 } from 'lucide-react';
 
 interface DailyLogFormProps {

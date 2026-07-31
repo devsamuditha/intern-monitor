@@ -13,6 +13,10 @@ export function getSupabaseAdmin() {
     throw new Error('SUPABASE_SERVICE_ROLE_KEY or NEXT_PUBLIC_SUPABASE_ANON_KEY environment variable is required.');
   }
 
+  if (url.includes('PROJECT') || serviceKey.includes('publishable_KEY') || serviceKey.includes('sb_secret_KEY')) {
+    throw new Error('Supabase is not configured yet.');
+  }
+
   if (!supabaseAdmin) {
     supabaseAdmin = createClient(url, serviceKey, {
       auth: {

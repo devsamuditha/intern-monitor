@@ -6,7 +6,7 @@ import { validateBody } from "@/app/api/_lib/validation";
 import { ToggleUserStatusSchema } from "@/app/api/_lib/validation";
 import { logAudit } from "@/app/api/_lib/mappers";
 
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   let user;
   try {
     user = await withAuth(request);
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     return NextResponse.json({ error: err.message }, { status: 400 });
   }
 
-  const { id } = params;
+  const { id } = await params;
   const { active } = body;
 
   try {

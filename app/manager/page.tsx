@@ -2,13 +2,14 @@
 
 import React, { useState, useEffect } from "react";
 import { DashboardShell } from "@/src/components/layout/DashboardShell";
-import { ManagerOverview } from "@/src/pages/manager/ManagerOverview";
+import { ManagerOverview } from "@/src/views/manager/ManagerOverview";
 import { useAuth } from "@/src/context/AuthContext";
 import { api } from "@/src/services/api";
 
 export default function ManagerPage() {
   const { user } = useAuth();
   const [settings, setSettings] = useState<Record<string, any>>({});
+  const [activeTab, setActiveTab] = useState("analytics");
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -25,7 +26,7 @@ export default function ManagerPage() {
   if (!user) return null;
 
   return (
-    <DashboardShell settings={settings}>
+    <DashboardShell settings={settings} activeTab={activeTab} setActiveTab={setActiveTab}>
       <ManagerOverview currentUser={user} />
     </DashboardShell>
   );

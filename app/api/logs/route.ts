@@ -69,27 +69,6 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const alreadySubmitted = await prisma.dailyLog.findFirst({
-      where: {
-        internId: intern_id,
-        date: todayStr,
-      },
-    });
-
-    if (alreadySubmitted) {
-      const updated = await prisma.dailyLog.update({
-        where: { id: alreadySubmitted.id },
-        data: {
-          summary,
-          technologies: technologies || [],
-          changes,
-          screenshotUrl: resolvedScreenshotUrl || alreadySubmitted.screenshotUrl,
-          githubUrl: github_url,
-        },
-      });
-      return NextResponse.json(mapDailyLog(updated));
-    }
-
     const created = await prisma.dailyLog.create({
       data: {
         internId: intern_id,

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@/app/api/_lib/withAuth";
 import { getPrisma } from "@/src/db/prisma";
 import { Role, TaskStatus } from "@prisma/client";
-import { getRelativeDateStr } from "@/app/api/_lib/mappers";
+import { getRelativeDateStr, mapDaySession } from "@/app/api/_lib/mappers";
 
 export async function GET(request: NextRequest) {
   let user;
@@ -48,7 +48,10 @@ export async function GET(request: NextRequest) {
     const complianceRate = targetInterns.length > 0 ? Math.round((submittedTodayCount / targetInterns.length) * 100) : 0;
     const avgMarks = allMarks.length > 0 ? parseFloat((allMarks.reduce((acc: number, curr: any) => acc + curr.score, 0) / allMarks.length).toFixed(1)) : 0;
     const totalLogs = allLogs.length;
-    const activeCount = targetInterns.filter((u: any) => u.isActive).length;
+    const activeCount = targetInterns.filter((u: any) => {
+      const s = todaySessions.find((s: any) => s.internId === u.id);
+      return s && s.status === 'active';
+    }).length;
     const totalTasks = allTasks.length;
     const completedTasks = allTasks.filter((t: any) => t.status === TaskStatus.DONE).length;
 
@@ -61,6 +64,19 @@ export async function GET(request: NextRequest) {
 
       const lastSub = iLogs.length > 0 ? iLogs.sort((a: any, b: any) => b.date.localeCompare(a.date))[0].date : "Never";
       const iAvgMark = iMarks.length > 0 ? parseFloat((iMarks.reduce((acc: number, curr: any) => acc + curr.score, 0) / iMarks.length).toFixed(1)) : 0;
+      const logDates = Array.from(new Set(iLogs.map((l: any) => l.date))).sort().reverse();
+      const todayStr = getRelativeDateStr(0);
+      const yesterdayObj = new Date(); yesterdayObj.setDate(yesterdayObj.getDate() - 1);
+      const yesterdayStr = yesterdayObj.toISOString().split('T')[0];
+      let realStreak = 0;
+      if (logDates.includes(todayStr) || logDates.includes(yesterdayStr)) {
+        let checkDate = new Date(logDates.includes(todayStr) ? todayStr : yesterdayStr);
+        while (true) {
+          const ds = checkDate.toISOString().split('T')[0];
+          if (logDates.includes(ds)) { realStreak++; checkDate.setDate(checkDate.getDate() - 1); }
+          else break;
+        }
+      }
 
       return {
         intern: {
@@ -72,12 +88,12 @@ export async function GET(request: NextRequest) {
           assigned_tech_lead_id: intern.techLeadId || undefined,
         },
         lastSubmission: lastSub,
-        streak: 0,
+        streak: realStreak,
         avgMark: iAvgMark,
         totalTasks: iTasks.length,
         completedTasks: iTasks.filter((t: any) => t.status === TaskStatus.DONE).length,
         unresolvedMistakesCount: iMistakes.filter((m: any) => !m.resolved).length,
-        todaySession: null as any,
+        todaySession: mapDaySession(iTodaySession),
       };
     });
 

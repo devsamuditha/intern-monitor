@@ -2,13 +2,14 @@
 
 import React, { useState, useEffect } from "react";
 import { DashboardShell } from "@/src/components/layout/DashboardShell";
-import { SuperAdminOverview } from "@/src/pages/superadmin/SuperAdminOverview";
+import { SuperAdminOverview } from "@/src/views/superadmin/SuperAdminOverview";
 import { useAuth } from "@/src/context/AuthContext";
 import { api } from "@/src/services/api";
 
 export default function SuperAdminOverviewPage() {
   const { user } = useAuth();
   const [settings, setSettings] = useState<Record<string, any>>({});
+  const [activeTab, setActiveTab] = useState("overview");
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -25,7 +26,7 @@ export default function SuperAdminOverviewPage() {
   if (!user) return null;
 
   return (
-    <DashboardShell settings={settings}>
+    <DashboardShell settings={settings} activeTab={activeTab} setActiveTab={setActiveTab}>
       <SuperAdminOverview currentUser={user} />
     </DashboardShell>
   );

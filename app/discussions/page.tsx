@@ -9,6 +9,7 @@ import { api } from "@/src/services/api";
 export default function DiscussionsPage() {
   const { user } = useAuth();
   const [settings, setSettings] = useState<Record<string, any>>({});
+  const [activeTab, setActiveTab] = useState("discussions");
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -25,7 +26,7 @@ export default function DiscussionsPage() {
   if (!user) return null;
 
   return (
-    <DashboardShell settings={settings}>
+    <DashboardShell settings={settings} activeTab={activeTab} setActiveTab={setActiveTab}>
       <AskTeamThread currentUser={user} />
     </DashboardShell>
   );

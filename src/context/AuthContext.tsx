@@ -35,6 +35,7 @@ const DEMO_ACCOUNTS: User[] = [
   { id: "int-sophia", name: "Sophia Martinez", email: "sophia@intern.com", role: "intern", avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80", assigned_tech_lead_id: "tl-alex", active: true },
   { id: "int-maya", name: "Maya Lin", email: "maya@intern.com", role: "intern", avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80", assigned_tech_lead_id: "tl-jordan", active: true },
   { id: "int-ethan", name: "Ethan Hunt", email: "ethan@intern.com", role: "intern", avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80", assigned_tech_lead_id: "tl-jordan", active: true },
+  { id: "int-zoe", name: "Zoe Taylor", email: "zoe@intern.com", role: "intern", avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80", assigned_tech_lead_id: "tl-jordan", active: true },
   { id: "tl-alex", name: "Alex Rivera", email: "alex@techlead.com", role: "tech_lead", avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" },
   { id: "tl-jordan", name: "Jordan Vance", email: "jordan@techlead.com", role: "tech_lead", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" },
   { id: "m-elena", name: "Elena Rostova", email: "elena@manager.com", role: "manager", avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" },
@@ -43,7 +44,7 @@ const DEMO_ACCOUNTS: User[] = [
 
 const DEMO_EMAILS = new Set([
   'sam@intern.com', 'liam@intern.com', 'sophia@intern.com',
-  'maya@intern.com', 'ethan@intern.com',
+  'maya@intern.com', 'ethan@intern.com', 'zoe@intern.com',
   'alex@techlead.com', 'jordan@techlead.com',
   'elena@manager.com', 'superadmin@company.com',
 ]);
@@ -106,9 +107,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         unsubscribe = () => {
           subscription.unsubscribe();
         };
-      } catch (e) {
-        console.warn("Supabase auth listener not initialized or missing config. Falling back to local state.", e);
-        // Simple local storage restore
+    } catch (e) {
+      console.warn("Supabase auth listener not initialized or missing config. Falling back to local state.", e);
+      const errMsg = e instanceof Error ? e.message : String(e);
+      if (errMsg.includes('Supabase is not configured')) {
+        localStorage.removeItem('user');
+        setUser(null);
+      } else {
         const savedUserStr = localStorage.getItem('user');
         if (savedUserStr) {
           try {
@@ -118,10 +123,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             localStorage.removeItem('user');
           }
         }
-      } finally {
-        setLoading(false);
       }
-    };
+    } finally {
+      setLoading(false);
+    }
+  };
     checkAuth();
 
     return () => {

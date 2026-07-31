@@ -14,6 +14,10 @@ export async function getSupabaseClient(): Promise<SupabaseClient> {
     );
   }
 
+  if (url.includes('PROJECT') || anonKey.includes('publishable_KEY')) {
+    throw new Error('Supabase is not configured yet.');
+  }
+
   supabaseClient = createClient(url, anonKey);
   return supabaseClient;
 }

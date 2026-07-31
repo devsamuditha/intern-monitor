@@ -7,7 +7,7 @@ import { UpdateTaskSchema, TaskStatusSchema } from "@/app/api/_lib/validation";
 import { getRelativeDateStr } from "@/app/api/_lib/mappers";
 import { isValidGithubUrl } from "@/app/api/_lib/mappers";
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     await withAuth(request);
   } catch (err: any) {
@@ -22,7 +22,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     return NextResponse.json({ error: err.message }, { status: 400 });
   }
 
-  const { id } = params;
+  const { id } = await params;
   const { title, description, due_date, priority, status, blockers, pr_link } = body;
 
   if (pr_link && !isValidGithubUrl(pr_link)) {
@@ -59,7 +59,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     await withAuth(request);
   } catch (err: any) {
@@ -67,7 +67,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     return NextResponse.json({ error: err.message }, { status });
   }
 
-  const { id } = params;
+  const { id } = await params;
   try {
     const prisma = getPrisma();
     await prisma.task.delete({ where: { id } });

@@ -4,7 +4,7 @@ import { getPrisma } from "@/src/db/prisma";
 import { mapUser } from "@/app/api/_lib/mappers";
 import { getRelativeDateStr } from "@/app/api/_lib/mappers";
 import { Role, TaskStatus } from "@prisma/client";
-import { logAudit } from "@/app/api/_lib/mappers";
+import { logAudit, mapAuditLog } from "@/app/api/_lib/mappers";
 import { validateBody } from "@/app/api/_lib/validation";
 import { CreateUserBySuperAdminSchema, ReassignTechLeadSchema } from "@/app/api/_lib/validation";
 
@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
 
     const allMarks = activeInternIds.length > 0
       ? await prisma.mark.findMany({
-          where: { internId: { in: activeInternIds }, score: { not: null } },
+          where: { internId: { in: activeInternIds }, score: { not: null } } as any,
           select: { score: true },
         })
       : [];

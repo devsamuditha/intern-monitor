@@ -6,7 +6,7 @@ export function middleware(request: NextRequest) {
 
   response.headers.set(
     "Content-Security-Policy",
-    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' ws: wss:; connect-src 'self' ws: wss:; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; frame-src 'self' blob:;"
+    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' ws: wss:; connect-src 'self' ws: wss: https://*.supabase.co https://*.pooler.supabase.com; img-src 'self' data: https: https://*.supabase.co https://*.pooler.supabase.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; frame-src 'self' blob:;"
   );
   response.headers.set(
     "Access-Control-Allow-Origin",

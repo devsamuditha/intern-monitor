@@ -21,24 +21,6 @@ type AppPageConfig<Route extends AppRoutes = AppRoutes> = {
   viewport?: any
 }
 
-type PagesPageConfig = {
-  default: React.ComponentType<any> | ((props: any) => React.ReactNode | Promise<React.ReactNode> | never | void)
-  getStaticProps?: (context: any) => Promise<any> | any
-  getStaticPaths?: (context: any) => Promise<any> | any
-  getServerSideProps?: (context: any) => Promise<any> | any
-  getInitialProps?: (context: any) => Promise<any> | any
-  /**
-   * Segment configuration for legacy Pages Router pages.
-   * Validated at build-time by parsePagesSegmentConfig.
-   */
-  config?: {
-    amp?: boolean | 'hybrid' | string // necessary for JS
-    maxDuration?: number
-    runtime?: 'edge' | 'experimental-edge' | 'nodejs' | string // necessary unless config is exported as const
-    regions?: string[]
-  }
-}
-
 type LayoutConfig<Route extends LayoutRoutes = LayoutRoutes> = {
   default: React.ComponentType<LayoutProps<Route>> | ((props: LayoutProps<Route>) => React.ReactNode | Promise<React.ReactNode> | never | void | Promise<void>)
   generateStaticParams?: (props: { params: ParamMap[Route] }) => Promise<any[]> | any[]
@@ -407,6 +389,15 @@ type RouteHandlerConfig<Route extends AppRouteHandlerRoutes = AppRouteHandlerRou
   type __Unused = __Check
 }
 
+// Validate ../../app/api/superadmin/system-settings/route.ts
+{
+  type __IsExpected<Specific extends RouteHandlerConfig<"/api/superadmin/system-settings">> = Specific
+  const handler = {} as typeof import("../../app/api/superadmin/system-settings/route.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
 // Validate ../../app/api/superadmin/users/[id]/reassign-tech-lead/route.ts
 {
   type __IsExpected<Specific extends RouteHandlerConfig<"/api/superadmin/users/[id]/reassign-tech-lead">> = Specific
@@ -488,95 +479,7 @@ type RouteHandlerConfig<Route extends AppRouteHandlerRoutes = AppRouteHandlerRou
   type __Unused = __Check
 }
 
-// Validate ../../src/pages/auth/Login.tsx
-{
-  type __IsExpected<Specific extends PagesPageConfig> = Specific
-  const handler = {} as typeof import("../../src/pages/auth/Login.js")
-  type __Check = __IsExpected<typeof handler>
-  // @ts-ignore
-  type __Unused = __Check
-}
 
-// Validate ../../src/pages/intern/InternDashboard.tsx
-{
-  type __IsExpected<Specific extends PagesPageConfig> = Specific
-  const handler = {} as typeof import("../../src/pages/intern/InternDashboard.js")
-  type __Check = __IsExpected<typeof handler>
-  // @ts-ignore
-  type __Unused = __Check
-}
-
-// Validate ../../src/pages/intern/MyProjects.tsx
-{
-  type __IsExpected<Specific extends PagesPageConfig> = Specific
-  const handler = {} as typeof import("../../src/pages/intern/MyProjects.js")
-  type __Check = __IsExpected<typeof handler>
-  // @ts-ignore
-  type __Unused = __Check
-}
-
-// Validate ../../src/pages/manager/ManagerOverview.tsx
-{
-  type __IsExpected<Specific extends PagesPageConfig> = Specific
-  const handler = {} as typeof import("../../src/pages/manager/ManagerOverview.js")
-  type __Check = __IsExpected<typeof handler>
-  // @ts-ignore
-  type __Unused = __Check
-}
-
-// Validate ../../src/pages/superadmin/SuperAdminAudit.tsx
-{
-  type __IsExpected<Specific extends PagesPageConfig> = Specific
-  const handler = {} as typeof import("../../src/pages/superadmin/SuperAdminAudit.js")
-  type __Check = __IsExpected<typeof handler>
-  // @ts-ignore
-  type __Unused = __Check
-}
-
-// Validate ../../src/pages/superadmin/SuperAdminModeration.tsx
-{
-  type __IsExpected<Specific extends PagesPageConfig> = Specific
-  const handler = {} as typeof import("../../src/pages/superadmin/SuperAdminModeration.js")
-  type __Check = __IsExpected<typeof handler>
-  // @ts-ignore
-  type __Unused = __Check
-}
-
-// Validate ../../src/pages/superadmin/SuperAdminOverview.tsx
-{
-  type __IsExpected<Specific extends PagesPageConfig> = Specific
-  const handler = {} as typeof import("../../src/pages/superadmin/SuperAdminOverview.js")
-  type __Check = __IsExpected<typeof handler>
-  // @ts-ignore
-  type __Unused = __Check
-}
-
-// Validate ../../src/pages/superadmin/SuperAdminSettings.tsx
-{
-  type __IsExpected<Specific extends PagesPageConfig> = Specific
-  const handler = {} as typeof import("../../src/pages/superadmin/SuperAdminSettings.js")
-  type __Check = __IsExpected<typeof handler>
-  // @ts-ignore
-  type __Unused = __Check
-}
-
-// Validate ../../src/pages/superadmin/SuperAdminUsers.tsx
-{
-  type __IsExpected<Specific extends PagesPageConfig> = Specific
-  const handler = {} as typeof import("../../src/pages/superadmin/SuperAdminUsers.js")
-  type __Check = __IsExpected<typeof handler>
-  // @ts-ignore
-  type __Unused = __Check
-}
-
-// Validate ../../src/pages/techlead/TeamOverview.tsx
-{
-  type __IsExpected<Specific extends PagesPageConfig> = Specific
-  const handler = {} as typeof import("../../src/pages/techlead/TeamOverview.js")
-  type __Check = __IsExpected<typeof handler>
-  // @ts-ignore
-  type __Unused = __Check
-}
 
 
 

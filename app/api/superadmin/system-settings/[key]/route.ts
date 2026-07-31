@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth, requireSuperAdmin } from "@/app/api/_lib/withAuth";
 import { getPrisma } from "@/src/db/prisma";
-import { mapSystemSetting } from "@/app/api/_lib/mappers";
+import { mapSystemSetting, logAudit } from "@/app/api/_lib/mappers";
 
 export async function GET(request: NextRequest) {
   let user;
@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { key: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ key: string }> }) {
   let user;
   try {
     user = await withAuth(request);
@@ -35,7 +35,7 @@ export async function PUT(request: NextRequest, { params }: { params: { key: str
     return NextResponse.json({ error: err.message }, { status });
   }
 
-  const { key } = params;
+  const { key } = await params;
   const { value } = await request.json();
 
   try {

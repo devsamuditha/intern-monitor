@@ -268,3 +268,5 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
   );
 };
 
+export default DashboardShell;
+

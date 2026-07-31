@@ -38,10 +38,6 @@ export async function withAuth(request: NextRequest) {
       throw new Error("Unauthorized: Active user not found in the database.");
     }
 
-    if (!dbUser.isActive) {
-      throw new Error("This account is inactive.");
-    }
-
     return dbUser;
   } catch (error: any) {
     if (error.message.includes("is not defined")) {
@@ -50,7 +46,7 @@ export async function withAuth(request: NextRequest) {
     if (error.message.includes("Unauthorized") || error.message.includes("inactive")) {
       throw error;
     }
-    throw new Error("Database error: Please run migrations and seed the database.");
+    throw new Error(`Database error: ${error.message}`);
   }
 }
 

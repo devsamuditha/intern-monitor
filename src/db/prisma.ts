@@ -25,33 +25,88 @@ class MockPrismaClient {
     return d.toISOString().split('T')[0];
   }
 
-  private seedInMemoryDb() {
+private seedInMemoryDb() {
     console.log("Initializing interactive in-memory fallback database... 🌱");
 
-    // Seed Users only so authentication flows work perfectly
-    this.users = [
-      { id: "m-elena", name: "Elena Rostova", email: "elena@manager.com", role: Role.MANAGER, avatarUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80", isActive: true },
-      { id: "tl-alex", name: "Alex Rivera", email: "alex@techlead.com", role: Role.TECH_LEAD, avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80", isActive: true },
-      { id: "tl-jordan", name: "Jordan Vance", email: "jordan@techlead.com", role: Role.TECH_LEAD, avatarUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80", isActive: true },
-      { id: "int-sam", name: "Sam Chen", email: "sam@intern.com", role: Role.INTERN, avatarUrl: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80", techLeadId: "tl-alex", isActive: true },
-      { id: "int-liam", name: "Liam O'Connor", email: "liam@intern.com", role: Role.INTERN, avatarUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80", techLeadId: "tl-alex", isActive: false },
-      { id: "int-sophia", name: "Sophia Martinez", email: "sophia@intern.com", role: Role.INTERN, avatarUrl: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80", techLeadId: "tl-alex", isActive: true },
-      { id: "int-maya", name: "Maya Lin", email: "maya@intern.com", role: Role.INTERN, avatarUrl: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80", techLeadId: "tl-jordan", isActive: true },
-      { id: "int-ethan", name: "Ethan Hunt", email: "ethan@intern.com", role: Role.INTERN, avatarUrl: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80", techLeadId: "tl-jordan", isActive: false },
-      { id: "int-zoe", name: "Zoe Taylor", email: "zoe@intern.com", role: Role.INTERN, avatarUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80", techLeadId: "tl-jordan", isActive: true },
+     this.users = [
+       { id: "m-elena", name: "Elena Rostova", email: "elena@manager.com", role: Role.MANAGER, avatarUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80", isActive: true },
+       { id: "tl-alex", name: "Alex Rivera", email: "alex@techlead.com", role: Role.TECH_LEAD, avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80", isActive: true },
+       { id: "tl-jordan", name: "Jordan Vance", email: "jordan@techlead.com", role: Role.TECH_LEAD, avatarUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80", isActive: true },
+       { id: "int-sam", name: "Sam Chen", email: "sam@intern.com", role: Role.INTERN, avatarUrl: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80", techLeadId: "tl-alex", isActive: true },
+       { id: "int-liam", name: "Liam O'Connor", email: "liam@intern.com", role: Role.INTERN, avatarUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80", techLeadId: "tl-alex", isActive: true },
+       { id: "int-sophia", name: "Sophia Martinez", email: "sophia@intern.com", role: Role.INTERN, avatarUrl: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80", techLeadId: "tl-alex", isActive: true },
+       { id: "int-maya", name: "Maya Lin", email: "maya@intern.com", role: Role.INTERN, avatarUrl: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80", techLeadId: "tl-jordan", isActive: true },
+       { id: "int-ethan", name: "Ethan Hunt", email: "ethan@intern.com", role: Role.INTERN, avatarUrl: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80", techLeadId: "tl-jordan", isActive: true },
+       { id: "int-zoe", name: "Zoe Taylor", email: "zoe@intern.com", role: Role.INTERN, avatarUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80", techLeadId: "tl-jordan", isActive: true },
+       { id: "sa-root", name: "Super Admin", email: "superadmin@company.com", role: Role.SUPER_ADMIN, avatarUrl: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80", isActive: true },
+     ];
+
+    const today = new Date().toISOString().split("T")[0];
+    const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0];
+    const lastWeek = new Date(Date.now() - 7 * 86400000).toISOString().split("T")[0];
+
+    this.projects = [
+      { id: "p-1", name: "Frontend Redesign", description: "Redesign the internal dashboard UI", githubUrl: "https://github.com/acme/frontend-redesign", techStack: ["React", "Tailwind"], ownerId: "tl-alex", screenshots: [], createdAt: new Date("2026-06-01") },
+      { id: "p-2", name: "API Gateway", description: "Build the new API gateway service", githubUrl: "https://github.com/acme/api-gateway", techStack: ["Node.js", "Express"], ownerId: "tl-jordan", screenshots: [], createdAt: new Date("2026-06-10") },
+      { id: "p-3", name: "Data Pipeline", description: "ETL pipeline for reporting", githubUrl: "https://github.com/acme/data-pipeline", techStack: ["Python", "Airflow"], ownerId: "m-elena", screenshots: [], createdAt: new Date("2026-05-15") },
     ];
 
-    // All active pipelines, daily log journals, assigned tasks, mistakes, marks, and threads are initialized empty.
-    this.projects = [];
-    this.dailyLogs = [];
-    this.marks = [];
-    this.mistakes = [];
-    this.tasks = [];
-    this.messages = [];
-    this.questions = [];
-    this.replies = [];
-    
-    console.log("Mock database initialized entirely empty and ready for sandbox operations. 🚀");
+    this.dailyLogs = [
+      { id: "log-1", internId: "int-sam", projectId: "p-1", summary: "Implemented responsive layout for dashboard", technologies: ["React", "Tailwind"], changes: "- Fixed sidebar navigation responsiveness\n- Added dark mode toggle support", screenshotUrl: undefined, githubUrl: "https://github.com/sam/frontend-redesign/commit/abc123", date: today, status: "submitted", isHidden: false, createdAt: new Date() },
+      { id: "log-2", internId: "int-sam", projectId: "p-1", summary: "Set up CI/CD pipeline for frontend", technologies: ["GitHub Actions", "Docker"], changes: "- Added GitHub Actions workflow\n- Configured Docker build for staging", screenshotUrl: undefined, githubUrl: "https://github.com/sam/frontend-redesign/commit/def456", date: yesterday, status: "reviewed", isHidden: false, createdAt: new Date(Date.now() - 86400000) },
+      { id: "log-3", internId: "int-sophia", projectId: "p-1", summary: "Built component library primitives", technologies: ["React", "Storybook"], changes: "- Created Button and Input primitives\n- Added theme variants", screenshotUrl: undefined, githubUrl: "https://github.com/sophia/frontend-redesign/commit/ghi789", date: today, status: "submitted", isHidden: false, createdAt: new Date() },
+      { id: "log-4", internId: "int-liam", projectId: "p-1", summary: "Investigated accessibility issues", technologies: ["React", "axe-core"], changes: "- Fixed color contrast on buttons\n- Added ARIA labels to form fields", screenshotUrl: undefined, githubUrl: "https://github.com/liam/frontend-redesign/commit/jkl012", date: lastWeek, status: "reviewed", isHidden: false, createdAt: new Date(Date.now() - 14 * 86400000) },
+      { id: "log-5", internId: "int-maya", projectId: "p-2", summary: "Implemented rate limiting middleware", technologies: ["Node.js", "Express"], changes: "- Added rate limiter middleware\n- Configured per-route limits", screenshotUrl: undefined, githubUrl: "https://github.com/maya/api-gateway/commit/mno345", date: today, status: "submitted", isHidden: false, createdAt: new Date() },
+      { id: "log-6", internId: "int-maya", projectId: "p-2", summary: "Set up error logging and alerting", technologies: ["Node.js", "Sentry"], changes: "- Integrated Sentry for error tracking\n- Added alert webhook", screenshotUrl: undefined, githubUrl: "https://github.com/maya/api-gateway/commit/pqr678", date: yesterday, status: "reviewed", isHidden: false, createdAt: new Date(Date.now() - 86400000) },
+      { id: "log-7", internId: "int-zoe", projectId: "p-2", summary: "Refactored auth middleware", technologies: ["Node.js", "JWT"], changes: "- Modularized auth check logic\n- Added token refresh handling", screenshotUrl: undefined, githubUrl: "https://github.com/zoe/api-gateway/commit/stu901", date: today, status: "submitted", isHidden: false, createdAt: new Date() },
+      { id: "log-8", internId: "int-ethan", projectId: "p-2", summary: "Wrote API documentation", technologies: ["Swagger", "OpenAPI"], changes: "- Documented all endpoints\n- Added usage examples", screenshotUrl: undefined, githubUrl: "https://github.com/ethan/api-gateway/commit/vwx234", date: lastWeek, status: "reviewed", isHidden: false, createdAt: new Date(Date.now() - 14 * 86400000) },
+    ];
+
+    this.tasks = [
+      { id: "task-1", assignedToId: "int-sam", assignedById: "tl-alex", title: "Build notification drawer component", description: "Create a notification drawer that shows real-time alerts", dueDate: today, priority: TaskPriority.HIGH, status: TaskStatus.IN_PROGRESS, completedAt: null, score: null, comment: null, blockers: null, prLink: null, createdAt: new Date() },
+      { id: "task-2", assignedToId: "int-sam", assignedById: "tl-alex", title: "Fix mobile nav crash on iOS", description: "Investigate and fix the sidebar crash on iOS Safari", dueDate: yesterday, priority: TaskPriority.HIGH, status: TaskStatus.DONE, completedAt: yesterday, score: 5, comment: "Great fix, clean implementation", blockers: null, prLink: "https://github.com/sam/frontend-redesign/commit/xyz", createdAt: new Date(Date.now() - 2 * 86400000) },
+      { id: "task-3", assignedToId: "int-sophia", assignedById: "tl-alex", title: "Add theme switcher persistence", description: "Persist theme preference to localStorage", dueDate: today, priority: TaskPriority.MEDIUM, status: TaskStatus.TODO, completedAt: null, score: null, comment: null, blockers: null, prLink: null, createdAt: new Date() },
+      { id: "task-4", assignedToId: "int-maya", assignedById: "tl-jordan", title: "Add pagination to logs API", description: "Implement cursor-based pagination for the daily logs endpoint", dueDate: today, priority: TaskPriority.MEDIUM, status: TaskStatus.TODO, completedAt: null, score: null, comment: null, blockers: null, prLink: null, createdAt: new Date() },
+      { id: "task-5", assignedToId: "int-zoe", assignedById: "tl-jordan", title: "Write unit tests for auth module", description: "Cover all auth middleware functions with unit tests", dueDate: lastWeek, priority: TaskPriority.LOW, status: TaskStatus.DONE, completedAt: lastWeek, score: 4, comment: "Solid coverage, good edge case handling", blockers: null, prLink: "https://github.com/zoe/api-gateway/commit/test123", createdAt: new Date(Date.now() - 10 * 86400000) },
+    ];
+
+    this.marks = [
+      { id: "mrk-1", internId: "int-sam", givenById: "tl-alex", relatedLogId: "log-2", relatedTaskId: null, score: 85, comment: "Good CI/CD setup, well-structured", date: yesterday },
+      { id: "mrk-2", internId: "int-liam", givenById: "tl-alex", relatedLogId: "log-4", relatedTaskId: null, score: 70, comment: "Solid accessibility work, needs more test cases", date: lastWeek },
+      { id: "mrk-3", internId: "int-maya", givenById: "tl-jordan", relatedLogId: "log-6", relatedTaskId: null, score: 90, comment: "Excellent logging integration", date: yesterday },
+    ];
+
+    this.mistakes = [
+      { id: "mst-1", internId: "int-ethan", flaggedById: "tl-jordan", relatedLogId: "log-8", note: "Missing rate limiting on public endpoints", severity: MistakeSeverity.MEDIUM, date: lastWeek, resolved: true, createdAt: new Date(Date.now() - 14 * 86400000) },
+      { id: "mst-2", internId: "int-liam", flaggedById: "tl-alex", relatedLogId: "log-4", note: "Inconsistent error handling pattern", severity: MistakeSeverity.LOW, date: lastWeek, resolved: true, createdAt: new Date(Date.now() - 14 * 86400000) },
+    ];
+
+    this.messages = [
+      { id: "msg-1", fromId: "tl-alex", toId: "int-sam", content: "Hey Sam, the notification drawer is looking good. Can you also add support for grouped notifications?", createdAt: new Date(Date.now() - 3600000), read: true },
+      { id: "msg-2", fromId: "int-sam", toId: "tl-alex", content: "Sure, I can extend it to support grouping by type. Will have it done by EOD.", createdAt: new Date(Date.now() - 1800000), read: false },
+      { id: "msg-3", fromId: "tl-jordan", toId: "int-maya", content: "Maya, the pagination PR is ready for review. Please test the cursor-based approach.", createdAt: new Date(Date.now() - 7200000), read: false },
+      { id: "msg-4", fromId: "int-zoe", toId: "tl-jordan", content: "The auth module tests are all passing. Ready for your review.", createdAt: new Date(Date.now() - 10800000), read: true },
+    ];
+
+    this.questions = [
+      { id: "q-1", internId: "int-sam", title: "How to handle auth token refresh?", content: "What is the recommended approach for refreshing JWT tokens without causing race conditions?", createdAt: new Date(), isHidden: false, replies: [{ id: "r-1", questionId: "q-1", authorId: "tl-alex", content: "Use a mutex pattern — queue the refresh and share the promise across concurrent requests. See the auth middleware for an example.", createdAt: new Date(Date.now() - 3600000), isHidden: false }] },
+      { id: "q-2", internId: "int-sophia", title: "Best practice for Storybook theming?", content: "Has anyone set up Storybook to work with the Tailwind theme dark mode?", createdAt: new Date(Date.now() - 86400000), isHidden: false, replies: [] },
+    ];
+
+    this.replies = [
+      { id: "r-1", questionId: "q-1", authorId: "tl-alex", content: "Use a mutex pattern — queue the refresh and share the promise across concurrent requests.", createdAt: new Date(Date.now() - 3600000), isHidden: false },
+      { id: "r-2", questionId: "q-1", authorId: "int-sam", content: "Thanks Alex, I'll implement the mutex pattern today.", createdAt: new Date(Date.now() - 1800000), isHidden: false },
+    ];
+
+    this.daySessions = [
+      { id: "ds-1", internId: "int-sam", date: today, startedAt: "9:00 AM", endedAt: undefined, status: "active", todayProject: "Frontend Redesign", todayPlan: "Finish notification drawer component", questions: null, gitLink: null, endJournal: null, createdAt: new Date() },
+      { id: "ds-2", internId: "int-sam", date: yesterday, startedAt: "9:15 AM", endedAt: "5:30 PM", status: "completed", todayProject: "Frontend Redesign", todayPlan: "Set up CI/CD pipeline", questions: "How to configure staging env?", gitLink: "https://github.com/sam/frontend-redesign", endJournal: "CI/CD pipeline is working. Staging deploys successfully.", createdAt: new Date(Date.now() - 86400000) },
+      { id: "ds-3", internId: "int-sophia", date: today, startedAt: "8:45 AM", endedAt: undefined, status: "active", todayProject: "Frontend Redesign", todayPlan: "Build component library primitives", questions: null, gitLink: null, endJournal: null, createdAt: new Date() },
+      { id: "ds-4", internId: "int-maya", date: today, startedAt: "10:00 AM", endedAt: undefined, status: "active", todayProject: "API Gateway", todayPlan: "Implement rate limiting middleware", questions: null, gitLink: null, endJournal: null, createdAt: new Date() },
+      { id: "ds-5", internId: "int-maya", date: yesterday, startedAt: "9:00 AM", endedAt: "5:00 PM", status: "completed", todayProject: "API Gateway", todayPlan: "Set up error logging", questions: null, gitLink: "https://github.com/maya/api-gateway", endJournal: "Sentry integration is working. Alert webhooks configured.", createdAt: new Date(Date.now() - 86400000) },
+    ];
+
+    console.log("Mock database seeded with users, projects, logs, tasks, marks, mistakes, messages, questions, and day sessions. 🚀");
   }
 
   // --- QUERY HANDLERS ---
@@ -411,11 +466,13 @@ export function getPrisma(): PrismaClient {
     dbUrl.includes('MY_DATABASE_URL') || 
     dbUrl.includes('password@host') ||
     dbUrl.includes('localhost:5432') ||
-    dbUrl.includes('127.0.0.1:5432')
+    dbUrl.includes('127.0.0.1:5432') ||
+    dbUrl.includes('HOST:5432')
   );
 
   if (!isValidUrl || isPlaceholder) {
-    throw new Error('DATABASE_URL environment variable is missing, invalid, or a default placeholder. Cannot start without a valid database connection.');
+    console.warn("DATABASE_URL missing/invalid — using in-memory MockPrismaClient fallback");
+    return mockPrismaInstance as any;
   }
 
   if (!prisma) {

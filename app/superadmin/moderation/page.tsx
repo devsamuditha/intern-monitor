@@ -2,13 +2,14 @@
 
 import React, { useState, useEffect } from "react";
 import { DashboardShell } from "@/src/components/layout/DashboardShell";
-import { SuperAdminModeration } from "@/src/pages/superadmin/SuperAdminModeration";
+import { SuperAdminModeration } from "@/src/views/superadmin/SuperAdminModeration";
 import { useAuth } from "@/src/context/AuthContext";
 import { api } from "@/src/services/api";
 
 export default function SuperAdminModerationPage() {
   const { user } = useAuth();
   const [settings, setSettings] = useState<Record<string, any>>({});
+  const [activeTab, setActiveTab] = useState("moderation");
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -25,8 +26,8 @@ export default function SuperAdminModerationPage() {
   if (!user) return null;
 
   return (
-    <DashboardShell settings={settings}>
-      <SuperAdminModeration currentUser={user} />
+    <DashboardShell settings={settings} activeTab={activeTab} setActiveTab={setActiveTab}>
+      <SuperAdminModeration />
     </DashboardShell>
   );
 }

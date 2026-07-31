@@ -7,7 +7,7 @@ import { TaskStatusSchema } from "@/app/api/_lib/validation";
 import { getRelativeDateStr } from "@/app/api/_lib/mappers";
 import { isValidGithubUrl } from "@/app/api/_lib/mappers";
 
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     await withAuth(request);
   } catch (err: any) {
@@ -22,7 +22,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     return NextResponse.json({ error: err.message }, { status: 400 });
   }
 
-  const { id } = params;
+  const { id } = await params;
   const { status, blockers, pr_link } = body;
 
   const validStatuses = ["todo", "in_progress", "done", "TODO", "IN_PROGRESS", "DONE"];

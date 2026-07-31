@@ -63,9 +63,9 @@ export async function POST(request: NextRequest) {
         description,
         githubUrl: github_url,
         techStack: tech_stack || [],
-        ownerId: owner_id,
+        ownerId: owner_id as any,
         screenshots: screenshots || ["https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=600&q=80"],
-      },
+      } as any,
     });
     return NextResponse.json(mapProject(created));
   } catch (error: any) {

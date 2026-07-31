@@ -5,7 +5,7 @@ import { mapMistake } from "@/app/api/_lib/mappers";
 import { validateBody } from "@/app/api/_lib/validation";
 import { ResolveMistakeSchema } from "@/app/api/_lib/validation";
 
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     await withAuth(request);
   } catch (err: any) {
@@ -20,7 +20,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     return NextResponse.json({ error: err.message }, { status: 400 });
   }
 
-  const { id } = params;
+  const { id } = await params;
   const { resolved } = body;
 
   try {

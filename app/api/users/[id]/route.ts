@@ -7,7 +7,7 @@ import { UpdateUserSchema } from "@/app/api/_lib/validation";
 import { Role } from "@prisma/client";
 import { logAudit } from "@/app/api/_lib/mappers";
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   let user;
   try {
     user = await withAuth(request);
@@ -24,7 +24,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     return NextResponse.json({ error: err.message }, { status: 400 });
   }
 
-  const { id } = params;
+  const { id } = await params;
   const { name, role, assigned_tech_lead_id, active } = body;
 
   try {

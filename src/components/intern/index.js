@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+export { AskTeamThread } from './AskTeamThread';
 export { StatsHeader } from './StatsHeader';
 export { StartDayHero } from './StartDayHero';
 export { StartDayModal } from './StartDayModal';
