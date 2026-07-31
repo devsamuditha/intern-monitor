@@ -1,39 +1,123 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# 🚀 Intern Monitor App
 
-# InternTrack
+A full-stack web application for managing and monitoring interns. The system allows interns to submit daily work updates while Tech Leads and Managers can review progress, provide feedback, and track performance through a centralized dashboard.
 
-A light, satisfying progress monitoring dashboard for software engineering interns, tech leads, and managers with real-time logging, reviews, tasks, and analytics.
+---
 
-## Tech Stack
+## 📸 Screenshots
 
-- **Frontend**: React 19, TypeScript, Vite 6, Tailwind CSS v4, Motion
-- **Backend**: Express 4, TypeScript (tsx for dev, esbuild for prod)
-- **Database**: PostgreSQL via Supabase, Prisma ORM
-- **Auth**: Supabase Authentication (email-based)
-- **Storage**: Supabase Storage (screenshots)
-- **AI**: Google Gemini API (for smart reviews)
-- **Realtime**: Supabase Realtime (live dashboard updates)
+### Login Page
+![Login](./screenshots/login.png)
 
-## Setup
+### Dashboard
+![Dashboard](./screenshots/dashboard.png)
 
-1. Copy `.env.example` to `.env` and fill in your credentials
-2. Install dependencies: `npm install`
-3. Run database migrations: `npx prisma migrate dev`
-4. Seed the database: `npx prisma db seed`
-5. Start dev server: `npm run dev`
-6. Open http://localhost:3000
+### Intern Management
+![Interns](./screenshots/interns.png)
 
-## Production
+### Tech Lead Dashboard
+![Tech Lead](./screenshots/tech-lead.png)
 
-```powershell
-npm run build
-npm start
+### Reports & Analytics
+![Reports](./screenshots/reports.png)
+
+---
+
+## ✨ Features
+
+- 👨‍🎓 Intern Management
+- 👨‍💼 Role-Based Access (Intern, Tech Lead, Manager)
+- 📝 Daily Work Log Submission
+- 📊 Performance Tracking
+- 💬 Feedback & Review System
+- 📅 Attendance Monitoring
+- 📈 Dashboard & Analytics
+- 🔐 Secure Authentication
+- 🗄️ Database Integration
+
+---
+
+## 🛠️ Tech Stack
+
+### Frontend
+
+- React
+- TypeScript
+- Tailwind CSS
+- Vite
+- React Router
+- Axios
+
+### Backend
+
+- Express.js
+- Node.js
+- Prisma ORM
+- Supabase
+- PostgreSQL
+
+---
+
+## 📂 Project Structure
+
+```
+client/
+server/
+prisma/
+public/
 ```
 
-## Roles
+---
 
-- **Intern** — Dashboard, daily logs, projects, tasks, discussions
-- **Tech Lead** — Team overview, review queue, intern detail, discussions
-- **Manager** — Analytics overview, user management, all projects, discussions
+## 🚀 Getting Started
+
+### Clone the repository
+
+```bash
+git clone https://github.com/yourusername/intern-monitor-app.git
+```
+
+### Install dependencies
+
+```bash
+npm install
+```
+
+### Start the frontend
+
+```bash
+npm run dev
+```
+
+### Start the backend
+
+```bash
+npm run server
+```
+
+---
+
+## 📸 Future Improvements
+
+- Email Notifications
+- Real-Time Updates
+- File Uploads
+- Chat System
+- Mobile Responsive UI
+- Dark Mode
+- AI Performance Insights
+
+---
+
+## 👨‍💻 Author
+
+**Shehan Samuditha**
+
+- GitHub: https://github.com/devsamuditha
+- LinkedIn: *(Add your LinkedIn profile here)*
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License.
