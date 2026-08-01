@@ -26,32 +26,32 @@ export const UserManagement: React.FC<UserManagementProps> = ({ currentUser, onR
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState<'all' | UserRole>('all');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'deactivated'>('all');
 
   // Modal states
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [editName, setEditName] = useState('');
   const [editRole, setEditRole] = useState<UserRole>('intern');
   const [editTechLeadId, setEditTechLeadId] = useState<string>('');
-  const [editActive, setEditActive] = useState<boolean>(true);
   const [submittingEdit, setSubmittingEdit] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
 
   // Create User Modal states
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [newName, setNewName] = useState('');
-  const [newEmail, setNewEmail] = useState('');
-  const [newRole, setNewRole] = useState<UserRole>('intern');
-  const [newTechLeadId, setNewTechLeadId] = useState<string>('');
+  const [newName, setNewName] = useState("");
+  const [newEmail, setNewEmail] = useState("");
+  const [newRole, setNewRole] = useState<UserRole>("intern");
+  const [newTechLeadId, setNewTechLeadId] = useState<string>("");
   const [submittingCreate, setSubmittingCreate] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
+
+  const [createdCredentials, setCreatedCredentials] = useState<{ username: string; password: string; name: string } | null>(null);
 
   const loadUsersData = async () => {
     setLoading(true);
     try {
       const allUsers = await api.getUsers();
       setUsers(allUsers);
-      setTechLeads(allUsers.filter(u => u.role === 'tech_lead' && u.active !== false));
+      setTechLeads(allUsers.filter(u => u.role === 'tech_lead'));
     } catch (err) {
       console.error("Failed to load users for management:", err);
     } finally {
@@ -65,14 +65,8 @@ export const UserManagement: React.FC<UserManagementProps> = ({ currentUser, onR
 
   // Filter users
   const filteredUsers = users.filter(u => {
-    // Role filter
     if (roleFilter !== 'all' && u.role !== roleFilter) return false;
 
-    // Status filter
-    if (statusFilter === 'active' && u.active === false) return false;
-    if (statusFilter === 'deactivated' && u.active !== false) return false;
-
-    // Search query
     if (searchQuery.trim() !== '') {
       const q = searchQuery.toLowerCase();
       const matchName = u.name.toLowerCase().includes(q);
@@ -89,7 +83,6 @@ export const UserManagement: React.FC<UserManagementProps> = ({ currentUser, onR
     setEditName(user.name);
     setEditRole(user.role);
     setEditTechLeadId(user.assigned_tech_lead_id || '');
-    setEditActive(user.active !== false);
     setEditError(null);
   };
 
@@ -105,7 +98,6 @@ export const UserManagement: React.FC<UserManagementProps> = ({ currentUser, onR
         name: editName.trim(),
         role: editRole,
         assigned_tech_lead_id: editRole === 'intern' ? (editTechLeadId || undefined) : undefined,
-        active: editActive,
       });
 
       setEditingUser(null);
@@ -116,23 +108,6 @@ export const UserManagement: React.FC<UserManagementProps> = ({ currentUser, onR
       setEditError(err.message || "Failed to update user details.");
     } finally {
       setSubmittingEdit(false);
-    }
-  };
-
-  const handleToggleDeactivate = async (user: User) => {
-    const newActiveState = user.active === false ? true : false;
-    const actionText = newActiveState ? 'reactivate' : 'deactivate';
-    
-    if (!window.confirm(`Are you sure you want to ${actionText} the account for ${user.name}?`)) {
-      return;
-    }
-
-    try {
-      await api.toggleUserStatus(user.id, newActiveState);
-      await loadUsersData();
-      if (onRefresh) onRefresh();
-    } catch (err: any) {
-      alert(`Failed to ${actionText} user: ${err.message}`);
     }
   };
 
@@ -147,21 +122,18 @@ export const UserManagement: React.FC<UserManagementProps> = ({ currentUser, onR
     setCreateError(null);
 
     try {
-      // Create user
-      const customId = `usr-${Date.now()}`;
-      await api.registerUser({
-        id: customId,
+      const data = await api.registerUser({
         name: newName.trim(),
         email: newEmail.trim().toLowerCase(),
         role: newRole,
-        techLeadId: newRole === 'intern' ? (newTechLeadId || null) : null,
+        techLeadId: newRole === "intern" ? (newTechLeadId || null) : null,
       });
-
+      setCreatedCredentials({ username: data.username, password: data.password, name: newName.trim() });
       setShowCreateModal(false);
-      setNewName('');
-      setNewEmail('');
-      setNewRole('intern');
-      setNewTechLeadId('');
+      setNewName("");
+      setNewEmail("");
+      setNewRole("intern");
+      setNewTechLeadId("");
       await loadUsersData();
       if (onRefresh) onRefresh();
     } catch (err: any) {
@@ -177,7 +149,6 @@ export const UserManagement: React.FC<UserManagementProps> = ({ currentUser, onR
   const internCount = users.filter(u => u.role === 'intern').length;
   const techLeadCount = users.filter(u => u.role === 'tech_lead').length;
   const managerCount = users.filter(u => u.role === 'manager').length;
-  const deactivatedCount = users.filter(u => u.active === false).length;
 
   if (loading) {
     return (
@@ -226,11 +197,11 @@ export const UserManagement: React.FC<UserManagementProps> = ({ currentUser, onR
         </div>
 
         {/* User Summary Badges */}
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 pt-2">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
           <div 
-            onClick={() => { setRoleFilter('all'); setStatusFilter('all'); }}
+            onClick={() => { setRoleFilter('all'); }}
             className={`p-3 rounded-xl border cursor-pointer transition ${
-              roleFilter === 'all' && statusFilter === 'all'
+              roleFilter === 'all'
                 ? 'bg-teal-50 dark:bg-teal-950/40 border-teal-300 dark:border-teal-800 ring-2 ring-teal-400/20'
                 : 'bg-slate-50/50 dark:bg-slate-950/50 border-slate-200 dark:border-slate-800'
             }`}
@@ -240,7 +211,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ currentUser, onR
           </div>
 
           <div 
-            onClick={() => { setRoleFilter('intern'); setStatusFilter('all'); }}
+            onClick={() => { setRoleFilter('intern'); }}
             className={`p-3 rounded-xl border cursor-pointer transition ${
               roleFilter === 'intern'
                 ? 'bg-blue-50 dark:bg-blue-950/40 border-blue-300 dark:border-blue-800 ring-2 ring-blue-400/20'
@@ -252,7 +223,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ currentUser, onR
           </div>
 
           <div 
-            onClick={() => { setRoleFilter('tech_lead'); setStatusFilter('all'); }}
+            onClick={() => { setRoleFilter('tech_lead'); }}
             className={`p-3 rounded-xl border cursor-pointer transition ${
               roleFilter === 'tech_lead'
                 ? 'bg-purple-50 dark:bg-purple-950/40 border-purple-300 dark:border-purple-800 ring-2 ring-purple-400/20'
@@ -264,7 +235,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ currentUser, onR
           </div>
 
           <div 
-            onClick={() => { setRoleFilter('manager'); setStatusFilter('all'); }}
+            onClick={() => { setRoleFilter('manager'); }}
             className={`p-3 rounded-xl border cursor-pointer transition ${
               roleFilter === 'manager'
                 ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-300 dark:border-amber-800 ring-2 ring-amber-400/20'
@@ -274,24 +245,12 @@ export const UserManagement: React.FC<UserManagementProps> = ({ currentUser, onR
             <span className="text-[10px] font-bold uppercase text-amber-600 dark:text-amber-400">Managers</span>
             <p className="text-lg font-black text-amber-900 dark:text-amber-200">{managerCount}</p>
           </div>
-
-          <div 
-            onClick={() => { setRoleFilter('all'); setStatusFilter('deactivated'); }}
-            className={`p-3 rounded-xl border cursor-pointer transition col-span-2 sm:col-span-1 ${
-              statusFilter === 'deactivated'
-                ? 'bg-rose-50 dark:bg-rose-950/40 border-rose-300 dark:border-rose-800 ring-2 ring-rose-400/20'
-                : 'bg-slate-50/50 dark:bg-slate-950/50 border-slate-200 dark:border-slate-800'
-            }`}
-          >
-            <span className="text-[10px] font-bold uppercase text-rose-600 dark:text-rose-400">Deactivated</span>
-            <p className="text-lg font-black text-rose-900 dark:text-rose-200">{deactivatedCount}</p>
-          </div>
         </div>
       </div>
 
       {/* Toolbar & Filters */}
       <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-slate-700/30 p-4 shadow-lg shadow-teal-500/5 space-y-3">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           
           {/* Search */}
           <div className="relative">
@@ -319,19 +278,6 @@ export const UserManagement: React.FC<UserManagementProps> = ({ currentUser, onR
             </select>
           </div>
 
-          {/* Status Filter */}
-          <div>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as any)}
-              className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-xs font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
-            >
-              <option value="all">🌐 Active & Deactivated</option>
-              <option value="active">✅ Active Accounts Only</option>
-              <option value="deactivated">🚫 Deactivated Accounts Only</option>
-            </select>
-          </div>
-
         </div>
       </div>
 
@@ -344,28 +290,24 @@ export const UserManagement: React.FC<UserManagementProps> = ({ currentUser, onR
                 <th className="p-4">User Identity</th>
                 <th className="p-4">Assigned Role</th>
                 <th className="p-4">Reporting Mentor</th>
-                <th className="p-4">Account Status</th>
-                <th className="p-4 text-right">SuperAdmin Controls</th>
+                <th className="p-4 text-right">Controls</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/30 dark:divide-slate-700/30 text-xs">
               {filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="py-12 text-center text-slate-400">
+                  <td colSpan={4} className="py-12 text-center text-slate-400">
                     No users found matching your filter criteria.
                   </td>
                 </tr>
               ) : (
-                filteredUsers.map(u => {
+                  filteredUsers.map(u => {
                   const assignedLead = techLeads.find(tl => tl.id === u.assigned_tech_lead_id);
-                  const isDeactivated = u.active === false;
 
                   return (
                     <tr 
                       key={u.id}
-                      className={`hover:bg-slate-50/70 dark:hover:bg-slate-950/60 transition ${
-                        isDeactivated ? 'opacity-60 bg-rose-50/20 dark:bg-rose-950/10' : ''
-                      }`}
+                      className="hover:bg-slate-50/70 dark:hover:bg-slate-950/60 transition"
                     >
                       {/* Name & Avatar */}
                       <td className="p-4">
@@ -419,18 +361,6 @@ export const UserManagement: React.FC<UserManagementProps> = ({ currentUser, onR
                         )}
                       </td>
 
-                      {/* Status */}
-                      <td className="p-4">
-                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold inline-flex items-center gap-1 ${
-                          isDeactivated
-                            ? 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300'
-                            : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
-                        }`}>
-                          {isDeactivated ? <UserX className="h-3 w-3" /> : <UserCheck className="h-3 w-3" />}
-                          {isDeactivated ? 'Deactivated' : 'Active Account'}
-                        </span>
-                      </td>
-
                       {/* Action Controls */}
                       <td className="p-4 text-right space-x-2">
                         <button
@@ -439,28 +369,6 @@ export const UserManagement: React.FC<UserManagementProps> = ({ currentUser, onR
                         >
                           <Edit3 className="h-3.5 w-3.5" />
                           Edit Role / Lead
-                        </button>
-
-                        <button
-                          onClick={() => handleToggleDeactivate(u)}
-                          disabled={u.id === currentUser.id}
-                          className={`px-3 py-1.5 rounded-xl font-semibold text-[11px] transition inline-flex items-center gap-1 disabled:opacity-40 ${
-                            isDeactivated
-                              ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300'
-                              : 'bg-rose-50 hover:bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300'
-                          }`}
-                        >
-                          {isDeactivated ? (
-                            <>
-                              <UserCheck className="h-3.5 w-3.5" />
-                              Reactivate
-                            </>
-                          ) : (
-                            <>
-                              <UserX className="h-3.5 w-3.5" />
-                              Deactivate
-                            </>
-                          )}
                         </button>
                       </td>
                     </tr>
@@ -552,20 +460,6 @@ export const UserManagement: React.FC<UserManagementProps> = ({ currentUser, onR
                     </select>
                   </div>
                 )}
-
-                <div className="pt-2">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={editActive}
-                      onChange={(e) => setEditActive(e.target.checked)}
-                      className="rounded border-slate-300 text-teal-600 focus:ring-teal-500 h-4 w-4"
-                    />
-                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
-                      Account Status: Active & Authorized to Sign In
-                    </span>
-                  </label>
-                </div>
 
                 <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
                   <button
@@ -706,6 +600,79 @@ export const UserManagement: React.FC<UserManagementProps> = ({ currentUser, onR
           </div>
         )}
       </AnimatePresence>
+
+      {/* Generated Credentials Modal */}
+      <AnimatePresence>
+        {createdCredentials && (
+          <CredentialsModal
+            name={createdCredentials.name}
+            username={createdCredentials.username}
+            password={createdCredentials.password}
+            onClose={() => setCreatedCredentials(null)}
+          />
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+interface CredentialsModalProps {
+  name: string;
+  username: string;
+  password: string;
+  onClose: () => void;
+}
+
+const CredentialsModal: React.FC<CredentialsModalProps> = ({ name, username, password, onClose }) => {
+  return (
+    <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <motion.div
+        variants={scaleIn}
+        initial="initial"
+        animate="animate"
+        exit="exit"
+        className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-slate-700/30 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 relative"
+      >
+        <div className="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-800">
+          <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
+            Credentials for {name}
+          </h3>
+        </div>
+
+        <div className="space-y-3">
+          <div>
+            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+              Username
+            </label>
+            <code className="block text-sm font-mono bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 rounded-xl break-all">
+              {username}
+            </code>
+          </div>
+          <div>
+            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+              Temporary Password
+            </label>
+            <code className="block text-sm font-mono bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 rounded-xl break-all">
+              {password}
+            </code>
+          </div>
+        </div>
+
+        <div className="p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/40 rounded-xl">
+          <p className="text-[10px] font-semibold text-amber-700 dark:text-amber-300">
+            Share these credentials securely. The user must change this password on first login.
+          </p>
+        </div>
+
+        <div className="flex justify-end pt-3 border-t border-slate-100 dark:border-slate-800">
+          <button
+            onClick={onClose}
+            className="px-5 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold transition shadow-md shadow-teal-600/20"
+          >
+            Got It
+          </button>
+        </div>
+      </motion.div>
     </div>
   );
 };

@@ -34,14 +34,17 @@ enum MistakeSeverity {
 }
 
 model User {
-  id               String    @id @default(uuid())
-  name             String
-  email            String    @unique
-  role             Role
-  avatarUrl        String
-  techLeadId       String?
-  isActive         Boolean   @default(true)
-  createdAt        DateTime  @default(now())
+  id                String    @id @default(uuid())
+  name              String
+  email             String    @unique
+  username          String    @unique
+  passwordHash      String
+  mustChangePassword Boolean  @default(true)
+  role              Role
+  avatarUrl         String
+  techLeadId        String?
+  isActive          Boolean   @default(true)
+  createdAt         DateTime  @default(now())
 
   // Self-relation: Tech Lead has many Interns
   techLead         User?     @relation("TechLeadInterns", fields: [techLeadId], references: [id], onDelete: SetNull)

@@ -6,7 +6,6 @@ import { validateBody } from "@/app/api/_lib/validation";
 import { SubmitDailyLogSchema } from "@/app/api/_lib/validation";
 import { uploadBase64Image } from "@/src/lib/supabase";
 import { getRelativeDateStr } from "@/app/api/_lib/mappers";
-import { logger } from "@/src/lib/logger";
 
 export async function GET(request: NextRequest) {
   try {
@@ -65,7 +64,7 @@ export async function POST(request: NextRequest) {
       try {
         resolvedScreenshotUrl = await uploadBase64Image(screenshot_url);
       } catch (err) {
-        logger.warn({ err }, "Storage upload failed, keeping original base64/placeholder");
+        console.warn("Storage upload failed, keeping original base64/placeholder:", err);
       }
     }
 

@@ -21,40 +21,14 @@ import {
 } from "../types.js";
 import { AuditLog, SystemSetting, ContentFlag } from "../types.js";
 
-// Helper to construct request headers dynamically based on logged in user session
-const getHeaders = (): Record<string, string> => {
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json"
-  };
-  
-  const savedUserStr = localStorage.getItem('user');
-  if (savedUserStr) {
-    try {
-      const user = JSON.parse(savedUserStr);
-      if (user && user.id) {
-        headers["x-user-id"] = user.id;
-      }
-    } catch (e) {
-      console.error("Error parsing user from localStorage inside api services:", e);
-    }
-  }
-  return headers;
-};
+// Helper to construct request headers. Auth is handled via HttpOnly session cookies
+// which the browser sends automatically for same-origin requests, so no manual
+// Authorization / x-user-id headers are required.
+const getHeaders = (): Record<string, string> => ({
+  "Content-Type": "application/json",
+});
 
-const getAuthHeaders = async (): Promise<Record<string, string>> => {
-  const headers = getHeaders();
-  try {
-    const { getSupabaseClient } = await import('../lib/supabaseClient');
-    const supabase = await getSupabaseClient();
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session?.access_token) {
-      headers["Authorization"] = `Bearer ${session.access_token}`;
-    }
-  } catch (e) {
-    // Supabase not configured, continue with x-user-id only
-  }
-  return headers;
-};
+const getAuthHeaders = async (): Promise<Record<string, string>> => getHeaders();
 
 const handleResponse = async (response: Response) => {
   if (!response.ok) {
@@ -73,42 +47,69 @@ const handleResponse = async (response: Response) => {
 
 export const api = {
   // Config
-  getConfig: async (): Promise<{ supabaseUrl: string; supabaseAnonKey: string }> => {
+  getConfig: async (): Promise<Record<string, any>> => {
     const res = await fetch("/api/config");
     return handleResponse(res);
   },
 
   // Auth
-  login: async (email: string): Promise<{ user: User }> => {
+  login: async (username: string, password: string): Promise<{ user: User }> => {
     const res = await fetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email })
+      body: JSON.stringify({ username, password })
     });
     return handleResponse(res);
   },
 
-  checkEmailExists: async (email: string): Promise<boolean> => {
-    const res = await fetch("/api/auth/check-email", {
+  getSession: async (): Promise<{ user: User | null }> => {
+    const res = await fetch("/api/auth/session", {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    });
+    return handleResponse(res);
+  },
+
+  logout: async (): Promise<{ success: boolean }> => {
+    const res = await fetch("/api/auth/logout", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email })
+    });
+    return handleResponse(res);
+  },
+
+  checkUsernameExists: async (username: string): Promise<boolean> => {
+    const res = await fetch("/api/auth/check-username", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username })
     });
     const data = await handleResponse(res);
     return data.exists;
   },
 
-  registerUser: async (user: {
-    id: string;
-    email: string;
+  registerUser: async (data: {
     name: string;
+    email: string;
     role: string;
     techLeadId?: string | null;
-  }): Promise<{ user: User }> => {
+  }): Promise<{ user: User; username: string; password: string }> => {
     const res = await fetch("/api/auth/register", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(user)
+      headers: await getAuthHeaders(),
+      body: JSON.stringify(data)
+    });
+    return handleResponse(res);
+  },
+
+  changePassword: async (data: {
+    currentPassword?: string;
+    newPassword: string;
+  }): Promise<{ success: boolean; mustChangePassword: boolean }> => {
+    const res = await fetch("/api/auth/change-password", {
+      method: "POST",
+      headers: await getAuthHeaders(),
+      body: JSON.stringify(data)
     });
     return handleResponse(res);
   },
@@ -125,15 +126,6 @@ export const api = {
     if (filters?.assigned_tech_lead_id) params.append("assigned_tech_lead_id", filters.assigned_tech_lead_id);
     const res = await fetch(`/api/users?${params.toString()}`, {
       headers: await getAuthHeaders()
-    });
-    return handleResponse(res);
-  },
-
-  toggleUserStatus: async (userId: string, active: boolean): Promise<User> => {
-    const res = await fetch(`/api/users/${userId}/status`, {
-      method: "POST",
-      headers: await getAuthHeaders(),
-      body: JSON.stringify({ active })
     });
     return handleResponse(res);
   },
@@ -421,10 +413,10 @@ export const api = {
     return handleResponse(res);
   },
 
-  createUserBySuperAdmin: async (data: { name: string; email: string; role: string; techLeadId?: string }): Promise<{ user: User }> => {
+  createUserBySuperAdmin: async (data: { name: string; email: string; role: string; techLeadId?: string }): Promise<{ user: User; username: string; password: string }> => {
     const res = await fetch("/api/superadmin/users", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: await getAuthHeaders(),
       body: JSON.stringify(data)
     });
     return handleResponse(res);

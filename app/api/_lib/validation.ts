@@ -1,21 +1,30 @@
 import { z } from "zod";
 
 export const LoginSchema = z.object({
-  email: z.string().email({ message: "Valid email address is required" }),
+  username: z.string().min(1, { message: "Username is required" }),
+  password: z.string().min(1, { message: "Password is required" }),
 });
 
-export const CheckEmailSchema = z.object({
-  email: z.string().email({ message: "Valid email address is required" }),
+export const CheckUsernameSchema = z.object({
+  username: z.string().min(1, { message: "Username is required" }),
 });
 
 export const RegisterUserSchema = z.object({
-  id: z.string().optional(),
   name: z.string().min(1, { message: "Name is required" }),
   email: z.string().email({ message: "Valid email address is required" }),
   role: z.enum(['intern', 'tech_lead', 'manager', 'super_admin', 'INTERN', 'TECH_LEAD', 'MANAGER', 'SUPER_ADMIN'], {
     message: "Role must be intern, tech_lead, manager, or super_admin"
   }),
   techLeadId: z.string().optional().nullable(),
+});
+
+export const ChangePasswordSchema = z.object({
+  currentPassword: z.string().min(1, { message: "Current password is required" }),
+  newPassword: z.string().min(8, { message: "New password must be at least 8 characters" }),
+});
+
+export const ResetFirstPasswordSchema = z.object({
+  password: z.string().min(8, { message: "Password must be at least 8 characters" }),
 });
 
 export const ToggleUserStatusSchema = z.object({
@@ -156,7 +165,12 @@ export const UpdateContentFlagStatusSchema = z.object({
 
 export function validateBody<T>(schema: z.ZodSchema<T>) {
   return async (request: Request) => {
-    const body = await request.json();
+    let body: unknown;
+    try {
+      body = await request.json();
+    } catch {
+      throw new Error("Validation Error: Invalid JSON body");
+    }
     const result = schema.safeParse(body);
     if (!result.success) {
       const formattedErrors = result.error.issues.map(issue => `${issue.path.join('.') || 'body'}: ${issue.message}`).join(', ');

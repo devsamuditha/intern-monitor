@@ -334,8 +334,7 @@ export const InternDetail: React.FC<InternDetailProps> = ({ internId, currentUse
           <div>
             <div className="flex items-center gap-2 flex-wrap">
               <h2 className="text-xl font-bold text-slate-900 dark:text-white">{intern.name}</h2>
-              <span className={`h-2.5 w-2.5 rounded-full ${intern.active ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300 dark:bg-slate-700'}`} />
-              <span className="text-[10px] text-slate-400 font-medium">{intern.active ? 'Active Now' : 'Offline'}</span>
+              <span className="text-[10px] text-slate-400 font-medium">Registered User</span>
 
               {todaySession?.status === 'active' && (
                 <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 flex items-center gap-1">

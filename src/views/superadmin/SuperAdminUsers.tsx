@@ -28,10 +28,12 @@ export const SuperAdminUsers: React.FC<SuperAdminUsersProps> = ({ currentUser })
 
   const [showCreateManager, setShowCreateManager] = useState(false);
   const [showCreateTechLead, setShowCreateTechLead] = useState(false);
-  const [newName, setNewName] = useState('');
-  const [newEmail, setNewEmail] = useState('');
+  const [newName, setNewName] = useState("");
+  const [newEmail, setNewEmail] = useState("");
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
+
+  const [createdCredentials, setCreatedCredentials] = useState<{ username: string; password: string; name: string } | null>(null);
 
   const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(null);
   const [confirmLoading, setConfirmLoading] = useState(false);
@@ -43,7 +45,7 @@ export const SuperAdminUsers: React.FC<SuperAdminUsersProps> = ({ currentUser })
         api.getUsers({ role: 'tech_lead' }),
       ]);
       setUsers(allUsers);
-      setTechLeads(leads.filter(u => u.active !== false));
+      setTechLeads(leads);
     } catch (e) {
       console.error("Failed to load users:", e);
     } finally {
@@ -59,10 +61,6 @@ export const SuperAdminUsers: React.FC<SuperAdminUsersProps> = ({ currentUser })
     setConfirmAction({ type: 'role', userId, payload: { role: newRole } });
   };
 
-  const handleStatusToggle = async (userId: string, currentActive: boolean) => {
-    setConfirmAction({ type: 'status', userId, payload: { active: !currentActive } });
-  };
-
   const handleReassignTechLead = async (userId: string, newTechLeadId: string | null) => {
     setConfirmAction({ type: 'reassign', userId, payload: { techLeadId: newTechLeadId } });
   };
@@ -74,8 +72,6 @@ export const SuperAdminUsers: React.FC<SuperAdminUsersProps> = ({ currentUser })
       const { type, userId, payload } = confirmAction;
       if (type === 'role') {
         await api.updateUser(userId, { role: payload.role });
-      } else if (type === 'status') {
-        await api.toggleUserStatus(userId, payload.active);
       } else if (type === 'reassign') {
         await api.reassignTechLead(userId, payload.techLeadId);
       }
@@ -97,16 +93,17 @@ export const SuperAdminUsers: React.FC<SuperAdminUsersProps> = ({ currentUser })
     setCreating(true);
     setCreateError(null);
     try {
-      await api.createUserBySuperAdmin({
+      const data = await api.createUserBySuperAdmin({
         name: newName.trim(),
         email: newEmail.trim().toLowerCase(),
         role: role,
-        techLeadId: role === 'intern' ? undefined : undefined,
+        techLeadId: role === "intern" ? undefined : undefined,
       });
-      setNewName('');
-      setNewEmail('');
+      setCreatedCredentials({ username: data.username, password: data.password, name: newName.trim() });
       setShowCreateManager(false);
       setShowCreateTechLead(false);
+      setNewName("");
+      setNewEmail("");
       await loadUsers();
     } catch (err: any) {
       setCreateError(err.message || "Failed to create user.");
@@ -145,10 +142,6 @@ export const SuperAdminUsers: React.FC<SuperAdminUsersProps> = ({ currentUser })
     switch (confirmAction.type) {
       case 'role':
         return `Change role for ${user.name} to ${confirmAction.payload.role.replace('_', ' ')}?`;
-      case 'status':
-        return confirmAction.payload.active
-          ? `Reactivate account for ${user.name}?`
-          : `Deactivate account for ${user.name}?`;
       case 'reassign':
         const lead = techLeads.find(l => l.id === confirmAction.payload.techLeadId);
         return `Reassign Tech Lead for ${user.name} to ${lead ? lead.name : 'Unassigned'}?`;
@@ -226,18 +219,12 @@ export const SuperAdminUsers: React.FC<SuperAdminUsersProps> = ({ currentUser })
                     </select>
                   </td>
                   <td className="px-6 py-4">
-                    <button
-                      onClick={() => handleStatusToggle(user.id, user.active || false)}
-                      disabled={updating === user.id || user.id === currentUser.id}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold border transition disabled:opacity-50 ${
-                        user.active
-                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200/50 dark:bg-emerald-950/40 dark:text-emerald-300'
-                          : 'bg-slate-100 text-slate-500 border-slate-200 dark:bg-slate-850 dark:text-slate-400'
-                      }`}
-                    >
+                    <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold border ${
+                      'bg-emerald-50 text-emerald-700 border-emerald-200/50 dark:bg-emerald-950/40 dark:text-emerald-300'
+                    }`}>
                       <Shield className="h-3 w-3" />
-                      {user.active ? 'Active' : 'Inactive'}
-                    </button>
+                      Active
+                    </span>
                   </td>
                   <td className="px-6 py-4">
                     {user.role === 'intern' ? (
@@ -368,7 +355,86 @@ export const SuperAdminUsers: React.FC<SuperAdminUsersProps> = ({ currentUser })
           </div>
         )}
       </AnimatePresence>
+
+      {/* Generated Credentials Modal */}
+      <AnimatePresence>
+        {createdCredentials && (
+          <CredentialsModal
+            name={createdCredentials.name}
+            username={createdCredentials.username}
+            password={createdCredentials.password}
+            onClose={() => {
+              setCreatedCredentials(null);
+              setNewName("");
+              setNewEmail("");
+            }}
+          />
+        )}
+      </AnimatePresence>
     </motion.div>
+  );
+};
+
+interface CredentialsModalProps {
+  name: string;
+  username: string;
+  password: string;
+  onClose: () => void;
+}
+
+const CredentialsModal: React.FC<CredentialsModalProps> = ({ name, username, password, onClose }) => {
+  return (
+    <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <motion.div
+        variants={scaleIn}
+        initial="initial"
+        animate="animate"
+        exit="exit"
+        className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-slate-700/30 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 relative"
+      >
+        <div className="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-800">
+          <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
+            Credentials for {name}
+          </h3>
+        </div>
+
+        <div className="space-y-3">
+          <div>
+            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+              Username
+            </label>
+            <div className="flex items-center gap-2">
+              <code className="flex-1 text-sm font-mono bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 rounded-xl break-all">
+                {username}
+              </code>
+            </div>
+          </div>
+          <div>
+            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+              Temporary Password
+            </label>
+            <code className="block text-sm font-mono bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 rounded-xl break-all">
+              {password}
+            </code>
+          </div>
+        </div>
+
+        <div className="p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/40 rounded-xl">
+          <p className="text-[10px] font-semibold text-amber-700 dark:text-amber-300">
+            Share these credentials securely. The user must change this password on first login.
+          </p>
+        </div>
+
+        <div className="flex justify-end pt-3 border-t border-slate-100 dark:border-slate-800">
+          <button
+            onClick={onClose}
+            className="px-5 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold transition shadow-md shadow-teal-600/20"
+          >
+            Got It
+          </button>
+        </div>
+      </motion.div>
+    </div>
   );
 };
 

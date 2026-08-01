@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { getPrisma } from "@/src/db/prisma";
 import { mapUser } from "@/app/api/_lib/mappers";
 import { Role } from "@prisma/client";
-import { logger } from "@/src/lib/logger";
 
 export async function GET(request: NextRequest) {
   try {
@@ -12,8 +11,8 @@ export async function GET(request: NextRequest) {
       orderBy: { name: "asc" },
     });
     return NextResponse.json(leads.map(mapUser));
-  } catch (error: any) {
-    logger.error({ err: error }, "Public tech-leads endpoint error");
+  } catch (error) {
+    console.error("Public tech-leads endpoint error:", error);
     return NextResponse.json([]);
   }
 }

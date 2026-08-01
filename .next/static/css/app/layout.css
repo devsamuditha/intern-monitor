@@ -342,9 +342,6 @@
   .relative {
     position: relative;
   }
-  .static {
-    position: static;
-  }
   .sticky {
     position: sticky;
   }
@@ -378,9 +375,6 @@
   .top-3 {
     top: calc(var(--spacing) * 3);
   }
-  .top-3\.5 {
-    top: calc(var(--spacing) * 3.5);
-  }
   .top-4 {
     top: calc(var(--spacing) * 4);
   }
@@ -392,9 +386,6 @@
   }
   .right-0 {
     right: 0px;
-  }
-  .right-3 {
-    right: calc(var(--spacing) * 3);
   }
   .-bottom-0\.5 {
     bottom: calc(var(--spacing) * -0.5);
@@ -422,9 +413,6 @@
   }
   .z-10 {
     z-index: 10;
-  }
-  .z-20 {
-    z-index: 20;
   }
   .z-30 {
     z-index: 30;
@@ -636,9 +624,6 @@
   .max-h-64 {
     max-height: calc(var(--spacing) * 64);
   }
-  .max-h-72 {
-    max-height: calc(var(--spacing) * 72);
-  }
   .min-h-screen {
     min-height: 100vh;
   }
@@ -770,17 +755,11 @@
   .cursor-default {
     cursor: default;
   }
-  .cursor-not-allowed {
-    cursor: not-allowed;
-  }
   .cursor-pointer {
     cursor: pointer;
   }
   .list-disc {
     list-style-type: disc;
-  }
-  .appearance-none {
-    appearance: none;
   }
   .grid-cols-1 {
     grid-template-columns: repeat(1, minmax(0, 1fr));
@@ -884,6 +863,11 @@
     --tw-space-y-reverse: 0;
     margin-block-start: calc(calc(var(--spacing) * 4) * var(--tw-space-y-reverse));
     margin-block-end: calc(calc(var(--spacing) * 4) * calc(1 - var(--tw-space-y-reverse)));
+  }
+  :where(.space-y-5 > :not(:last-child)) {
+    --tw-space-y-reverse: 0;
+    margin-block-start: calc(calc(var(--spacing) * 5) * var(--tw-space-y-reverse));
+    margin-block-end: calc(calc(var(--spacing) * 5) * calc(1 - var(--tw-space-y-reverse)));
   }
   :where(.space-y-6 > :not(:last-child)) {
     --tw-space-y-reverse: 0;
@@ -1184,9 +1168,6 @@
       border-color: color-mix(in oklab, var(--color-slate-200) 80%, transparent);
     }
   }
-  .border-slate-300 {
-    border-color: var(--color-slate-300);
-  }
   .border-slate-700 {
     border-color: var(--color-slate-700);
   }
@@ -1372,12 +1353,6 @@
   }
   .bg-rose-50 {
     background-color: var(--color-rose-50);
-  }
-  .bg-rose-50\/20 {
-    background-color: color-mix(in srgb, oklch(96.9% 0.015 12.422) 20%, transparent);
-    @supports (color: color-mix(in lab, red, red)) {
-      background-color: color-mix(in oklab, var(--color-rose-50) 20%, transparent);
-    }
   }
   .bg-rose-50\/50 {
     background-color: color-mix(in srgb, oklch(96.9% 0.015 12.422) 50%, transparent);
@@ -1807,9 +1782,6 @@
   .pr-4 {
     padding-right: calc(var(--spacing) * 4);
   }
-  .pr-10 {
-    padding-right: calc(var(--spacing) * 10);
-  }
   .pb-1 {
     padding-bottom: var(--spacing);
   }
@@ -1946,6 +1918,9 @@
     --tw-tracking: var(--tracking-widest);
     letter-spacing: var(--tracking-widest);
   }
+  .break-all {
+    word-break: break-all;
+  }
   .whitespace-nowrap {
     white-space: nowrap;
   }
@@ -2063,9 +2038,6 @@
   .text-rose-800 {
     color: var(--color-rose-800);
   }
-  .text-rose-900 {
-    color: var(--color-rose-900);
-  }
   .text-sky-700 {
     color: var(--color-sky-700);
   }
@@ -2152,9 +2124,6 @@
   }
   .opacity-0 {
     opacity: 0%;
-  }
-  .opacity-60 {
-    opacity: 60%;
   }
   .shadow {
     --tw-shadow: 0 1px 3px 0 var(--tw-shadow-color, rgb(0 0 0 / 0.1)), 0 1px 2px -1px var(--tw-shadow-color, rgb(0 0 0 / 0.1));
@@ -2267,12 +2236,6 @@
     --tw-ring-color: color-mix(in srgb, oklch(71.4% 0.203 305.504) 20%, transparent);
     @supports (color: color-mix(in lab, red, red)) {
       --tw-ring-color: color-mix(in oklab, var(--color-purple-400) 20%, transparent);
-    }
-  }
-  .ring-rose-400\/20 {
-    --tw-ring-color: color-mix(in srgb, oklch(71.2% 0.194 13.428) 20%, transparent);
-    @supports (color: color-mix(in lab, red, red)) {
-      --tw-ring-color: color-mix(in oklab, var(--color-rose-400) 20%, transparent);
     }
   }
   .ring-teal-400\/20 {
@@ -2419,9 +2382,6 @@
     .hover\:bg-rose-50:hover {
       background-color: var(--color-rose-50);
     }
-    .hover\:bg-rose-100:hover {
-      background-color: var(--color-rose-100);
-    }
     .hover\:bg-rose-100\/50:hover {
       background-color: color-mix(in srgb, oklch(94.1% 0.03 12.58) 50%, transparent);
     }
@@ -2485,14 +2445,6 @@
     }
     .hover\:bg-teal-100:hover {
       background-color: var(--color-teal-100);
-    }
-    .hover\:bg-teal-100\/50:hover {
-      background-color: color-mix(in srgb, oklch(95.3% 0.051 180.801) 50%, transparent);
-    }
-    @supports (color: color-mix(in lab, red, red)) {
-      .hover\:bg-teal-100\/50:hover {
-        background-color: color-mix(in oklab, var(--color-teal-100) 50%, transparent);
-      }
     }
     .hover\:bg-teal-500:hover {
       background-color: var(--color-teal-500);
@@ -2618,8 +2570,8 @@
     .sm\:grid-cols-3 {
       grid-template-columns: repeat(3, minmax(0, 1fr));
     }
-    .sm\:grid-cols-5 {
-      grid-template-columns: repeat(5, minmax(0, 1fr));
+    .sm\:grid-cols-4 {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
     }
     .sm\:flex-row {
       flex-direction: row;
@@ -2851,9 +2803,6 @@
       .dark\:border-purple-900\/40 {
         border-color: color-mix(in oklab, var(--color-purple-900) 40%, transparent);
       }
-    }
-    .dark\:border-rose-800 {
-      border-color: var(--color-rose-800);
     }
     .dark\:border-rose-900 {
       border-color: var(--color-rose-900);
@@ -3208,14 +3157,6 @@
     .dark\:bg-rose-950 {
       background-color: var(--color-rose-950);
     }
-    .dark\:bg-rose-950\/10 {
-      background-color: color-mix(in srgb, oklch(27.1% 0.105 12.094) 10%, transparent);
-    }
-    @supports (color: color-mix(in lab, red, red)) {
-      .dark\:bg-rose-950\/10 {
-        background-color: color-mix(in oklab, var(--color-rose-950) 10%, transparent);
-      }
-    }
     .dark\:bg-rose-950\/20 {
       background-color: color-mix(in srgb, oklch(27.1% 0.105 12.094) 20%, transparent);
     }
@@ -3444,9 +3385,6 @@
     }
     .dark\:text-red-400 {
       color: var(--color-red-400);
-    }
-    .dark\:text-rose-200 {
-      color: var(--color-rose-200);
     }
     .dark\:text-rose-300 {
       color: var(--color-rose-300);

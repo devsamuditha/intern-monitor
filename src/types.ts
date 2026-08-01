@@ -9,10 +9,11 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  username?: string;
   role: UserRole;
   avatar: string;
   assigned_tech_lead_id?: string;
-  active?: boolean; // presence indicator
+  mustChangePassword?: boolean;
 }
 
 export interface Project {

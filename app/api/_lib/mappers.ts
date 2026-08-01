@@ -4,10 +4,11 @@ export function mapUser(dbUser: any) {
     id: dbUser.id,
     name: dbUser.name,
     email: dbUser.email,
+    username: dbUser.username,
     role: dbUser.role.toLowerCase(),
     avatar: dbUser.avatarUrl,
     assigned_tech_lead_id: dbUser.techLeadId || undefined,
-    active: dbUser.isActive,
+    mustChangePassword: dbUser.mustChangePassword,
   };
 }
 

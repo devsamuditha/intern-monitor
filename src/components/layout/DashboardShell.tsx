@@ -5,14 +5,14 @@
  
 "use client";
 
-import React, { useState } from 'react';
-import { useAuth } from '../../context/AuthContext.tsx';
-import { useTheme } from '../../context/ThemeContext.tsx';
+import React from "react";
+import { useAuth } from "../../context/AuthContext";
+import { useTheme } from "../../context/ThemeContext";
 import { 
   LayoutDashboard, FolderKanban, MessageSquare, Sun, Moon, 
-  Users, TrendingUp, LogOut, Shield, Power, ChevronDown, CheckCircle, Flame, Target, Settings, AlertTriangle
-} from 'lucide-react';
-import { api } from '../../services/api';
+  Users, TrendingUp, LogOut, Shield, Target, Settings, AlertTriangle
+} from "lucide-react";
+import { api } from "../../services/api";
 
 interface DashboardShellProps {
   children: React.ReactNode;
@@ -30,24 +30,11 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
   settings,
 }) => {
   const askTheTeamEnabled = settings?.ask_the_team_enabled !== false;
-  const { user, logout, switchUser, allDemoUsers, refreshCurrentUser } = useAuth();
+  const { user, logout, refreshCurrentUser } = useAuth();
   const { isDarkMode, toggleDarkMode } = useTheme();
-  const [showUserSwitcher, setShowUserSwitcher] = useState(false);
 
   if (!user) return <>{children}</>;
 
-  const handleStatusToggle = async () => {
-    try {
-      const nextActive = !user.active;
-      await api.toggleUserStatus(user.id, nextActive);
-      await refreshCurrentUser();
-      if (onRefresh) onRefresh();
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  // Select navigation tabs based on user role
   const getNavItems = () => {
     const baseItems = (base: Array<{ id: string; label: string; icon: any }>) =>
       askTheTeamEnabled ? [...base, { id: 'discussions', label: 'Ask the Team', icon: MessageSquare }] : base;
@@ -121,12 +108,6 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
 
         {/* Bottom Profile Row */}
         <div className="p-4 border-t border-white/20 dark:border-slate-700/30 space-y-2">
-          {/* Quick instructions for testing */}
-          <div className="p-3 bg-teal-50/50 dark:bg-teal-950/10 rounded-xl border border-teal-100/30 dark:border-teal-900/10">
-            <p className="text-[10px] text-teal-700 dark:text-teal-400 font-semibold leading-relaxed font-mono">
-              💡 Use the top menu to switch roles instantly and test different dashboard interfaces!
-            </p>
-          </div>
           
           <div className="flex items-center gap-3 p-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200/60 dark:border-slate-850 rounded-xl">
             <img src={user.avatar} alt={user.name} className="h-9 w-9 rounded-full object-cover border border-white/20 dark:border-slate-700/30" referrerPolicy="no-referrer" />
@@ -167,21 +148,6 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
           {/* Right Controls */}
           <div className="flex items-center gap-3">
             
-            {/* Intern active/inactive toggle */}
-            {user.role === 'intern' && (
-              <button 
-                onClick={handleStatusToggle}
-                className={`px-3 py-1.5 rounded-xl text-[10px] font-bold border transition flex items-center gap-1.5 ${
-                  user.active 
-                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200/50 dark:bg-emerald-950/40 dark:text-emerald-300' 
-                    : 'bg-slate-100 text-slate-500 border-slate-200 dark:bg-slate-850 dark:text-slate-400'
-                }`}
-              >
-                <Power className="h-3 w-3" />
-                {user.active ? "Status: Working Now 🔥" : "Status: Away / Inactive"}
-              </button>
-            )}
-
             {/* Dark Mode toggle */}
             <button
               onClick={toggleDarkMode}
@@ -190,53 +156,6 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
             >
               {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </button>
-
-            {/* Interactive Demo Switcher Dropdown */}
-            <div className="relative">
-              <button
-                onClick={() => setShowUserSwitcher(!showUserSwitcher)}
-                className="px-3 py-2 border border-teal-200 dark:border-teal-900 bg-teal-50/50 dark:bg-teal-950/30 hover:bg-teal-100/50 text-teal-600 dark:text-teal-400 rounded-xl text-[10px] font-bold flex items-center gap-1 transition"
-              >
-                <Shield className="h-3.5 w-3.5" /> Test Other Role <ChevronDown className="h-3 w-3" />
-              </button>
-
-              {showUserSwitcher && (
-                <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl shadow-xl z-20 overflow-hidden py-1">
-                  <div className="px-4 py-2 bg-slate-50 dark:bg-slate-950 border-b">
-                    <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Demo Quick Switch</p>
-                  </div>
-                  <div className="max-h-72 overflow-y-auto">
-                    {allDemoUsers.map((u) => (
-                      <button
-                        key={u.id}
-                        onClick={() => {
-                          switchUser(u);
-                          setShowUserSwitcher(false);
-                          // Reset to first tab of role
-                          if (u.role === 'intern') setActiveTab('dashboard');
-                          if (u.role === 'tech_lead') setActiveTab('team_overview');
-                          if (u.role === 'manager') setActiveTab('analytics');
-                          if (u.role === 'super_admin') setActiveTab('overview');
-                          if (onRefresh) onRefresh();
-                        }}
-                        className={`w-full flex items-center gap-2.5 px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-950 text-left transition ${
-                          user.id === u.id ? 'bg-teal-50/40 dark:bg-teal-950/20 font-bold' : ''
-                        }`}
-                      >
-                        <img src={u.avatar} alt={u.name} className="h-7 w-7 rounded-full object-cover border" referrerPolicy="no-referrer" />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-semibold text-slate-900 dark:text-white truncate">{u.name}</p>
-                          <p className="text-[9px] text-slate-400 capitalize">{u.role}</p>
-                        </div>
-                        {user.id === u.id && (
-                          <span className="h-1.5 w-1.5 rounded-full bg-teal-600" />
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
 
             {/* Profile Avatar Mobile */}
             <img 
@@ -282,14 +201,3 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
     </div>
   );
 };
-
-
-
-
-
-
-
-
-
-
-
