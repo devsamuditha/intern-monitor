@@ -172,8 +172,13 @@ export const api = {
   },
 
   // Projects
-  getProjects: async (): Promise<Project[]> => {
-    const res = await fetch("/api/projects", {
+  getProjects: async (filters?: { status?: string; assigned_tech_lead_ids?: string[] }): Promise<Project[]> => {
+    const params = new URLSearchParams();
+    if (filters?.status) params.append("status", filters.status);
+    if (filters?.assigned_tech_lead_ids && filters.assigned_tech_lead_ids.length > 0) {
+      params.append("assigned_tech_lead_id", filters.assigned_tech_lead_ids.join(','));
+    }
+    const res = await fetch(`/api/projects?${params.toString()}`, {
       headers: await getAuthHeaders()
     });
     return handleResponse(res);
@@ -184,6 +189,14 @@ export const api = {
       method: "POST",
       headers: await getAuthHeaders(),
       body: JSON.stringify(project)
+    });
+    return handleResponse(res);
+  },
+
+  deleteProject: async (projectId: string): Promise<{ success: boolean }> => {
+    const res = await fetch(`/api/projects/${projectId}`, {
+      method: "DELETE",
+      headers: await getAuthHeaders()
     });
     return handleResponse(res);
   },

@@ -6,13 +6,14 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { api } from '../../services/api';
-import { User, Task } from '../../types.ts';
+import { User, Task, Project } from '../../types.ts';
 import { InternDetail } from '../../components/techlead/InternDetail';
 import { UserManagement } from '../../components/manager/UserManagement';
+import { UpcomingProjectsManager } from '../../components/manager/UpcomingProjectsManager';
 import { getSupabaseClient } from '../../lib/supabaseClient';
-import { 
-  TrendingUp, Award, Clock, Users, Building, 
-  ExternalLink, ArrowRight, ChevronRight, Star, Calendar, ShieldCheck,
+import {
+  Clock, Users, Building,
+  ChevronRight, Star, Calendar, ShieldCheck,
   BarChart3, X, CheckCircle2, Layers, Zap, User as UserIcon, RefreshCw, AlertTriangle
 } from 'lucide-react';
 import { formatDate } from '../../utils/helpers';
@@ -23,7 +24,7 @@ interface ManagerOverviewProps {
 }
 
 export const ManagerOverview: React.FC<ManagerOverviewProps> = ({ currentUser }) => {
-  const [activeTab, setActiveTab] = useState<'telemetry' | 'users'>('telemetry');
+  const [activeTab, setActiveTab] = useState<'telemetry' | 'users' | 'upcoming_projects'>('telemetry');
   const [analytics, setAnalytics] = useState<any | null>(null);
   const [techLeads, setTechLeads] = useState<User[]>([]);
   const [allUsers, setAllUsers] = useState<User[]>([]);
@@ -82,6 +83,11 @@ export const ManagerOverview: React.FC<ManagerOverviewProps> = ({ currentUser })
             { event: '*', schema: 'public', table: 'DaySession' },
             () => { loadData(); }
           )
+          .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'Project' },
+            () => { loadData(); }
+          )
           .subscribe();
       } catch (err) {
         console.warn("Realtime subscriptions are inactive in ManagerOverview:", err);
@@ -114,11 +120,11 @@ export const ManagerOverview: React.FC<ManagerOverviewProps> = ({ currentUser })
   // If Manager is drilling down into an intern's details
   if (drilldownInternId) {
     return (
-      <InternDetail 
-        internId={drilldownInternId} 
-        currentUser={currentUser} 
+      <InternDetail
+        internId={drilldownInternId}
+        currentUser={currentUser}
         readOnly={true} // Read-only for Managers (oversight mode)
-        onBack={() => setDrilldownInternId(null)} 
+        onBack={() => setDrilldownInternId(null)}
       />
     );
   }
@@ -129,14 +135,17 @@ export const ManagerOverview: React.FC<ManagerOverviewProps> = ({ currentUser })
     totalLogs = 0,
     activeCount = 0,
     rosterData = [],
-    submissionTrend = [],
-    marksTrend = [],
     mostUsedTechs = []
   } = analytics || {};
 
+  const maxMark = Math.max(...rosterData.map((r: any) => r.avgMark), 1);
+  const sortedMarks = [...rosterData].slice().sort((a: any, b: any) => (a.avgMark || 0) - (b.avgMark || 0));
+  const maxWorkingHours = Math.max(...rosterData.map((r: any) => r.avgWorkingHours || 0), 1);
+  const sortedHours = [...rosterData].slice().sort((a: any, b: any) => (b.avgWorkingHours || 0) - (a.avgWorkingHours || 0));
+
   return (
     <div id="manager-dashboard-root" className="space-y-6">
-      
+
       {/* Executive Control Header */}
       <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-slate-700/30 rounded-3xl p-6 md:p-8 shadow-lg shadow-teal-500/5 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div className="space-y-2">
@@ -185,10 +194,23 @@ export const ManagerOverview: React.FC<ManagerOverviewProps> = ({ currentUser })
         >
           <ShieldCheck className="h-4 w-4" /> SuperAdmin User & Access Control
         </button>
+
+        <button
+          onClick={() => setActiveTab('upcoming_projects')}
+          className={`px-5 py-3 text-xs font-bold rounded-t-2xl transition flex items-center gap-2 border-t-2 ${
+            activeTab === 'upcoming_projects'
+              ? 'bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-teal-600 text-teal-700 dark:text-teal-400 border-x border-white/20 dark:border-slate-700/30 shadow-lg shadow-teal-500/5'
+              : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+          }`}
+        >
+          <Calendar className="h-4 w-4" /> Upcoming Projects Pipeline
+        </button>
       </div>
 
       {activeTab === 'users' ? (
         <UserManagement currentUser={currentUser} onRefresh={loadData} />
+      ) : activeTab === 'upcoming_projects' ? (
+        <UpcomingProjectsManager currentUser={currentUser} onRefresh={loadData} />
       ) : (
         <>
           {/* Stats Widgets Grid */}
@@ -236,113 +258,79 @@ export const ManagerOverview: React.FC<ManagerOverviewProps> = ({ currentUser })
 
           {/* Charts & Tech Distribution Bento */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            
-            {/* Check-In Submissions Volume Chart */}
-        <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl p-6 rounded-2xl border border-white/20 dark:border-slate-700/30 shadow-lg shadow-teal-500/5 space-y-4">
-          <div>
-            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
-              Check-In Submissions Volume (Last 7 Days) <TrendingUp className="h-4.5 w-4.5 text-teal-600" />
-            </h3>
-          </div>
 
-          <div className="h-44 pt-4 relative">
-            <svg className="w-full h-full overflow-visible" viewBox="0 0 100 40" preserveAspectRatio="none">
-              <defs>
-                <linearGradient id="chart-grad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#0d9488" stopOpacity="0.2"/>
-                  <stop offset="100%" stopColor="#0d9488" stopOpacity="0.0"/>
-                </linearGradient>
-              </defs>
-              <line x1="0" y1="10" x2="100" y2="10" stroke="rgba(148, 163, 184, 0.08)" strokeWidth="0.5" />
-              <line x1="0" y1="20" x2="100" y2="20" stroke="rgba(148, 163, 184, 0.08)" strokeWidth="0.5" />
-              <line x1="0" y1="30" x2="100" y2="30" stroke="rgba(148, 163, 184, 0.08)" strokeWidth="0.5" />
-              
-              <path 
-                d={submissionTrend.length > 0 
-                  ? `M 0,${40 - (submissionTrend[0].count * 8)} 
-                     C 20,${40 - (submissionTrend[1]?.count * 8 || 15)} 40,${40 - (submissionTrend[2]?.count * 8 || 10)} 50,${40 - (submissionTrend[3]?.count * 8 || 20)} 
-                     C 60,${40 - (submissionTrend[4]?.count * 8 || 15)} 80,${40 - (submissionTrend[5]?.count * 8 || 30)} 100,${40 - (submissionTrend[6]?.count * 8 || 25)}`
-                  : "M 0,30 L 100,30"}
-                fill="url(#chart-grad)"
-                stroke="#0d9488"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
+            {/* Average Intern Marks */}
+            <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl p-6 rounded-2xl border border-white/20 dark:border-slate-700/30 shadow-lg shadow-teal-500/5 space-y-4">
+              <div>
+                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
+                  Average Intern Marks <Star className="h-4 w-4 text-teal-600" />
+                </h3>
+                <p className="text-[9px] text-slate-400 mt-0.5">Sorted ascending — top performers extend furthest right</p>
+              </div>
 
-              {submissionTrend.map((t: any, idx: number) => {
-                const xVal = idx * (100 / (submissionTrend.length - 1 || 1));
-                const yVal = 40 - (t.count * 8);
-                return (
-                  <circle 
-                    key={idx}
-                    cx={xVal} 
-                    cy={yVal} 
-                    r="1.8" 
-                    fill="#ffffff" 
-                    stroke="#0d9488" 
-                    strokeWidth="1.5"
-                  />
-                );
-              })}
-            </svg>
-
-            <div className="absolute inset-x-0 bottom-0 flex justify-between px-1 text-[8px] text-slate-400 font-mono">
-              {submissionTrend.map((d: any, idx: number) => (
-                <span key={idx}>{d.date.substring(8, 10)}</span>
-              ))}
-            </div>
-          </div>
-        </div>
-
-            {/* Performance Score Trend Chart */}
-        <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl p-6 rounded-2xl border border-white/20 dark:border-slate-700/30 shadow-lg shadow-teal-500/5 space-y-4">
-          <div>
-            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
-              Average Grade Score Progression (7 Days) <Award className="h-4.5 w-4.5 text-teal-600" />
-            </h3>
-          </div>
-
-              <div className="h-44 pt-4 relative">
-                <svg className="w-full h-full overflow-visible" viewBox="0 0 100 40" preserveAspectRatio="none">
-                  <line x1="0" y1="10" x2="100" y2="10" stroke="rgba(148, 163, 184, 0.08)" strokeWidth="0.5" />
-                  <line x1="0" y1="20" x2="100" y2="20" stroke="rgba(148, 163, 184, 0.08)" strokeWidth="0.5" />
-                  <line x1="0" y1="30" x2="100" y2="30" stroke="rgba(148, 163, 184, 0.08)" strokeWidth="0.5" />
-                  
-                  <path 
-                    d={marksTrend.length > 0
-                      ? `M 0,${40 - (marksTrend[0].score * 7)} 
-                         C 25,${40 - (marksTrend[2]?.score * 7 || 25)} 50,${40 - (marksTrend[4]?.score * 7 || 20)} 100,${40 - (marksTrend[6]?.score * 7 || 30)}`
-                      : "M 0,15 L 100,15"}
-                    fill="none"
-                    stroke="#10b981"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
-
-                  {marksTrend.map((t: any, idx: number) => {
-                    const xVal = idx * (100 / (marksTrend.length - 1 || 1));
-                    const yVal = 40 - (t.score * 7);
-                    return (
-                      <circle 
-                        key={idx}
-                        cx={xVal} 
-                        cy={yVal} 
-                        r="1.8" 
-                        fill="#ffffff" 
-                        stroke="#10b981" 
-                        strokeWidth="1.5"
-                      />
-                    );
-                  })}
-                </svg>
-
-                <div className="absolute inset-x-0 bottom-0 flex justify-between px-1 text-[8px] text-slate-400 font-mono">
-                  {marksTrend.map((d: any, idx: number) => (
-                    <span key={idx}>{d.date.substring(8, 10)}</span>
-                  ))}
-                </div>
+              <div className="max-h-80 overflow-y-auto space-y-3">
+                {sortedMarks.length === 0 ? (
+                  <div className="text-center py-8 text-slate-400 text-[10px]">No intern metric data available yet.</div>
+                ) : (
+                  sortedMarks.map((row: any) => (
+                    <div key={row.intern.id} className="flex items-center gap-3">
+                      <div className="w-32 shrink-0">
+                        <p className="text-[11px] font-bold text-slate-800 dark:text-white truncate">{row.intern.name}</p>
+                        <p className="text-[9px] text-slate-400 truncate">{row.intern.email}</p>
+                      </div>
+                      <div className="flex-1 h-5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                        <div
+                          className="h-full rounded-full bg-gradient-to-r from-teal-500 to-emerald-400"
+                          style={{ width: `${(row.avgMark / maxMark) * 100}%` }}
+                        />
+                      </div>
+                      <span className="text-[11px] font-black text-slate-700 dark:text-slate-200 w-10 text-right">
+                        {row.avgMark} <Star className="h-3 w-3 fill-amber-400 text-amber-400 inline" />
+                      </span>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
+
+            {/* Average Working Hours */}
+            <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl p-6 rounded-2xl border border-white/20 dark:border-slate-700/30 shadow-lg shadow-teal-500/5 space-y-4">
+              <div>
+                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
+                  Working Hours (Last 7 Days) <Clock className="h-4 w-4 text-emerald-600" />
+                </h3>
+                <p className="text-[9px] text-slate-400 mt-0.5">Avg daily hours from completed sessions — most hours at the top</p>
+              </div>
+
+              <div className="max-h-80 overflow-y-auto space-y-3">
+                {sortedHours.length === 0 ? (
+                  <div className="text-center py-8 text-slate-400 text-[10px]">No session data available yet.</div>
+                ) : (
+                  sortedHours.map((row: any) => {
+                    const hrs = row.avgWorkingHours || 0;
+                    const pct = hrs > 0 ? Math.max((hrs / maxWorkingHours) * 100, 6) : 0;
+                    return (
+                      <div key={row.intern.id} className="flex items-center gap-3">
+                        <div className="w-32 shrink-0">
+                          <p className="text-[11px] font-bold text-slate-800 dark:text-white truncate">{row.intern.name}</p>
+                          <p className="text-[9px] text-slate-400 truncate">{row.intern.email}</p>
+                        </div>
+                        <div className="flex-1 h-5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                          <div
+                            className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-cyan-400"
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                        <span className="text-[11px] font-black text-slate-700 dark:text-slate-200 w-12 text-right">
+                          {hrs}h
+                        </span>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+
           </div>
 
           {/* Tech Leads Team Performance Summary Table */}
@@ -358,7 +346,7 @@ export const ManagerOverview: React.FC<ManagerOverviewProps> = ({ currentUser })
               {techLeads.map(lead => {
                 const assignedInterns = rosterData.filter((r: any) => r.intern.assigned_tech_lead_id === lead.id || (!r.intern.assigned_tech_lead_id && lead.id === 'tl-alex'));
                 const teamCount = assignedInterns.length;
-                const teamAvgScore = teamCount > 0 
+                const teamAvgScore = teamCount > 0
                   ? (assignedInterns.reduce((acc: number, curr: any) => acc + curr.avgMark, 0) / teamCount).toFixed(1)
                   : 'N/A';
                 const teamTasksDone = assignedInterns.reduce((acc: number, curr: any) => acc + curr.completedTasks, 0);
@@ -438,7 +426,7 @@ export const ManagerOverview: React.FC<ManagerOverviewProps> = ({ currentUser })
                     rosterData.map((row: any) => {
                       const findLead = techLeads.find(tl => tl.id === (row.intern.assigned_tech_lead_id || 'tl-alex'));
                       return (
-                        <tr 
+                        <tr
                           key={row.intern.id}
                           onClick={() => setDrilldownInternId(row.intern.id)}
                           className="group hover:bg-slate-50/70 dark:hover:bg-slate-950/60 cursor-pointer transition duration-150"
@@ -448,7 +436,7 @@ export const ManagerOverview: React.FC<ManagerOverviewProps> = ({ currentUser })
                             <div className="flex items-center gap-3">
                               <img src={row.intern.avatar} alt={row.intern.name} className="h-8 w-8 rounded-full object-cover border" referrerPolicy="no-referrer" />
                               <div>
-                                 <p className="text-xs font-bold text-slate-900 dark:text-white truncate group-hover:text-teal-700 dark:group-hover:text-teal-400">{row.intern.name}</p>
+                                <p className="text-xs font-bold text-slate-900 dark:text-white truncate group-hover:text-teal-700 dark:group-hover:text-teal-400">{row.intern.name}</p>
                                 <p className="text-[10px] text-slate-400 truncate">{row.intern.email}</p>
                               </div>
                             </div>
@@ -544,7 +532,7 @@ export const ManagerOverview: React.FC<ManagerOverviewProps> = ({ currentUser })
                   {rosterData
                     .filter((r: any) => r.intern.assigned_tech_lead_id === drilldownTechLead.id || (!r.intern.assigned_tech_lead_id && drilldownTechLead.id === 'tl-alex'))
                     .map((row: any) => (
-                      <div 
+                      <div
                         key={row.intern.id}
                         onClick={() => {
                           setDrilldownTechLead(null);
@@ -592,4 +580,3 @@ export const ManagerOverview: React.FC<ManagerOverviewProps> = ({ currentUser })
 
 
 export default ManagerOverview;
-

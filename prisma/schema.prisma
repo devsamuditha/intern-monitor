@@ -33,6 +33,14 @@ enum MistakeSeverity {
   HIGH
 }
 
+enum ProjectStatus {
+  PLANNED
+  UPCOMING
+  ACTIVE
+  COMPLETED
+  ARCHIVED
+}
+
 model User {
   id                String    @id @default(uuid())
   name              String
@@ -73,19 +81,25 @@ model User {
 }
 
 model Project {
-  id          String     @id @default(uuid())
+  id          String       @id @default(uuid())
   name        String
   description String
-  githubUrl   String
+  githubUrl   String?
   techStack   String[]
   ownerId     String
-  screenshots String[]   @default([])
-  createdAt   DateTime   @default(now())
+  screenshots String[]     @default([])
+  status      ProjectStatus @default(ACTIVE)
+  startDate   DateTime?
+  endDate     DateTime?
+  assignedTechLeadIds String[] @default([])
+  createdAt   DateTime     @default(now())
 
-  owner       User       @relation("ProjectOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  owner       User         @relation("ProjectOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   dailyLogs   DailyLog[]
 
   @@index([ownerId])
+  @@index([status])
+  @@index([startDate])
 }
 
 model DailyLog {

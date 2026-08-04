@@ -45,6 +45,10 @@ export async function GET(request: NextRequest) {
     const todaySessions = await (prisma as any).daySession.findMany({
       where: { date: todayStr },
     });
+    const last7Days = Array.from({ length: 7 }, (_, idx) => getRelativeDateStr(-idx)).reverse();
+    const allWeekSessions = await (prisma as any).daySession.findMany({
+      where: { date: { in: last7Days } },
+    });
 
     const submittedTodayCount = allLogs.filter((l: any) => l.date === todayStr).length;
     const complianceRate = targetInterns.length > 0 ? Math.round((submittedTodayCount / targetInterns.length) * 100) : 0;
@@ -66,6 +70,15 @@ export async function GET(request: NextRequest) {
 
       const lastSub = iLogs.length > 0 ? iLogs.sort((a: any, b: any) => b.date.localeCompare(a.date))[0].date : "Never";
       const iAvgMark = iMarks.length > 0 ? parseFloat((iMarks.reduce((acc: number, curr: any) => acc + curr.score, 0) / iMarks.length).toFixed(1)) : 0;
+      const iWeekSessions = allWeekSessions.filter((s: any) => s.internId === intern.id && s.endedAt);
+      const totalWeekMinutes = iWeekSessions.reduce((acc: number, s: any) => {
+        const start = new Date(`2000-01-01T${s.startedAt}`);
+        const end = new Date(`2000-01-01T${s.endedAt}`);
+        return acc + Math.max((end.getTime() - start.getTime()) / 60000, 0);
+      }, 0);
+      const avgWorkingHours = iWeekSessions.length > 0
+        ? parseFloat((totalWeekMinutes / 60 / iWeekSessions.length).toFixed(1))
+        : 0;
       const logDates = Array.from(new Set(iLogs.map((l: any) => l.date))).sort().reverse();
       const todayStr = getRelativeDateStr(0);
       const yesterdayObj = new Date(); yesterdayObj.setDate(yesterdayObj.getDate() - 1);
@@ -92,6 +105,7 @@ export async function GET(request: NextRequest) {
         lastSubmission: lastSub,
         streak: realStreak,
         avgMark: iAvgMark,
+        avgWorkingHours,
         totalTasks: iTasks.length,
         completedTasks: iTasks.filter((t: any) => t.status === TaskStatus.DONE).length,
         unresolvedMistakesCount: iMistakes.filter((m: any) => !m.resolved).length,
@@ -99,16 +113,9 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    const last7Days = Array.from({ length: 7 }, (_, idx) => getRelativeDateStr(-idx)).reverse();
     const submissionTrend = last7Days.map((dateStr: string) => {
       const subsCount = allLogs.filter((l: any) => l.date === dateStr).length;
       return { date: dateStr, count: subsCount };
-    });
-
-    const marksTrend = last7Days.map((dateStr: string) => {
-      const marksOnDate = allMarks.filter((m: any) => m.date === dateStr);
-      const avgScore = marksOnDate.length > 0 ? parseFloat((marksOnDate.reduce((acc: number, curr: any) => acc + curr.score, 0) / marksOnDate.length).toFixed(1)) : 0;
-      return { date: dateStr, score: avgScore };
     });
 
     const techCounts: Record<string, number> = {};
@@ -131,7 +138,6 @@ export async function GET(request: NextRequest) {
       completedTasks,
       rosterData,
       submissionTrend,
-      marksTrend,
       mostUsedTechs,
     });
   } catch (error: any) {

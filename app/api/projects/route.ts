@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { withAuth } from "@/app/api/_lib/withAuth";
+import { withAuth, requireRole } from "@/app/api/_lib/withAuth";
 import { getPrisma } from "@/src/db/prisma";
 import { mapProject } from "@/app/api/_lib/mappers";
 import { validateBody } from "@/app/api/_lib/validation";
@@ -15,8 +15,27 @@ export async function GET(request: NextRequest) {
 
   try {
     const prisma = getPrisma();
+    const { searchParams } = new URL(request.url);
+    const status = searchParams.get("status");
+    const assignedTechLeadId = searchParams.get("assigned_tech_lead_id");
+
+    const where: any = {};
+    if (status) where.status = status.toUpperCase();
+    if (assignedTechLeadId) {
+      const ids = assignedTechLeadId.split(',').map(s => s.trim()).filter(Boolean);
+      if (ids.length === 1) {
+        where.assignedTechLeadIds = { has: ids[0] };
+      } else if (ids.length > 1) {
+        where.assignedTechLeadIds = { hasSome: ids };
+      }
+    }
+
     const dbProjects = await prisma.project.findMany({
-      orderBy: { name: "asc" },
+      where,
+      orderBy: [
+        { createdAt: "desc" },
+        { name: "asc" },
+      ],
     });
     return NextResponse.json(dbProjects.map(mapProject));
   } catch (error: any) {
@@ -26,7 +45,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    await withAuth(request);
+    const user = await withAuth(request);
+    requireRole(user, ['manager', 'tech_lead', 'super_admin']);
   } catch (err: any) {
     const status = err.message.includes("Forbidden") ? 403 : err.message.includes("Unauthorized") ? 401 : 500;
     return NextResponse.json({ error: err.message }, { status });
@@ -39,11 +59,27 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: err.message }, { status: 400 });
   }
 
-  const { id, name, description, github_url, tech_stack, owner_id, screenshots } = body;
+  const {
+    id,
+    name,
+    description,
+    github_url,
+    tech_stack,
+    owner_id,
+    screenshots,
+    status,
+    start_date,
+    end_date,
+    assigned_tech_lead_ids,
+  } = body;
 
   try {
     const prisma = getPrisma();
     if (id) {
+      const existing = await prisma.project.findUnique({ where: { id } });
+      if (!existing) {
+        return NextResponse.json({ error: "Project not found" }, { status: 404 });
+      }
       const updated = await prisma.project.update({
         where: { id },
         data: {
@@ -52,6 +88,10 @@ export async function POST(request: NextRequest) {
           githubUrl: github_url,
           techStack: tech_stack || [],
           screenshots: screenshots || [],
+          status: status ? (status.toUpperCase() as any) : undefined,
+          startDate: start_date || undefined,
+          endDate: end_date || undefined,
+          assignedTechLeadIds: assigned_tech_lead_ids || undefined,
         },
       });
       return NextResponse.json(mapProject(updated));
@@ -65,6 +105,10 @@ export async function POST(request: NextRequest) {
         techStack: tech_stack || [],
         ownerId: owner_id as any,
         screenshots: screenshots || ["https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=600&q=80"],
+        status: status ? (status.toUpperCase() as any) : 'ACTIVE',
+        startDate: start_date || undefined,
+        endDate: end_date || undefined,
+        assignedTechLeadIds: assigned_tech_lead_ids || undefined,
       } as any,
     });
     return NextResponse.json(mapProject(created));

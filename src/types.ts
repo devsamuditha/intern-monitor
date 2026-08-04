@@ -5,6 +5,8 @@
 
 export type UserRole = 'intern' | 'tech_lead' | 'manager' | 'super_admin';
 
+export type ProjectStatus = 'planned' | 'upcoming' | 'active' | 'completed' | 'archived';
+
 export interface User {
   id: string;
   name: string;
@@ -24,6 +26,10 @@ export interface Project {
   tech_stack: string[];
   owner_id: string;
   screenshots: string[];
+  status?: ProjectStatus;
+  start_date?: string;
+  end_date?: string;
+  assigned_tech_lead_ids?: string[];
 }
 
 export interface DailyLog {

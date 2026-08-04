@@ -22,6 +22,10 @@ export function mapProject(dbProj: any) {
     tech_stack: dbProj.techStack,
     owner_id: dbProj.ownerId,
     screenshots: dbProj.screenshots || [],
+    status: dbProj.status ? dbProj.status.toLowerCase() : 'active',
+    start_date: dbProj.startDate ? dbProj.startDate.toISOString() : undefined,
+    end_date: dbProj.endDate ? dbProj.endDate.toISOString() : undefined,
+    assigned_tech_lead_ids: dbProj.assignedTechLeadIds || [],
   };
 }
 

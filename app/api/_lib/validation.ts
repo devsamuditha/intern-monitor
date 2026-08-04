@@ -42,10 +42,20 @@ export const ProjectSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(1, { message: "Project name is required" }),
   description: z.string().min(1, { message: "Project description is required" }),
-  github_url: z.string().min(1, { message: "GitHub URL is required" }),
+  github_url: z.string().optional(),
   tech_stack: z.array(z.string()).optional(),
   owner_id: z.string().optional(),
   screenshots: z.array(z.string()).optional(),
+  status: z.enum(['planned', 'upcoming', 'active', 'completed', 'archived']).optional(),
+  start_date: z.preprocess(
+    (val) => (val ? new Date(val as string) : undefined),
+    z.date().optional().nullable()
+  ),
+  end_date: z.preprocess(
+    (val) => (val ? new Date(val as string) : undefined),
+    z.date().optional().nullable()
+  ),
+  assigned_tech_lead_ids: z.array(z.string()).optional(),
 });
 
 export const SubmitDailyLogSchema = z.object({
