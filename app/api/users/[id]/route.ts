@@ -53,3 +53,34 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  let user;
+  try {
+    user = await withAuth(request);
+    requireSuperAdmin(user);
+  } catch (err: any) {
+    const status = err.message.includes("Forbidden") ? 403 : err.message.includes("Unauthorized") ? 401 : 500;
+    return NextResponse.json({ error: err.message }, { status });
+  }
+
+  const { id } = await params;
+
+  // Prevent deleting yourself
+  if (id === user.id) {
+    return NextResponse.json({ error: "Cannot delete your own account" }, { status: 400 });
+  }
+
+  try {
+    const prisma = getPrisma();
+    const userToDelete = await prisma.user.findUnique({ where: { id } });
+    if (!userToDelete) return NextResponse.json({ error: "User not found" }, { status: 404 });
+
+    await prisma.user.delete({ where: { id } });
+    await logAudit(prisma, user.id, "USER_DELETED", "USER", id, { name: userToDelete.name, email: userToDelete.email, role: userToDelete.role });
+    
+    return NextResponse.json({ success: true, message: "User deleted successfully" });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}

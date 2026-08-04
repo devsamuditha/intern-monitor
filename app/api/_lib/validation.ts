@@ -138,6 +138,8 @@ export const StartDaySchema = z.object({
 export const CreateUserBySuperAdminSchema = z.object({
   name: z.string().min(1, { message: "Name is required" }),
   email: z.string().email({ message: "Valid email address is required" }),
+  username: z.string().min(3, { message: "Username must be at least 3 characters" }),
+  password: z.string().min(8, { message: "Password must be at least 8 characters" }),
   role: z.enum(['intern', 'tech_lead', 'manager', 'super_admin', 'INTERN', 'TECH_LEAD', 'MANAGER', 'SUPER_ADMIN'], {
     message: "Role must be intern, tech_lead, manager, or super_admin"
   }),

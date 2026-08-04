@@ -8,14 +8,14 @@ import { motion, AnimatePresence } from 'motion/react';
 import { api } from '../../services/api';
 import { User, UserRole } from '../../types.ts';
 import { scaleIn } from '../../utils/motion';
-import { RefreshCw, Shield, UserPlus, X, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { RefreshCw, Shield, UserPlus, X, CheckCircle2, AlertTriangle, Trash2 } from 'lucide-react';
 
 interface SuperAdminUsersProps {
   currentUser: User;
 }
 
 interface ConfirmAction {
-  type: 'role' | 'status' | 'reassign';
+  type: 'role' | 'status' | 'reassign' | 'delete';
   userId: string;
   payload: any;
 }
@@ -28,8 +28,11 @@ export const SuperAdminUsers: React.FC<SuperAdminUsersProps> = ({ currentUser })
 
   const [showCreateManager, setShowCreateManager] = useState(false);
   const [showCreateTechLead, setShowCreateTechLead] = useState(false);
+  const [showCreateIntern, setShowCreateIntern] = useState(false);
   const [newName, setNewName] = useState("");
   const [newEmail, setNewEmail] = useState("");
+  const [newUsername, setNewUsername] = useState("");
+  const [newPassword, setNewPassword] = useState("");
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
 
@@ -65,6 +68,10 @@ export const SuperAdminUsers: React.FC<SuperAdminUsersProps> = ({ currentUser })
     setConfirmAction({ type: 'reassign', userId, payload: { techLeadId: newTechLeadId } });
   };
 
+  const handleDeleteUser = (userId: string) => {
+    setConfirmAction({ type: 'delete', userId, payload: {} });
+  };
+
   const executeConfirmedAction = async () => {
     if (!confirmAction) return;
     setConfirmLoading(true);
@@ -74,6 +81,8 @@ export const SuperAdminUsers: React.FC<SuperAdminUsersProps> = ({ currentUser })
         await api.updateUser(userId, { role: payload.role });
       } else if (type === 'reassign') {
         await api.reassignTechLead(userId, payload.techLeadId);
+      } else if (type === 'delete') {
+        await api.deleteUser(userId);
       }
       await loadUsers();
     } catch (e) {
@@ -84,26 +93,34 @@ export const SuperAdminUsers: React.FC<SuperAdminUsersProps> = ({ currentUser })
     }
   };
 
-  const handleCreateUser = async (role: UserRole, e?: React.FormEvent) => {
-    e?.preventDefault();
-    if (!newName.trim() || !newEmail.trim()) {
-      setCreateError("Name and email are required.");
+  const handleCreateUser = async (role: UserRole) => {
+    if (!newName.trim() || !newEmail.trim() || !newUsername.trim() || !newPassword.trim()) {
+      setCreateError("All fields are required.");
+      return;
+    }
+    if (newPassword.length < 8) {
+      setCreateError("Password must be at least 8 characters.");
       return;
     }
     setCreating(true);
     setCreateError(null);
     try {
-      const data = await api.createUserBySuperAdmin({
+      await api.createUserBySuperAdmin({
         name: newName.trim(),
         email: newEmail.trim().toLowerCase(),
+        username: newUsername.trim().toLowerCase(),
+        password: newPassword.trim(),
         role: role,
         techLeadId: role === "intern" ? undefined : undefined,
       });
-      setCreatedCredentials({ username: data.username, password: data.password, name: newName.trim() });
+      // User already knows their credentials, no need to show modal
       setShowCreateManager(false);
       setShowCreateTechLead(false);
+      setShowCreateIntern(false);
       setNewName("");
       setNewEmail("");
+      setNewUsername("");
+      setNewPassword("");
       await loadUsers();
     } catch (err: any) {
       setCreateError(err.message || "Failed to create user.");
@@ -145,6 +162,8 @@ export const SuperAdminUsers: React.FC<SuperAdminUsersProps> = ({ currentUser })
       case 'reassign':
         const lead = techLeads.find(l => l.id === confirmAction.payload.techLeadId);
         return `Reassign Tech Lead for ${user.name} to ${lead ? lead.name : 'Unassigned'}?`;
+      case 'delete':
+        return `Are you sure you want to delete ${user.name}? This action cannot be undone.`;
       default:
         return '';
     }
@@ -159,11 +178,11 @@ export const SuperAdminUsers: React.FC<SuperAdminUsersProps> = ({ currentUser })
         </div>
         <div className="flex items-center gap-2">
           <button
-            onClick={() => setShowCreateManager(true)}
+            onClick={() => setShowCreateIntern(true)}
             className="flex items-center gap-2 px-4 py-2 rounded-xl border border-white/20 dark:border-slate-700/30 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-950 text-slate-600 dark:text-slate-300 text-xs font-semibold transition"
           >
             <UserPlus className="h-4 w-4" />
-            Create Manager
+            Create Intern
           </button>
           <button
             onClick={() => setShowCreateTechLead(true)}
@@ -171,6 +190,13 @@ export const SuperAdminUsers: React.FC<SuperAdminUsersProps> = ({ currentUser })
           >
             <UserPlus className="h-4 w-4" />
             Create Tech Lead
+          </button>
+          <button
+            onClick={() => setShowCreateManager(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl border border-white/20 dark:border-slate-700/30 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-950 text-slate-600 dark:text-slate-300 text-xs font-semibold transition"
+          >
+            <UserPlus className="h-4 w-4" />
+            Create Manager
           </button>
           <button
             onClick={loadUsers}
@@ -207,10 +233,10 @@ export const SuperAdminUsers: React.FC<SuperAdminUsersProps> = ({ currentUser })
                   <td className="px-6 py-4 text-slate-600 dark:text-slate-400">{user.email}</td>
                   <td className="px-6 py-4">
                     <select
-                      value={user.role.replace('_', ' ')}
-                      onChange={(e) => handleRoleChange(user.id, e.target.value.replace(' ', '_') as UserRole)}
+                      value={user.role.toLowerCase()}
+                      onChange={(e) => handleRoleChange(user.id, e.target.value.toUpperCase() as UserRole)}
                       disabled={updating === user.id || user.id === currentUser.id}
-                      className="text-[10px] font-bold uppercase tracking-wider bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500/20 disabled:opacity-50 cursor-pointer"
+                      className="text-[10px] font-bold uppercase tracking-wider bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-505/20 disabled:opacity-50 cursor-pointer"
                     >
                       <option value="intern">Intern</option>
                       <option value="tech_lead">Tech Lead</option>
@@ -244,11 +270,21 @@ export const SuperAdminUsers: React.FC<SuperAdminUsersProps> = ({ currentUser })
                     )}
                   </td>
                   <td className="px-6 py-4 text-right">
-                    {updating === user.id && (
+                    {updating === user.id ? (
                       <div className="inline-flex items-center gap-2 text-teal-600 dark:text-teal-400">
                         <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-teal-600"></div>
                         Saving...
                       </div>
+                    ) : (
+                      user.id !== currentUser.id && (
+                        <button
+                          onClick={() => handleDeleteUser(user.id)}
+                          className="p-2 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition"
+                          title="Delete user"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      )
                     )}
                   </td>
                 </tr>
@@ -257,6 +293,29 @@ export const SuperAdminUsers: React.FC<SuperAdminUsersProps> = ({ currentUser })
           </table>
         </div>
       </div>
+
+      {/* Create Intern Modal */}
+      <AnimatePresence>
+        {showCreateIntern && (
+          <CreateModal
+            title="Create Intern"
+            icon={<UserPlus className="h-5 w-5" />}
+            role="intern"
+            name={newName}
+            email={newEmail}
+            username={newUsername}
+            password={newPassword}
+            onNameChange={setNewName}
+            onEmailChange={setNewEmail}
+            onUsernameChange={setNewUsername}
+            onPasswordChange={setNewPassword}
+            error={createError}
+            loading={creating}
+            onClose={() => { setShowCreateIntern(false); setCreateError(null); setNewName(""); setNewEmail(""); setNewUsername(""); setNewPassword(""); }}
+            onSubmit={() => handleCreateUser('intern')}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Create Manager Modal */}
       <AnimatePresence>
@@ -267,11 +326,15 @@ export const SuperAdminUsers: React.FC<SuperAdminUsersProps> = ({ currentUser })
             role="manager"
             name={newName}
             email={newEmail}
+            username={newUsername}
+            password={newPassword}
             onNameChange={setNewName}
             onEmailChange={setNewEmail}
+            onUsernameChange={setNewUsername}
+            onPasswordChange={setNewPassword}
             error={createError}
             loading={creating}
-            onClose={() => { setShowCreateManager(false); setCreateError(null); }}
+            onClose={() => { setShowCreateManager(false); setCreateError(null); setNewName(""); setNewEmail(""); setNewUsername(""); setNewPassword(""); }}
             onSubmit={() => handleCreateUser('manager')}
           />
         )}
@@ -286,11 +349,15 @@ export const SuperAdminUsers: React.FC<SuperAdminUsersProps> = ({ currentUser })
             role="tech_lead"
             name={newName}
             email={newEmail}
+            username={newUsername}
+            password={newPassword}
             onNameChange={setNewName}
             onEmailChange={setNewEmail}
+            onUsernameChange={setNewUsername}
+            onPasswordChange={setNewPassword}
             error={createError}
             loading={creating}
-            onClose={() => { setShowCreateTechLead(false); setCreateError(null); }}
+            onClose={() => { setShowCreateTechLead(false); setCreateError(null); setNewName(""); setNewEmail(""); setNewUsername(""); setNewPassword(""); }}
             onSubmit={() => handleCreateUser('tech_lead')}
           />
         )}
@@ -309,7 +376,7 @@ export const SuperAdminUsers: React.FC<SuperAdminUsersProps> = ({ currentUser })
             >
               <div className="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-800">
                 <div className="flex items-center gap-2">
-                  <div className="p-2 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400">
+                  <div className={`p-2 rounded-xl ${confirmAction.type === 'delete' ? 'bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400' : 'bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400'}`}>
                     <AlertTriangle className="h-5 w-5" />
                   </div>
                   <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
@@ -444,15 +511,34 @@ interface CreateModalProps {
   role: UserRole;
   name: string;
   email: string;
+  username: string;
+  password: string;
   onNameChange: (v: string) => void;
   onEmailChange: (v: string) => void;
+  onUsernameChange: (v: string) => void;
+  onPasswordChange: (v: string) => void;
   error: string | null;
   loading: boolean;
   onClose: () => void;
   onSubmit: () => void;
 }
 
-const CreateModal: React.FC<CreateModalProps> = ({ title, icon, name, email, onNameChange, onEmailChange, error, loading, onClose, onSubmit }) => {
+const CreateModal: React.FC<CreateModalProps> = ({ 
+  title, 
+  icon, 
+  name, 
+  email, 
+  username, 
+  password,
+  onNameChange, 
+  onEmailChange, 
+  onUsernameChange,
+  onPasswordChange,
+  error, 
+  loading, 
+  onClose, 
+  onSubmit 
+}) => {
   return (
     <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <motion.div
@@ -485,7 +571,7 @@ const CreateModal: React.FC<CreateModalProps> = ({ title, icon, name, email, onN
           </div>
         )}
 
-        <form onSubmit={onSubmit} className="space-y-4">
+        <form onSubmit={(e) => { e.preventDefault(); onSubmit(); }} className="space-y-4">
           <div>
             <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">
               Full Name *
@@ -510,6 +596,36 @@ const CreateModal: React.FC<CreateModalProps> = ({ title, icon, name, email, onN
               value={email}
               onChange={(e) => onEmailChange(e.target.value)}
               required
+              className="w-full text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-3.5 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">
+              Username *
+            </label>
+            <input
+              type="text"
+              placeholder="e.g. jordan.smith"
+              value={username}
+              onChange={(e) => onUsernameChange(e.target.value)}
+              required
+              minLength={3}
+              className="w-full text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-3.5 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">
+              Password *
+            </label>
+            <input
+              type="password"
+              placeholder="Min 8 characters"
+              value={password}
+              onChange={(e) => onPasswordChange(e.target.value)}
+              required
+              minLength={8}
               className="w-full text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-3.5 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
             />
           </div>

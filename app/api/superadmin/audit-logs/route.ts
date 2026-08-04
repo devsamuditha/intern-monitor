@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { withAuth, requireSuperAdmin } from "@/app/api/_lib/withAuth";
 import { getPrisma } from "@/src/db/prisma";
 import { mapAuditLog } from "@/app/api/_lib/mappers";
+import { logger } from "@/src/lib/logger";
 
 export async function GET(request: NextRequest) {
   let user;
@@ -15,9 +16,10 @@ export async function GET(request: NextRequest) {
 
   const { action, targetType, userId, actorId, startDate, endDate, limit, offset } = Object.fromEntries(request.nextUrl.searchParams);
 
+  let where: any = {};
+
   try {
     const prisma = getPrisma();
-    const where: any = {};
     if (action && typeof action === "string") where.action = action;
     if (targetType && typeof targetType === "string") where.targetType = targetType;
     if (userId && typeof userId === "string") where.userId = userId;
@@ -41,6 +43,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ logs: logs.map(mapAuditLog), total, limit: parsedLimit, offset: parsedOffset });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    logger.error({ err: error, route: "api/superadmin/audit-logs", user: user?.id, where }, "Failed to load audit logs");
+    return NextResponse.json({ error: "Internal Server Error", code: "internal_error" }, { status: 500 });
   }
 }

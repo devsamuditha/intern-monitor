@@ -5,7 +5,8 @@
  
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { 
@@ -29,16 +30,26 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
   onRefresh,
   settings,
 }) => {
+  const [mounted, setMounted] = useState(false);
+  const router = useRouter();
   const askTheTeamEnabled = settings?.ask_the_team_enabled !== false;
   const { user, logout, refreshCurrentUser } = useAuth();
+  const role = user?.role;
   const { isDarkMode, toggleDarkMode } = useTheme();
 
-  if (!user) return <>{children}</>;
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const handleLogout = async () => {
+    await logout();
+    router.push('/login');
+  };
 
   const getNavItems = () => {
     const baseItems = (base: Array<{ id: string; label: string; icon: any }>) =>
       askTheTeamEnabled ? [...base, { id: 'discussions', label: 'Ask the Team', icon: MessageSquare }] : base;
-    switch (user.role) {
+    switch (role) {
       case 'intern':
         return baseItems([
           { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -67,6 +78,18 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
   };
 
   const navItems = getNavItems();
+
+  // Prevent hydration mismatch by only rendering interactive elements after mount
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-teal-600 mx-auto mb-4"></div>
+          <p className="text-sm text-slate-500 dark:text-slate-400">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex transition-colors duration-200">
@@ -110,18 +133,20 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
         <div className="p-4 border-t border-white/20 dark:border-slate-700/30 space-y-2">
           
           <div className="flex items-center gap-3 p-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200/60 dark:border-slate-850 rounded-xl">
-            <img src={user.avatar} alt={user.name} className="h-9 w-9 rounded-full object-cover border border-white/20 dark:border-slate-700/30" referrerPolicy="no-referrer" />
+            <img src={user?.avatar ?? '/favicon.ico'} alt={user?.name ?? 'Avatar'} className="h-9 w-9 rounded-full object-cover border border-white/20 dark:border-slate-700/30" referrerPolicy="no-referrer" />
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-bold truncate text-slate-900 dark:text-white">{user.name}</p>
-              <p className="text-[9px] text-slate-400 capitalize truncate">{user.role}</p>
+              <p className="text-xs font-bold truncate text-slate-900 dark:text-white">{user?.name ?? 'User'}</p>
+              <p className="text-[9px] text-slate-400 capitalize truncate">{user?.role ?? ''}</p>
             </div>
-            <button 
-              onClick={logout}
-              className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-900 text-slate-400 hover:text-rose-600 rounded-lg transition"
-              title="Logout"
-            >
-              <LogOut className="h-4 w-4" />
-            </button>
+            {user && (
+              <button 
+                onClick={handleLogout}
+                className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-900 text-slate-400 hover:text-rose-600 rounded-lg transition"
+                title="Logout"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
+            )}
           </div>
         </div>
       </aside>
@@ -140,7 +165,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
             <div className="flex items-center gap-1.5">
               <span className="text-xs font-bold text-slate-800 dark:text-white md:inline-block hidden">Active Dashboard:</span>
               <span className="text-[10px] font-extrabold uppercase tracking-widest bg-teal-50 dark:bg-teal-950/40 text-teal-600 dark:text-teal-400 px-2.5 py-1 rounded-full border border-teal-100/30 dark:border-teal-900/30">
-                {user.role === 'tech_lead' ? 'Tech Lead Reviewer' : user.role === 'manager' ? 'Engineering Director' : user.role === 'super_admin' ? 'Super Admin' : 'Software Intern'}
+                {user?.role === 'tech_lead' ? 'Tech Lead Reviewer' : user?.role === 'manager' ? 'Engineering Director' : user?.role === 'super_admin' ? 'Super Admin' : 'Software Intern'}
               </span>
             </div>
           </div>
@@ -159,10 +184,10 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
 
             {/* Profile Avatar Mobile */}
             <img 
-              src={user.avatar} 
-              alt={user.name} 
+              src={user?.avatar ?? '/favicon.ico'} 
+              alt={user?.name ?? 'Avatar'} 
               className="h-8 w-8 rounded-full object-cover border md:hidden" 
-              onClick={logout}
+              onClick={handleLogout}
               title="Logout"
               referrerPolicy="no-referrer"
             />

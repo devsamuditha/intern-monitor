@@ -21,7 +21,7 @@ export const Login: React.FC = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!username.trim() || !password) {
+    if (!username.trim() || !password.trim()) {
       setError("Please provide both your username and password.");
       return;
     }
@@ -30,7 +30,7 @@ export const Login: React.FC = () => {
     setError("");
 
     try {
-      const loggedInUser = await login(username.trim(), password);
+      const loggedInUser = await login(username.trim(), password.trim());
       if (loggedInUser?.mustChangePassword) {
         router.push("/change-password");
       } else {

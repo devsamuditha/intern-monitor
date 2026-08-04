@@ -30,19 +30,43 @@ const getHeaders = (): Record<string, string> => ({
 
 const getAuthHeaders = async (): Promise<Record<string, string>> => getHeaders();
 
-const handleResponse = async (response: Response) => {
+const handleResponse = async (response: Response): Promise<any> => {
+  const status = response.status;
+  const contentType = (response.headers.get("content-type") || "").toLowerCase();
+
+  // Handle non-OK responses with best-effort parsing
   if (!response.ok) {
-    const errText = await response.text();
-    let errMsg = "Something went wrong";
+    let payload: any = null;
     try {
-      const parsed = JSON.parse(errText);
-      errMsg = parsed.error || errMsg;
-    } catch {
-      errMsg = errText || errMsg;
+      if (contentType.includes("application/json")) {
+        payload = await response.json();
+      } else {
+        const text = await response.text();
+        payload = { message: text };
+      }
+    } catch (e) {
+      payload = { message: "Failed to parse error response" };
     }
-    throw new Error(errMsg);
+
+    const errMsg = payload?.error || payload?.message || "Something went wrong";
+    const err: any = new Error(errMsg);
+    err.status = status;
+    err.payload = payload;
+    throw err;
   }
-  return response.json();
+
+  // No Content
+  if (status === 204) return null;
+
+  // Try to parse successful response
+  try {
+    if (contentType.includes("application/json")) return await response.json();
+    return await response.text();
+  } catch (e) {
+    const err: any = new Error("Failed to parse response body");
+    err.status = status;
+    throw err;
+  }
 };
 
 export const api = {
@@ -135,6 +159,14 @@ export const api = {
       method: "PATCH",
       headers: await getAuthHeaders(),
       body: JSON.stringify(updates)
+    });
+    return handleResponse(res);
+  },
+
+  deleteUser: async (userId: string): Promise<{ success: boolean; message: string }> => {
+    const res = await fetch(`/api/users/${userId}`, {
+      method: "DELETE",
+      headers: await getAuthHeaders()
     });
     return handleResponse(res);
   },
@@ -334,8 +366,8 @@ export const api = {
   },
 
   markMessagesRead: async (userId: string, senderId: string): Promise<{ success: boolean }> => {
-    const res = await fetch("/api/messages/read", {
-      method: "POST",
+    const res = await fetch("/api/messages", {
+      method: "PUT",
       headers: await getAuthHeaders(),
       body: JSON.stringify({ user_id: userId, sender_id: senderId })
     });
@@ -413,7 +445,7 @@ export const api = {
     return handleResponse(res);
   },
 
-  createUserBySuperAdmin: async (data: { name: string; email: string; role: string; techLeadId?: string }): Promise<{ user: User; username: string; password: string }> => {
+  createUserBySuperAdmin: async (data: { name: string; email: string; username: string; password: string; role: string; techLeadId?: string }): Promise<{ user: User; username: string; password: string }> => {
     const res = await fetch("/api/superadmin/users", {
       method: "POST",
       headers: await getAuthHeaders(),

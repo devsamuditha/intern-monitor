@@ -18,6 +18,8 @@ interface SuperAdminOverviewProps {
 export const SuperAdminOverview: React.FC<SuperAdminOverviewProps> = ({ currentUser }) => {
   const [overview, setOverview] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isFetching, setIsFetching] = useState(false);
 
   const handleNavigate = (path: string) => {
     const tab = path.split('/').pop();
@@ -28,12 +30,17 @@ export const SuperAdminOverview: React.FC<SuperAdminOverviewProps> = ({ currentU
   };
 
   const loadData = async () => {
+    if (isFetching) return;
+    setIsFetching(true);
+    setErrorMessage(null);
     try {
       const data = await api.getOverview();
       setOverview(data);
-    } catch (e) {
+    } catch (e: any) {
       console.error("Failed to load overview data:", e);
+      setErrorMessage(e?.message || "Failed to load overview data");
     } finally {
+      setIsFetching(false);
       setLoading(false);
     }
   };
@@ -46,8 +53,11 @@ export const SuperAdminOverview: React.FC<SuperAdminOverviewProps> = ({ currentU
     const setupRealtime = async () => {
       try {
         const supabase = await getSupabaseClient();
+        // Create a uniquely-named channel per component instance to avoid reusing
+        // a channel that may already be subscribed elsewhere in the app.
+        const channelName = `superadmin-overview-${Date.now()}`;
         subscriptionChannel = supabase
-          .channel('superadmin-overview')
+          .channel(channelName)
           .on(
             'postgres_changes',
             { event: '*', schema: 'public', table: 'User' },
@@ -122,6 +132,14 @@ export const SuperAdminOverview: React.FC<SuperAdminOverviewProps> = ({ currentU
 
   return (
     <motion.div {...scaleIn} className="space-y-8">
+      {errorMessage && (
+        <div className="bg-rose-50 dark:bg-rose-900/30 p-3 rounded-md border border-rose-200/40 flex items-center justify-between">
+          <div className="text-sm text-rose-700 dark:text-rose-200">Failed to load overview: {errorMessage}</div>
+          <div className="flex items-center gap-2">
+            <button onClick={loadData} className="text-xs px-3 py-1 bg-white/80 dark:bg-slate-800 rounded-md border">Retry</button>
+          </div>
+        </div>
+      )}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Platform Overview</h2>

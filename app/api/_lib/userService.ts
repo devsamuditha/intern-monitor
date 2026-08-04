@@ -11,6 +11,8 @@ const DEFAULT_AVATAR_OTHER =
 export interface CreateUserParams {
   name: string;
   email: string;
+  username?: string;
+  password?: string;
   role: string;
   techLeadId?: string | null;
   actorId?: string;
@@ -33,18 +35,29 @@ export async function createUserWithCredentials(params: CreateUserParams): Promi
     throw new Error("Email already registered in database");
   }
 
-  let username = generateUsername(params.name);
-  let attempts = 0;
-  while (await prisma.user.findUnique({ where: { username } })) {
-    username = generateUniqueUsername(generateUsername(params.name));
-    attempts++;
-    if (attempts > 6) {
-      username = `${generateUsername(params.name)}${Date.now()}`;
-      break;
+  // Use provided username or generate from name
+  let username: string;
+  if (params.username) {
+    username = params.username.toLowerCase().trim();
+    const usernameExists = await prisma.user.findUnique({ where: { username } });
+    if (usernameExists) {
+      throw new Error("Username already exists");
+    }
+  } else {
+    username = generateUsername(params.name);
+    let attempts = 0;
+    while (await prisma.user.findUnique({ where: { username } })) {
+      username = generateUniqueUsername(generateUsername(params.name));
+      attempts++;
+      if (attempts > 6) {
+        username = `${generateUsername(params.name)}${Date.now()}`;
+        break;
+      }
     }
   }
 
-  const password = generatePassword();
+  // Use provided password or generate
+  const password = params.password || generatePassword();
   const passwordHash = await hashPassword(password);
 
   const avatarUrl =
@@ -58,7 +71,7 @@ export async function createUserWithCredentials(params: CreateUserParams): Promi
       email: params.email.toLowerCase(),
       username,
       passwordHash,
-      mustChangePassword: true,
+      mustChangePassword: false,
       role: prismaRole,
       avatarUrl,
       techLeadId: prismaRole === Role.INTERN ? (params.techLeadId || null) : null,

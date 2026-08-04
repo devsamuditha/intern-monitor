@@ -25,6 +25,8 @@ export async function POST(request: NextRequest) {
     const result = await createUserWithCredentials({
       name: body.name,
       email: body.email,
+      username: body.username,
+      password: body.password,
       role: body.role,
       techLeadId: body.techLeadId,
       actorId: user.id,
@@ -32,7 +34,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(result, { status: 201 });
   } catch (error: any) {
     console.error("SuperAdmin user creation error:", error);
-    const status = error.message.includes("already registered") ? 400 : 500;
+    const status = error.message.includes("already registered") || error.message.includes("already exists") ? 400 : 500;
     return NextResponse.json({ error: error.message }, { status });
   }
 }

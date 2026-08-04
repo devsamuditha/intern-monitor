@@ -16,7 +16,8 @@ import {
   EndDayPromptModal,
   TasksBoard,
   DailyLogTimeline,
-  FlaggedMistakesBanner
+  FlaggedMistakesBanner,
+  InternMessages
 } from '../../components/intern';
 import { formatDate } from '../../utils/helpers';
 
@@ -242,10 +243,17 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
   };
 
   const handleTaskStatusToggle = async (task: Task) => {
-    let nextStatus: TaskStatus = 'in_progress';
-    if (task.status === 'todo') nextStatus = 'in_progress';
-    else if (task.status === 'in_progress') nextStatus = 'done';
-    else if (task.status === 'done') nextStatus = 'todo';
+    // Only allow: todo → in_progress, in_progress → done
+    // Don't allow going back from done
+    let nextStatus: TaskStatus;
+    if (task.status === 'todo') {
+      nextStatus = 'in_progress';
+    } else if (task.status === 'in_progress') {
+      nextStatus = 'done';
+    } else {
+      // Already done, no action
+      return;
+    }
 
     // If moving to DONE, validate PR link or prompt for it
     if (nextStatus === 'done' && (!task.pr_link || !task.pr_link.trim())) {
@@ -376,6 +384,12 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
             setDateFilter={setDateFilter}
           />
         </div>
+      </div>
+
+      {/* Messages Section */}
+      <div className="mt-6">
+        <h2 className="text-xl font-bold text-slate-800 dark:text-white mb-4">Messages</h2>
+        <InternMessages user={user} />
       </div>
     </div>
   );

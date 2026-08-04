@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { getPrisma } from "@/src/db/prisma";
 import { verifySession, SESSION_COOKIE_NAME } from "@/src/lib/jwt";
+import { logger } from "@/src/lib/logger";
 
 export class AuthError extends Error {
   public status: number;
@@ -47,8 +48,10 @@ export async function withAuth(request: NextRequest) {
 
     return dbUser;
   } catch (error: any) {
+    // Preserve auth errors, but log and surface a generic error for DB failures
     if (error instanceof AuthError) throw error;
-    throw new Error(`Database error: ${error.message}`);
+    logger.error({ err: error, userId: payload?.userId }, "withAuth: database error");
+    throw new Error("Internal Server Error");
   }
 }
 

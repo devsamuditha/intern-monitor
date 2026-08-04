@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { withAuth } from "@/app/api/_lib/withAuth";
+import { withAuth, requireSuperAdmin } from "@/app/api/_lib/withAuth";
 import { getPrisma } from "@/src/db/prisma";
-import { mapAuditLog } from "@/app/api/_lib/mappers";
+import { logger } from "@/src/lib/logger";
 
 export async function GET(request: NextRequest) {
+  let user;
   try {
-    await withAuth(request);
+    user = await withAuth(request);
+    requireSuperAdmin(user);
   } catch (err: any) {
     const status = err.message.includes("Forbidden") ? 403 : err.message.includes("Unauthorized") ? 401 : 500;
     return NextResponse.json({ error: err.message }, { status });
@@ -16,18 +18,31 @@ export async function GET(request: NextRequest) {
     const oneWeekAgo = new Date();
     oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
 
-    const summary = await prisma.$queryRaw`
-      SELECT "userId" as "actorId", u.name as "actorName", COUNT(*) as count
-      FROM "AuditLog"
-      JOIN "User" u ON "AuditLog"."userId" = u.id
-      WHERE "AuditLog"."timestamp" >= ${oneWeekAgo}
-      GROUP BY "AuditLog"."userId", u.name
-      ORDER BY count DESC
-      LIMIT 10
-    `;
+    const summary = await prisma.auditLog.groupBy({
+      by: ["userId"],
+      where: { timestamp: { gte: oneWeekAgo } },
+      _count: { userId: true },
+      orderBy: { _count: { userId: "desc" } },
+      take: 10,
+    });
 
-    return NextResponse.json(summary);
+    const userIds = summary.map((s) => s.userId);
+    const users = userIds.length > 0 ? await prisma.user.findMany({
+      where: { id: { in: userIds } },
+      select: { id: true, name: true },
+    }) : [];
+
+    const userMap = new Map(users.map((u) => [u.id, u.name]));
+
+    const result = summary.map((s) => ({
+      actorId: s.userId,
+      actorName: userMap.get(s.userId) || undefined,
+      count: s._count.userId,
+    }));
+
+    return NextResponse.json(result);
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    logger.error({ err: error, route: "api/superadmin/audit-logs/summary", user: user?.id }, "Failed to build audit summary");
+    return NextResponse.json({ error: "Internal Server Error", code: "internal_error" }, { status: 500 });
   }
 }

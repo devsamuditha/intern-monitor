@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@/app/api/_lib/withAuth";
 import { getPrisma } from "@/src/db/prisma";
 import { mapUser } from "@/app/api/_lib/mappers";
+import { logger } from "@/src/lib/logger";
 
 export async function GET(request: NextRequest) {
   let user;
@@ -13,10 +14,9 @@ export async function GET(request: NextRequest) {
   }
 
   const { role, assigned_tech_lead_id } = Object.fromEntries(request.nextUrl.searchParams);
-
+  const whereClause: any = {};
   try {
     const prisma = getPrisma();
-    const whereClause: any = {};
     if (role) {
       whereClause.role = String(role).toUpperCase();
     }
@@ -31,6 +31,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(dbUsers.map(mapUser));
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    logger.error({ err: error, route: "api/users", user: user?.id, whereClause }, "Failed to fetch users");
+    return NextResponse.json({ error: "Internal Server Error", code: "internal_error" }, { status: 500 });
   }
 }

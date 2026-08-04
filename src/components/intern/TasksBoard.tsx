@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { motion } from 'motion/react';
-import { CheckSquare, AlertTriangle, Github, ExternalLink, Check, Play, ArrowRight } from 'lucide-react';
+import { CheckSquare, AlertTriangle, Github, ExternalLink, Check, Play } from 'lucide-react';
 import { Task } from '../../types.ts';
 import { formatDate } from '../../utils/helpers';
 import { staggerContainer, fadeInUp } from '../../utils/motion';
@@ -100,30 +100,27 @@ export const TasksBoard: React.FC<TasksBoardProps> = ({ tasks, onTaskStatusToggl
               </div>
 
               <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
-                <button
-                  onClick={() => onTaskStatusToggle(task)}
-                  className={`px-3 py-1.5 rounded-xl text-[10px] font-bold transition flex items-center gap-1 shrink-0 ${
-                    task.status === 'done'
-                      ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300'
-                      : task.status === 'in_progress'
-                      ? 'bg-amber-50 text-amber-700 hover:bg-amber-100 dark:bg-amber-950/40 dark:text-amber-300'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400'
-                  }`}
-                >
-                  {task.status === 'done' ? (
-                    <>
-                      <Check className="h-3 w-3 stroke-[3]" /> Done
-                    </>
-                  ) : task.status === 'in_progress' ? (
-                    <>
-                      <Play className="h-3 w-3 fill-amber-600" /> Start
-                    </>
-                  ) : (
-                    <>
-                      <ArrowRight className="h-3 w-3" /> To Do
-                    </>
-                  )}
-                </button>
+                {task.status === 'todo' && (
+                  <button
+                    onClick={() => onTaskStatusToggle(task)}
+                    className="px-3 py-1.5 rounded-xl text-[10px] font-bold transition flex items-center gap-1 shrink-0 bg-teal-500 text-white hover:bg-teal-600 dark:bg-teal-600 dark:hover:bg-teal-700"
+                  >
+                    <Play className="h-3 w-3" /> Start
+                  </button>
+                )}
+                {task.status === 'in_progress' && (
+                  <button
+                    onClick={() => onTaskStatusToggle(task)}
+                    className="px-3 py-1.5 rounded-xl text-[10px] font-bold transition flex items-center gap-1 shrink-0 bg-emerald-500 text-white hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-700"
+                  >
+                    <Check className="h-3 w-3 stroke-[3]" /> Complete
+                  </button>
+                )}
+                {task.status === 'done' && (
+                  <div className="px-3 py-1.5 rounded-xl text-[10px] font-bold flex items-center gap-1 shrink-0 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
+                    <Check className="h-3 w-3 stroke-[3]" /> Completed
+                  </div>
+                )}
               </div>
             </motion.div>
           ))

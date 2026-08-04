@@ -8,6 +8,10 @@
  */
 import { PrismaClient, Role } from "@prisma/client";
 import { hashPassword } from "../src/lib/auth";
+import { config } from "dotenv";
+
+config({ path: ".env" });
+config({ path: ".env.local", override: true });
 
 const prisma = new PrismaClient();
 

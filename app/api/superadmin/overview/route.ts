@@ -7,6 +7,7 @@ import { Role, TaskStatus } from "@prisma/client";
 import { logAudit, mapAuditLog } from "@/app/api/_lib/mappers";
 import { validateBody } from "@/app/api/_lib/validation";
 import { CreateUserBySuperAdminSchema, ReassignTechLeadSchema } from "@/app/api/_lib/validation";
+import { logger } from "@/src/lib/logger";
 
 export async function GET(request: NextRequest) {
   let user;
@@ -53,7 +54,7 @@ export async function GET(request: NextRequest) {
 
     const allMarks = activeInternIds.length > 0
       ? await prisma.mark.findMany({
-          where: { internId: { in: activeInternIds }, score: { not: null } } as any,
+          where: { internId: { in: activeInternIds } },
           select: { score: true },
         })
       : [];
@@ -108,6 +109,9 @@ export async function GET(request: NextRequest) {
       recentAuditLogs: recentAuditLogs.map((l: any) => mapAuditLog(l)),
     });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    // Log full error with stack for debugging, include user context if available
+    logger.error({ err: error, route: "api/superadmin/overview", user: user?.id }, "Failed to build superadmin overview");
+    const message = error?.message || "Internal Server Error";
+    return NextResponse.json({ error: message, code: "internal_error" }, { status: 500 });
   }
 }

@@ -30,8 +30,30 @@ export default function DashboardPage() {
   );
 
   useEffect(() => {
-    if (user && user.role !== "intern") {
+    if (user && user?.role !== "intern") {
       setRefreshKey((prev) => prev + 1);
+    }
+  }, [user]);
+
+  // Ensure the active tab matches the user's default panel when the user
+  // data first arrives. This fixes a case where the overview panel renders
+  // for a `super_admin` but the tab selection remains on the generic
+  // `dashboard` tab because the initial state was created before `user`.
+  useEffect(() => {
+    if (!user) return;
+
+    const defaultTab =
+      user.role === "tech_lead"
+        ? "team_overview"
+        : user.role === "manager"
+        ? "analytics"
+        : user.role === "super_admin"
+        ? "overview"
+        : "dashboard";
+
+    // Only set if it differs to avoid clobbering a user's manual choice.
+    if (activeTab !== defaultTab) {
+      setActiveTab(defaultTab);
     }
   }, [user]);
 
@@ -51,10 +73,12 @@ export default function DashboardPage() {
     setRefreshKey((prev) => prev + 1);
   };
 
-  if (!user) return null;
+  // Always render the DashboardShell so the root DOM structure is consistent
+  // between server and client. When `user` is not available yet render a
+  // lightweight loading placeholder to avoid hydration mismatches.
 
   const renderPanel = () => {
-    switch (user.role) {
+    switch (user?.role) {
       case "intern":
         switch (activeTab) {
           case "discussions":
@@ -91,9 +115,16 @@ export default function DashboardPage() {
 
   return (
     <DashboardShell settings={settings} activeTab={activeTab} setActiveTab={setActiveTab}>
-      <div key={`${user.id}-${refreshKey}`}>
-        {renderPanel()}
-      </div>
+      {user ? (
+        <div key={`${user.id}-${refreshKey}`}>
+          {renderPanel()}
+        </div>
+      ) : (
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600 mx-auto mb-4" />
+          <p className="text-sm text-slate-500">Loading dashboard...</p>
+        </div>
+      )}
     </DashboardShell>
   );
 }
