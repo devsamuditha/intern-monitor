@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth, requireRole } from "@/app/api/_lib/withAuth";
 import { getPrisma } from "@/src/db/prisma";
+import { Role } from "@prisma/client";
 
 export async function DELETE(
   request: NextRequest,
@@ -8,7 +9,7 @@ export async function DELETE(
 ) {
   try {
     const user = await withAuth(request);
-    requireRole(user, ['manager', 'super_admin']);
+    requireRole(user, [Role.MANAGER, Role.SUPER_ADMIN]);
   } catch (err: any) {
     const status = err.message.includes("Forbidden") ? 403 : err.message.includes("Unauthorized") ? 401 : 500;
     return NextResponse.json({ error: err.message }, { status });

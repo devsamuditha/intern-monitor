@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth, requireRole } from "@/app/api/_lib/withAuth";
 import { getPrisma } from "@/src/db/prisma";
+import { Role } from "@prisma/client";
 import { mapProject } from "@/app/api/_lib/mappers";
 import { validateBody } from "@/app/api/_lib/validation";
 import { ProjectSchema } from "@/app/api/_lib/validation";
@@ -46,7 +47,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const user = await withAuth(request);
-    requireRole(user, ['manager', 'tech_lead', 'super_admin', 'intern']);
+    requireRole(user, [Role.MANAGER, Role.TECH_LEAD, Role.SUPER_ADMIN, Role.INTERN]);
   } catch (err: any) {
     const status = err.message.includes("Forbidden") ? 403 : err.message.includes("Unauthorized") ? 401 : 500;
     return NextResponse.json({ error: err.message }, { status });
