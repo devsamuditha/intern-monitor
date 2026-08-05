@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const user = await withAuth(request);
-    requireRole(user, ['manager', 'tech_lead', 'super_admin']);
+    requireRole(user, ['manager', 'tech_lead', 'super_admin', 'intern']);
   } catch (err: any) {
     const status = err.message.includes("Forbidden") ? 403 : err.message.includes("Unauthorized") ? 401 : 500;
     return NextResponse.json({ error: err.message }, { status });
