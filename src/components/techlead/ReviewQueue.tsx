@@ -9,11 +9,12 @@ import { api } from '../../services/api';
 import { User, DailyLog, Task, MistakeSeverity } from '../../types.ts';
 import { 
   CheckSquare, FileText, Filter, Search, Star, AlertTriangle, 
-  ChevronLeft, ChevronRight, CheckCircle2, Clock, X, ExternalLink, 
+  ChevronLeft, ChevronRight, CheckCircle2, CheckCheck, Clock, X, ExternalLink, 
   Github, Sparkles, MessageSquare, Award, RefreshCw, User as UserIcon
 } from 'lucide-react';
 import { formatDate } from '../../utils/helpers';
 import { scaleIn } from '../../utils/motion';
+import { ThemedIcon } from '../../components/ui/ThemedIcon';
 
 interface ReviewQueueProps {
   currentUser: User;
@@ -281,9 +282,9 @@ export const ReviewQueue: React.FC<ReviewQueueProps> = ({ currentUser, onSelectI
 
   if (loading) {
     return (
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-8 text-center space-y-3">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600 mx-auto"></div>
-        <p className="text-xs text-slate-500 dark:text-slate-400">Loading team review queue...</p>
+      <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 p-8 text-center space-y-3">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-400 mx-auto"></div>
+        <p className="text-xs text-slate-300">Loading team review queue...</p>
       </div>
     );
   }
@@ -291,25 +292,25 @@ export const ReviewQueue: React.FC<ReviewQueueProps> = ({ currentUser, onSelectI
   return (
     <div className="space-y-6">
       {/* Top Banner & Stats */}
-      <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-slate-700/30 p-6 shadow-lg shadow-teal-500/5 space-y-4">
+      <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 p-6 shadow-lg shadow-teal-500/5 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <div className="p-2 rounded-xl bg-teal-50 dark:bg-teal-950/60 text-teal-600 dark:text-teal-400">
+              <div className="p-2 rounded-xl bg-teal-500/20 text-teal-300">
                 <CheckSquare className="h-5 w-5" />
               </div>
-              <h2 className="text-base font-extrabold text-slate-900 dark:text-white">
+              <h2 className="text-base font-extrabold text-white">
                 Team Review Queue & Grading Desk
               </h2>
             </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <p className="text-xs text-slate-300">
               Grade daily code journals and completed sprint tasks, award 5-star ratings with mentor feedback, and persist reviews to team logs.
             </p>
           </div>
 
           <button
             onClick={loadQueueData}
-            className="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold transition flex items-center gap-1.5 shrink-0 self-start sm:self-auto"
+            className="px-3.5 py-2 rounded-xl bg-white/10 border border-white/20 text-slate-300 hover:bg-white/20 text-xs font-semibold transition flex items-center gap-1.5 shrink-0 self-start sm:self-auto"
           >
             <RefreshCw className="h-3.5 w-3.5" />
             Refresh Queue
@@ -318,67 +319,67 @@ export const ReviewQueue: React.FC<ReviewQueueProps> = ({ currentUser, onSelectI
 
         {/* Quick Counter Badges */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2">
-          <div 
-            onClick={() => setStatusFilter('pending')}
-            className={`p-3.5 rounded-xl border cursor-pointer transition ${
-              statusFilter === 'pending'
-                ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-300 dark:border-amber-800 ring-2 ring-amber-400/20'
-                : 'bg-slate-50/50 dark:bg-slate-950/50 border-slate-200 dark:border-slate-800 hover:border-amber-300'
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400 flex items-center gap-1">
-                <Clock className="h-3.5 w-3.5" /> Pending Review
-              </span>
-              <span className="px-2 py-0.5 rounded-full bg-amber-200 dark:bg-amber-900/80 text-amber-900 dark:text-amber-200 text-xs font-black">
-                {pendingCount}
-              </span>
-            </div>
-            <p className="text-lg font-black text-amber-900 dark:text-amber-200 mt-1">{pendingCount} Items</p>
-          </div>
-
-          <div 
-            onClick={() => setStatusFilter('reviewed')}
-            className={`p-3.5 rounded-xl border cursor-pointer transition ${
-              statusFilter === 'reviewed'
-                ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800 ring-2 ring-emerald-400/20'
-                : 'bg-slate-50/50 dark:bg-slate-950/50 border-slate-200 dark:border-slate-800 hover:border-emerald-300'
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
-                <CheckCircle2 className="h-3.5 w-3.5" /> Reviewed & Graded
-              </span>
-              <span className="px-2 py-0.5 rounded-full bg-emerald-200 dark:bg-emerald-900/80 text-emerald-900 dark:text-emerald-200 text-xs font-black">
-                {reviewedCount}
-              </span>
-            </div>
-            <p className="text-lg font-black text-emerald-900 dark:text-emerald-200 mt-1">{reviewedCount} Items</p>
-          </div>
-
-          <div 
-            onClick={() => setStatusFilter('all')}
-            className={`p-3.5 rounded-xl border cursor-pointer transition col-span-2 sm:col-span-1 ${
-              statusFilter === 'all'
-                ? 'bg-teal-50 dark:bg-teal-950/40 border-teal-300 dark:border-teal-800 ring-2 ring-teal-400/20'
-                : 'bg-slate-50/50 dark:bg-slate-950/50 border-slate-200 dark:border-slate-800 hover:border-teal-300'
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-teal-700 dark:text-teal-400 flex items-center gap-1">
-                <Award className="h-3.5 w-3.5" /> Total In Queue
-              </span>
-              <span className="px-2 py-0.5 rounded-full bg-teal-200 dark:bg-teal-900/80 text-teal-900 dark:text-teal-200 text-xs font-black">
-                {unifiedItems.length}
-              </span>
-            </div>
-            <p className="text-lg font-black text-teal-900 dark:text-teal-200 mt-1">{unifiedItems.length} Total</p>
-          </div>
+          <div  
+            onClick={() => setStatusFilter('pending')} 
+            className={`p-3.5 rounded-xl border cursor-pointer transition ${ 
+              statusFilter === 'pending' 
+                ? 'bg-amber-500/20 border-amber-500/40' 
+                 : 'bg-white/5 border border-white/10 hover:border-amber-400' 
+            }`} 
+          > 
+            <div className="flex items-center justify-between"> 
+              <span className="text-[10px] font-bold uppercase tracking-wider text-amber-200 flex items-center gap-1"> 
+                <ThemedIcon icon={Clock} color="amber" size={14} /> Pending Review 
+              </span> 
+              <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-xs font-black"> 
+                {pendingCount} 
+              </span> 
+            </div> 
+            <p className="text-lg font-black text-amber-300 mt-1">{pendingCount} Items</p> 
+          </div> 
+ 
+          <div  
+            onClick={() => setStatusFilter('reviewed')} 
+            className={`p-3.5 rounded-xl border cursor-pointer transition ${ 
+              statusFilter === 'reviewed' 
+                ? 'bg-emerald-500/20 border-emerald-500/40' 
+                 : 'bg-white/5 border border-white/10 hover:border-emerald-400' 
+            }`} 
+          > 
+            <div className="flex items-center justify-between"> 
+              <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-200 flex items-center gap-1"> 
+                <ThemedIcon icon={CheckCheck} color="emerald" size={14} /> Reviewed & Graded 
+              </span> 
+              <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-black"> 
+                {reviewedCount} 
+              </span> 
+            </div> 
+            <p className="text-lg font-black text-emerald-300 mt-1">{reviewedCount} Items</p> 
+          </div> 
+ 
+          <div  
+            onClick={() => setStatusFilter('all')} 
+            className={`p-3.5 rounded-xl border cursor-pointer transition col-span-2 sm:col-span-1 ${ 
+              statusFilter === 'all' 
+                ? 'bg-teal-500/20 border-teal-500/40' 
+                 : 'bg-white/5 border border-white/10 hover:border-teal-400' 
+            }`} 
+          > 
+            <div className="flex items-center justify-between"> 
+              <span className="text-[10px] font-bold uppercase tracking-wider text-teal-200 flex items-center gap-1"> 
+                <ThemedIcon icon={Award} color="teal" size={14} /> Total In Queue 
+              </span> 
+              <span className="px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-300 text-xs font-black"> 
+                {unifiedItems.length} 
+              </span> 
+            </div> 
+            <p className="text-lg font-black text-teal-300 mt-1">{unifiedItems.length} Total</p> 
+          </div> 
         </div>
       </div>
 
       {/* Filter and Control Toolbar */}
-      <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-slate-700/30 p-4 shadow-lg shadow-teal-500/5 space-y-3">
+      <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 p-4 shadow-lg shadow-teal-500/5 space-y-3">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           
           {/* Status Filter */}
@@ -387,7 +388,7 @@ export const ReviewQueue: React.FC<ReviewQueueProps> = ({ currentUser, onSelectI
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as QueueStatusFilter)}
-              className="w-full px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-xs font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+              className="w-full px-3 py-1.5 rounded-xl border border-white/20 bg-white/5 text-xs font-semibold text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
             >
               <option value="pending">⏳ Pending Review Only</option>
               <option value="reviewed">✅ Reviewed & Graded Only</option>
@@ -401,7 +402,7 @@ export const ReviewQueue: React.FC<ReviewQueueProps> = ({ currentUser, onSelectI
             <select
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value as QueueItemType)}
-              className="w-full px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-xs font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+              className="w-full px-3 py-1.5 rounded-xl border border-white/20 bg-white/5 text-xs font-semibold text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
             >
               <option value="all">📁 All Types (Logs & Tasks)</option>
               <option value="log">📝 Daily Journals Only</option>
@@ -415,7 +416,7 @@ export const ReviewQueue: React.FC<ReviewQueueProps> = ({ currentUser, onSelectI
             <select
               value={selectedInternFilter}
               onChange={(e) => setSelectedInternFilter(e.target.value)}
-              className="w-full px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-xs font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+              className="w-full px-3 py-1.5 rounded-xl border border-white/20 bg-white/5 text-xs font-semibold text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
             >
               <option value="all">👥 All Assigned Interns</option>
               {interns.map(i => (
@@ -434,18 +435,18 @@ export const ReviewQueue: React.FC<ReviewQueueProps> = ({ currentUser, onSelectI
                 placeholder="Search intern name, code changes, tasks..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                 className="w-full pl-8 pr-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                 className="w-full pl-8 pr-3 py-1.5 rounded-xl border border-white/20 bg-white/5 text-xs text-white placeholder:text-[10px] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500"
                />
-            </div>
-          </div>
+             </div>
+           </div>
 
-        </div>
-      </div>
+         </div>
+       </div>
 
       {/* Review Queue Items List */}
-      <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl rounded-2xl shadow-lg shadow-teal-500/5 border border-white/20 dark:border-slate-700/30 overflow-hidden">
-        <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-          <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+      <div className="bg-white/10 backdrop-blur-xl rounded-2xl shadow-lg shadow-teal-500/5 border border-white/20 overflow-hidden">
+        <div className="p-4 border-b border-white/10 flex items-center justify-between">
+          <span className="text-xs font-bold text-slate-300">
             Showing {paginatedItems.length} of {filteredItems.length} queued items
           </span>
 
@@ -454,7 +455,7 @@ export const ReviewQueue: React.FC<ReviewQueueProps> = ({ currentUser, onSelectI
             <select
               value={itemsPerPage}
               onChange={(e) => setItemsPerPage(Number(e.target.value))}
-              className="px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-xs text-slate-900 dark:text-white font-semibold"
+              className="px-2 py-1 rounded-lg border border-white/20 bg-white/5 text-xs text-white font-semibold"
             >
               <option value={5}>5 per page</option>
               <option value={10}>10 per page</option>
@@ -463,14 +464,14 @@ export const ReviewQueue: React.FC<ReviewQueueProps> = ({ currentUser, onSelectI
           </div>
         </div>
 
-        <div className="divide-y divide-slate-100 dark:divide-slate-800">
+        <div className="divide-y divide-white/10">
           {paginatedItems.length === 0 ? (
             <div className="py-16 text-center space-y-3 p-6">
-              <div className="p-3 bg-slate-100 dark:bg-slate-800 rounded-full w-12 h-12 flex items-center justify-center mx-auto text-slate-400">
+              <div className="p-3 bg-white/10 rounded-full w-12 h-12 flex items-center justify-center mx-auto text-slate-400">
                 <CheckSquare className="h-6 w-6" />
               </div>
               <div className="space-y-1">
-                <p className="text-sm font-bold text-slate-800 dark:text-white">No queue items match your filter criteria</p>
+                <p className="text-sm font-bold text-white">No queue items match your filter criteria</p>
                 <p className="text-xs text-slate-400 max-w-sm mx-auto">
                   Try clearing search keywords or switching your status filter to view all entries.
                 </p>
@@ -482,7 +483,7 @@ export const ReviewQueue: React.FC<ReviewQueueProps> = ({ currentUser, onSelectI
                   setSelectedInternFilter('all');
                   setSearchQuery('');
                 }}
-                className="px-4 py-1.5 rounded-xl bg-teal-50 dark:bg-teal-950/60 text-teal-600 dark:text-teal-400 text-xs font-bold hover:bg-teal-100 dark:hover:bg-teal-900 transition"
+                className="px-4 py-1.5 rounded-xl bg-teal-500/20 text-teal-300 text-xs font-bold hover:bg-teal-500/30 transition"
               >
                 Reset All Filters
               </button>
@@ -491,124 +492,124 @@ export const ReviewQueue: React.FC<ReviewQueueProps> = ({ currentUser, onSelectI
             paginatedItems.map(item => (
               <div 
                 key={`${item.type}-${item.id}`}
-                className="p-5 hover:bg-slate-50/70 dark:hover:bg-slate-950/50 transition flex flex-col md:flex-row md:items-start justify-between gap-4"
-              >
-                <div className="space-y-2 flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    {/* Item type badge */}
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider flex items-center gap-1 ${
-                      item.type === 'log'
-                        ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-900'
-                        : 'bg-purple-50 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300 border border-purple-200 dark:border-purple-900'
-                    }`}>
-                      {item.type === 'log' ? <FileText className="h-3 w-3" /> : <CheckSquare className="h-3 w-3" />}
-                      {item.type === 'log' ? 'Daily Journal' : 'Sprint Task'}
-                    </span>
+                 className="p-5 hover:bg-white/10 transition flex flex-col md:flex-row md:items-start justify-between gap-4"
+               >
+                 <div className="space-y-2 flex-1 min-w-0">
+                   <div className="flex items-center gap-2 flex-wrap">
+                     {/* Item type badge */}
+                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider flex items-center gap-1 ${
+                       item.type === 'log'
+                         ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                         : 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                     }`}>
+                       {item.type === 'log' ? <FileText className="h-3 w-3" /> : <CheckSquare className="h-3 w-3" />}
+                       {item.type === 'log' ? 'Daily Journal' : 'Sprint Task'}
+                     </span>
 
-                    {/* Status badge */}
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                      item.status === 'reviewed'
-                        ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300'
-                        : 'bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300'
-                    }`}>
-                      {item.status === 'reviewed' ? '✅ Reviewed' : '⏳ Pending Review'}
-                    </span>
+                     {/* Status badge */}
+                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                       item.status === 'reviewed'
+                         ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                         : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                     }`}>
+                       {item.status === 'reviewed' ? '✅ Reviewed' : '⏳ Pending Review'}
+                     </span>
 
-                    {/* Date */}
-                    <span className="text-[10px] text-slate-400 font-mono">
-                      {formatDate(item.date)}
-                    </span>
-                  </div>
+                     {/* Date */}
+                     <span className="text-[10px] text-slate-400 font-mono">
+                       {formatDate(item.date)}
+                     </span>
+                   </div>
 
-                  {/* Intern Info & Title */}
-                  <div className="flex items-center gap-2.5 pt-0.5">
-                    <img 
-                      src={item.internAvatar} 
-                      alt={item.internName} 
-                      className="h-7 w-7 rounded-full object-cover border" 
-                      referrerPolicy="no-referrer" 
-                    />
-                    <div>
-                      <span 
-                        onClick={() => onSelectIntern && onSelectIntern(item.internId)}
-                         className="text-xs font-bold text-slate-900 dark:text-white hover:text-teal-700 dark:hover:text-teal-400 cursor-pointer"
-                      >
-                        {item.internName}
-                      </span>
-                      <h4 className="text-xs font-semibold text-slate-800 dark:text-slate-200 leading-snug">
-                        {item.title}
-                      </h4>
-                    </div>
-                  </div>
+                   {/* Intern Info & Title */}
+                   <div className="flex items-center gap-2.5 pt-0.5">
+                     <img 
+                       src={item.internAvatar} 
+                       alt={item.internName} 
+                       className="h-7 w-7 rounded-full object-cover border border-white/20" 
+                       referrerPolicy="no-referrer" 
+                     />
+                     <div>
+                       <span 
+                         onClick={() => onSelectIntern && onSelectIntern(item.internId)}
+                          className="text-xs font-bold text-white hover:text-teal-300 cursor-pointer"
+                       >
+                         {item.internName}
+                       </span>
+                       <h4 className="text-xs font-semibold text-slate-200 leading-snug">
+                         {item.title}
+                       </h4>
+                     </div>
+                   </div>
 
-                  {/* Code changes / Description snippet */}
-                  <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-2 bg-slate-50 dark:bg-slate-950/80 p-2.5 rounded-xl border border-slate-200/60 dark:border-slate-800/80 font-mono">
-                    {item.details}
-                  </p>
+                   {/* Code changes / Description snippet */}
+                   <p className="text-xs text-slate-300 line-clamp-2 bg-white/5 p-2.5 rounded-xl border border-white/10 font-mono">
+                     {item.details}
+                   </p>
 
-                  {/* GitHub or PR Link if exists */}
-                  {item.githubUrl && (
-                    <a
-                      href={item.githubUrl.startsWith('http') ? item.githubUrl : `https://${item.githubUrl}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-[10px] font-semibold text-teal-600 dark:text-teal-400 hover:underline"
-                    >
-                      <Github className="h-3 w-3" />
-                      View Code / Pull Request Link
-                      <ExternalLink className="h-2.5 w-2.5" />
-                    </a>
-                  )}
+                   {/* GitHub or PR Link if exists */}
+                   {item.githubUrl && (
+                     <a
+                       href={item.githubUrl.startsWith('http') ? item.githubUrl : `https://${item.githubUrl}`}
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       className="inline-flex items-center gap-1 text-[10px] font-semibold text-teal-300 hover:underline"
+                     >
+                       <Github className="h-3 w-3" />
+                       View Code / Pull Request Link
+                       <ExternalLink className="h-2.5 w-2.5" />
+                     </a>
+                   )}
 
-                  {/* If already reviewed, display score & comment */}
-                  {item.status === 'reviewed' && item.score && (
-                    <div className="p-3 bg-emerald-50/50 dark:bg-emerald-950/30 border border-emerald-200/60 dark:border-emerald-900/40 rounded-xl space-y-1">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-bold text-emerald-800 dark:text-emerald-300 flex items-center gap-1">
-                          <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-                          Awarded Score: {item.score} / {maxScore} Stars
-                        </span>
-                        <span className="text-[9px] text-slate-400 italic">Persisted in DB</span>
-                      </div>
-                      {item.comment && (
-                        <p className="text-xs text-slate-700 dark:text-slate-300 italic">"{item.comment}"</p>
-                      )}
-                    </div>
-                  )}
-                </div>
+                   {/* If already reviewed, display score & comment */}
+                   {item.status === 'reviewed' && item.score && (
+                     <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl space-y-1">
+                       <div className="flex items-center justify-between">
+                         <span className="text-[10px] font-bold text-emerald-300 flex items-center gap-1">
+                           <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                           Awarded Score: {item.score} / {maxScore} Stars
+                         </span>
+                         <span className="text-[9px] text-slate-400 italic">Persisted in DB</span>
+                       </div>
+                       {item.comment && (
+                         <p className="text-xs text-slate-300 italic">"{item.comment}"</p>
+                       )}
+                     </div>
+                   )}
+                 </div>
 
-                {/* Review Action Button */}
-                <div className="shrink-0 self-end md:self-center">
-                  <button
-                    onClick={() => handleOpenReviewModal(item)}
-                    className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm ${
-                      item.status === 'reviewed'
-                        ? 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300'
-                         : 'bg-teal-600 hover:bg-teal-500 text-white shadow-teal-600/20'
-                    }`}
-                  >
-                    <Sparkles className="h-3.5 w-3.5" />
-                    {item.status === 'reviewed' ? 'Edit Review Grade' : 'Grade & Review'}
-                  </button>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
+                 {/* Review Action Button */}
+                 <div className="shrink-0 self-end md:self-center">
+                   <button
+                     onClick={() => handleOpenReviewModal(item)}
+                     className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm ${
+                       item.status === 'reviewed'
+                         ? 'bg-white/10 text-slate-300 hover:bg-white/20'
+                          : 'bg-teal-600 hover:bg-teal-500 text-white shadow-teal-600/20'
+                     }`}
+                   >
+                     <Sparkles className="h-3.5 w-3.5" />
+                     {item.status === 'reviewed' ? 'Edit Review Grade' : 'Grade & Review'}
+                   </button>
+                 </div>
+               </div>
+             ))
+           )}
+         </div>
 
         {/* Pagination Footer Controls */}
         {totalPages > 1 && (
-          <div className="p-4 bg-slate-50 dark:bg-slate-950 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-              Page <span className="font-bold text-slate-800 dark:text-white">{safeCurrentPage}</span> of{' '}
-              <span className="font-bold text-slate-800 dark:text-white">{totalPages}</span>
+          <div className="p-4 bg-white/5 border-t border-white/10 flex items-center justify-between">
+            <p className="text-xs text-slate-300 font-medium">
+              Page <span className="font-bold text-white">{safeCurrentPage}</span> of{' '}
+              <span className="font-bold text-white">{totalPages}</span>
             </p>
 
             <div className="flex items-center gap-1.5">
               <button
                 disabled={safeCurrentPage === 1}
                 onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 disabled:opacity-40 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                className="p-1.5 rounded-lg border border-white/20 bg-white/5 text-slate-300 hover:bg-white/10 transition"
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
@@ -620,7 +621,7 @@ export const ReviewQueue: React.FC<ReviewQueueProps> = ({ currentUser, onSelectI
                   className={`px-3 py-1 rounded-lg text-xs font-bold transition ${
                     p === safeCurrentPage
                       ? 'bg-teal-600 text-white shadow-sm'
-                      : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                      : 'bg-white/5 border border-white/20 text-slate-300 hover:bg-white/10'
                   }`}
                 >
                   {p}
@@ -630,7 +631,7 @@ export const ReviewQueue: React.FC<ReviewQueueProps> = ({ currentUser, onSelectI
               <button
                 disabled={safeCurrentPage === totalPages}
                 onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 disabled:opacity-40 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                className="p-1.5 rounded-lg border border-white/20 bg-white/5 text-slate-300 hover:bg-white/10 transition"
               >
                 <ChevronRight className="h-4 w-4" />
               </button>
@@ -648,18 +649,18 @@ export const ReviewQueue: React.FC<ReviewQueueProps> = ({ currentUser, onSelectI
               initial="initial"
               animate="animate"
               exit="exit"
-              className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-slate-700/30 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 relative overflow-hidden"
+              className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 relative overflow-hidden"
             >
-              <div className="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-800">
+              <div className="flex justify-between items-center pb-3 border-b border-white/20">
                 <div className="flex items-center gap-2">
-                  <div className="p-2 rounded-xl bg-teal-50 dark:bg-teal-950/60 text-teal-600 dark:text-teal-400">
+                  <div className="p-2 rounded-xl bg-teal-500/20 text-teal-300">
                     <Sparkles className="h-5 w-5" />
                   </div>
                   <div>
-                    <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
+                    <h3 className="text-base font-extrabold text-white">
                       Grading & Mentor Feedback
                     </h3>
-                    <p className="text-xs text-slate-400">
+                    <p className="text-xs text-slate-300">
                       Reviewing {activeItem.type === 'log' ? 'Daily Journal' : 'Sprint Task'} for {activeItem.internName}
                     </p>
                   </div>
@@ -667,22 +668,22 @@ export const ReviewQueue: React.FC<ReviewQueueProps> = ({ currentUser, onSelectI
 
                 <button
                   onClick={() => setActiveItem(null)}
-                  className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg"
+                  className="p-1 text-slate-300 hover:text-white rounded-lg"
                 >
                   <X className="h-5 w-5" />
                 </button>
               </div>
 
               {reviewError && (
-                <div className="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/40 rounded-xl text-xs text-rose-600 dark:text-rose-400">
+                <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl text-xs text-rose-300">
                   {reviewError}
                 </div>
               )}
 
               {/* Item Details Summary */}
-              <div className="bg-slate-50 dark:bg-slate-950/80 p-3.5 rounded-xl border border-slate-200/80 dark:border-slate-800/80 space-y-1.5">
-                <p className="text-xs font-bold text-slate-900 dark:text-white">{activeItem.title}</p>
-                <p className="text-xs text-slate-600 dark:text-slate-300 font-mono line-clamp-3 leading-relaxed">
+              <div className="bg-white/5 p-3.5 rounded-xl border border-white/10 space-y-1.5">
+                <p className="text-xs font-bold text-white">{activeItem.title}</p>
+                <p className="text-xs text-slate-300 font-mono line-clamp-3 leading-relaxed">
                   {activeItem.details}
                 </p>
               </div>
@@ -690,7 +691,7 @@ export const ReviewQueue: React.FC<ReviewQueueProps> = ({ currentUser, onSelectI
               <form onSubmit={handleSaveReview} className="space-y-4">
                  {/* Rating Picker */}
                  <div>
-                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide mb-1">
+                   <label className="block text-xs font-bold text-teal-100 uppercase tracking-wide mb-1">
                      Award Rating (1 to {maxScore} Stars) *
                    </label>
                    <div className="flex items-center gap-2">
@@ -701,60 +702,60 @@ export const ReviewQueue: React.FC<ReviewQueueProps> = ({ currentUser, onSelectI
                         onClick={() => setReviewScore(star)}
                         className="p-1 hover:scale-110 transition focus:outline-none"
                       >
-                        <Star
-                          className={`h-7 w-7 ${
-                            star <= reviewScore
-                              ? 'fill-amber-400 text-amber-400'
-                              : 'text-slate-300 dark:text-slate-700'
-                          }`}
-                        />
-                      </button>
-                    ))}
-                    <span className="ml-2 text-xs font-extrabold text-teal-600 dark:text-teal-400">
-                      {scoreRatings.find(r => r.score === reviewScore)?.label || `${reviewScore} Stars`}
-                    </span>
-                  </div>
-                </div>
+                         <Star
+                           className={`h-7 w-7 ${
+                             star <= reviewScore
+                               ? 'fill-amber-400 text-amber-400'
+                               : 'text-slate-500'
+                           }`}
+                         />
+                       </button>
+                     ))}
+                     <span className="ml-2 text-xs font-extrabold text-teal-300">
+                       {scoreRatings.find(r => r.score === reviewScore)?.label || `${reviewScore} Stars`}
+                     </span>
+                   </div>
+                 </div>
 
-                {/* Mentor Feedback Notes */}
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide mb-1">
-                    Mentor Notes & Feedback
-                  </label>
-                  <textarea
-                    rows={3}
-                    placeholder="Write detailed advice, recommendations, or kudos for the intern..."
-                    value={reviewComment}
-                    onChange={(e) => setReviewComment(e.target.value)}
-                     className="w-full text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-3.5 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
-                  />
-                </div>
+                 {/* Mentor Feedback Notes */}
+                 <div>
+                   <label className="block text-xs font-bold text-teal-100 uppercase tracking-wide mb-1">
+                     Mentor Notes & Feedback
+                   </label>
+                   <textarea
+                     rows={3}
+                     placeholder="Write detailed advice, recommendations, or kudos for the intern..."
+                     value={reviewComment}
+                     onChange={(e) => setReviewComment(e.target.value)}
+                      className="w-full text-xs rounded-xl border border-white/20 bg-white/5 px-3.5 py-2.5 text-white placeholder:text-[10px] placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                   />
+                 </div>
 
-                {/* Optional Blunder / Mistake Flagging (Only for logs) */}
-                {activeItem.type === 'log' && (
-                  <div className="p-4 bg-rose-50/60 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/40 rounded-xl space-y-3">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={flagMistake}
-                        onChange={(e) => setFlagMistake(e.target.checked)}
-                        className="rounded border-rose-300 text-rose-600 focus:ring-rose-500 h-4 w-4"
-                      />
-                      <span className="text-xs font-bold text-rose-800 dark:text-rose-300 flex items-center gap-1">
-                        <AlertTriangle className="h-4 w-4 text-rose-600" />
-                        Flag Code Blunder / Mistake
-                      </span>
-                    </label>
+                 {/* Optional Blunder / Mistake Flagging (Only for logs) */}
+                 {activeItem.type === 'log' && (
+                   <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl space-y-3">
+                     <label className="flex items-center gap-2 cursor-pointer">
+                       <input
+                         type="checkbox"
+                         checked={flagMistake}
+                         onChange={(e) => setFlagMistake(e.target.checked)}
+                         className="rounded border-amber-300 text-amber-600 focus:ring-amber-500 h-4 w-4"
+                       />
+                       <span className="text-xs font-bold text-amber-200 flex items-center gap-1">
+                         <AlertTriangle className="h-4 w-4 text-amber-400" />
+                         Flag Code Blunder / Mistake
+                       </span>
+                     </label>
 
-                    {flagMistake && (
-                      <div className="space-y-2 pt-1">
-                        <input
-                          type="text"
-                          placeholder="Describe error (e.g. Hardcoded API key in client component)"
-                          value={mistakeNote}
-                          onChange={(e) => setMistakeNote(e.target.value)}
-                          className="w-full text-xs rounded-lg border border-rose-200 dark:border-rose-900 bg-white dark:bg-slate-950 px-3 py-1.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-rose-500"
-                        />
+                     {flagMistake && (
+                       <div className="space-y-2 pt-1">
+                         <input
+                           type="text"
+                           placeholder="Describe error (e.g. Hardcoded API key in client component)"
+                           value={mistakeNote}
+                           onChange={(e) => setMistakeNote(e.target.value)}
+                           className="w-full text-xs rounded-lg border border-white/20 bg-white/5 px-3 py-1.5 text-white placeholder:text-[10px] placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                         />
 
                         <div className="flex gap-2">
                           {(['low', 'medium', 'high'] as const).map(sev => (
@@ -765,7 +766,7 @@ export const ReviewQueue: React.FC<ReviewQueueProps> = ({ currentUser, onSelectI
                               className={`flex-1 py-1.5 text-[10px] font-bold capitalize rounded-lg transition ${
                                 mistakeSeverity === sev
                                   ? 'bg-rose-600 text-white shadow-sm'
-                                  : 'bg-white dark:bg-slate-900 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-900/50 hover:bg-rose-100/50'
+                                  : 'bg-white/5 text-rose-300 border border-white/20 hover:bg-white/10'
                               }`}
                             >
                               {sev} Severity
@@ -777,11 +778,11 @@ export const ReviewQueue: React.FC<ReviewQueueProps> = ({ currentUser, onSelectI
                   </div>
                 )}
 
-                <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                <div className="flex items-center justify-end gap-2 pt-2 border-t border-white/20">
                   <button
                     type="button"
                     onClick={() => setActiveItem(null)}
-                    className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                    className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:bg-white/10"
                   >
                     Cancel
                   </button>

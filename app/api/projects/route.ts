@@ -31,13 +31,14 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const dbProjects = await prisma.project.findMany({
-      where,
-      orderBy: [
-        { createdAt: "desc" },
-        { name: "asc" },
-      ],
-    });
+const dbProjects = await prisma.project.findMany({
+       where,
+       include: { owner: { select: { name: true } } },
+       orderBy: [
+         { createdAt: "desc" },
+         { name: "asc" },
+       ],
+     });
     return NextResponse.json(dbProjects.map(mapProject));
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });

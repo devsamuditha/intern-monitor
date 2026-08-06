@@ -208,7 +208,7 @@ export const SuperAdminUsers: React.FC<SuperAdminUsersProps> = ({ currentUser })
         </div>
       </div>
 
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-white/20 dark:border-slate-700/30 shadow-sm overflow-hidden">
+      <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-slate-700/30 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead>

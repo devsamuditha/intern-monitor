@@ -5,6 +5,7 @@ import { mapDaySession } from "@/app/api/_lib/mappers";
 import { validateBody } from "@/app/api/_lib/validation";
 import { StartDaySchema } from "@/app/api/_lib/validation";
 import { getRelativeDateStr } from "@/app/api/_lib/mappers";
+import { getISTHour, getISTMinute, getISTTimeString } from '../../../../src/utils/time';
 
 export async function POST(request: NextRequest) {
   try {
@@ -22,6 +23,15 @@ export async function POST(request: NextRequest) {
   }
 
   const { intern_id, today_project, today_plan, questions, git_link } = body;
+
+  const istHour = getISTHour();
+  const istMinute = getISTMinute();
+  const istTimeMinutes = istHour * 60 + istMinute;
+  const deadlineMinutes = 9 * 60 + 30;
+
+  if (istTimeMinutes >= deadlineMinutes) {
+    return NextResponse.json({ error: "Day start window closes at 9:30 AM IST" }, { status: 403 });
+  }
 
   try {
     const prisma: any = getPrisma();
@@ -44,7 +54,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(mapDaySession(updated));
     }
 
-    const timeStr = new Date().toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true });
+    const timeStr = getISTTimeString();
 
     const created = await prisma.daySession.create({
       data: {

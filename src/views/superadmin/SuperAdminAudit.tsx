@@ -249,7 +249,7 @@ export const SuperAdminAudit: React.FC<SuperAdminAuditProps> = ({ currentUser })
       </div>
 
       {summary.length > 0 && (
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-white/20 dark:border-slate-700/30 shadow-sm p-4">
+      <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-slate-700/30 shadow-sm p-4">
           <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-3">Weekly Top Actors</p>
           <div className="flex flex-wrap gap-2">
             {summary.map((s) => (
@@ -262,7 +262,7 @@ export const SuperAdminAudit: React.FC<SuperAdminAuditProps> = ({ currentUser })
         </div>
       )}
 
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-white/20 dark:border-slate-700/30 shadow-sm p-4">
+      <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-slate-700/30 shadow-sm p-4">
         <div className="flex items-center gap-2 mb-3">
           <Filter className="h-4 w-4 text-slate-400" />
           <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Filters</span>
@@ -340,7 +340,7 @@ export const SuperAdminAudit: React.FC<SuperAdminAuditProps> = ({ currentUser })
         </div>
       </div>
 
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-white/20 dark:border-slate-700/30 shadow-sm overflow-hidden">
+      <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-slate-700/30 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead>

@@ -14,19 +14,20 @@ export function mapUser(dbUser: any) {
 
 export function mapProject(dbProj: any) {
   if (!dbProj) return null;
-  return {
-    id: dbProj.id,
-    name: dbProj.name,
-    description: dbProj.description,
-    github_url: dbProj.githubUrl,
-    tech_stack: dbProj.techStack,
-    owner_id: dbProj.ownerId,
-    screenshots: dbProj.screenshots || [],
-    status: dbProj.status ? dbProj.status.toLowerCase() : 'active',
-    start_date: dbProj.startDate ? dbProj.startDate.toISOString() : undefined,
-    end_date: dbProj.endDate ? dbProj.endDate.toISOString() : undefined,
-    assigned_tech_lead_ids: dbProj.assignedTechLeadIds || [],
-  };
+return {
+     id: dbProj.id,
+     name: dbProj.name,
+     description: dbProj.description,
+     github_url: dbProj.githubUrl,
+     tech_stack: dbProj.techStack,
+     owner_id: dbProj.ownerId,
+     owner_name: dbProj.owner?.name || undefined,
+     screenshots: dbProj.screenshots || [],
+     status: dbProj.status ? dbProj.status.toLowerCase() : 'active',
+     start_date: dbProj.startDate ? dbProj.startDate.toISOString() : undefined,
+     end_date: dbProj.endDate ? dbProj.endDate.toISOString() : undefined,
+     assigned_tech_lead_ids: dbProj.assignedTechLeadIds || [],
+   };
 }
 
 export function mapDailyLog(dbLog: any) {
@@ -181,8 +182,10 @@ export function mapContentFlag(dbFlag: any) {
 
 export function getRelativeDateStr(offsetDays: number): string {
   const d = new Date();
-  d.setDate(d.getDate() + offsetDays);
-  return d.toISOString().split("T")[0];
+  const utc = d.getTime() + d.getTimezoneOffset() * 60000;
+  const istDate = new Date(utc + 5.5 * 3600000);
+  istDate.setDate(istDate.getDate() + offsetDays);
+  return istDate.toISOString().split('T')[0];
 }
 
 export function isValidGithubUrl(url?: string): boolean {

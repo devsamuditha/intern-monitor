@@ -14,6 +14,7 @@ import {
   Users, TrendingUp, LogOut, Shield, Target, Settings, AlertTriangle
 } from "lucide-react";
 import { api } from "../../services/api";
+import { ChatPanel } from "../intern/ChatPanel";
 
 interface DashboardShellProps {
   children: React.ReactNode;
@@ -92,18 +93,18 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex transition-colors duration-200">
-      
-      {/* Sidebar - Desktop */}
-      <aside className="hidden md:flex flex-col w-64 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-r border-white/20 dark:border-slate-700/30 shrink-0">
+    <div className="min-h-screen bg-gradient-to-br from-teal-950 via-cyan-950 to-emerald-950 text-slate-900 dark:text-slate-100 transition-colors duration-200">
+
+      {/* Sidebar - Desktop (fixed to screen) */}
+      <aside className="hidden md:flex md:flex-col md:w-64 md:h-screen md:fixed md:top-0 md:left-0 md:z-40 bg-white/10 dark:bg-slate-900/10 backdrop-blur-xl border-r border-white/20 dark:border-slate-700/30 overflow-y-auto">
         {/* Brand Header */}
         <div className="h-20 flex items-center px-6 border-b border-white/20 dark:border-slate-700/30 gap-2.5">
           <div className="bg-teal-600 text-white p-2 rounded-xl shadow-lg shadow-teal-100 dark:shadow-none">
             <Target className="h-5 w-5" />
           </div>
           <div>
-            <h1 className="text-sm font-black tracking-tight text-slate-900 dark:text-white uppercase font-display">InternTrack</h1>
-            <p className="text-[9px] text-teal-600 dark:text-teal-400 font-bold uppercase tracking-wider font-mono">Software Engineering</p>
+            <h1 className="text-sm font-black tracking-tight text-white uppercase font-display">InternTrack</h1>
+            <p className="text-[9px] text-teal-200 font-bold uppercase tracking-wider font-mono">Software Engineering</p>
           </div>
         </div>
 
@@ -115,14 +116,15 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
             return (
               <button
                 key={item.id}
+                type="button"
                 onClick={() => setActiveTab(item.id)}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold transition-all duration-150 ${
                   active 
-                    ? 'bg-teal-50 dark:bg-teal-950/40 text-teal-700 dark:text-teal-400' 
-                    : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-900/60'
+                    ? 'bg-white/10 text-teal-300' 
+                    : 'text-slate-300 hover:text-white hover:bg-white/10'
                 }`}
               >
-                <Icon className={`h-4.5 w-4.5 ${active ? 'text-teal-700 dark:text-teal-400' : 'text-slate-400'}`} />
+                <Icon className={`h-4.5 w-4.5 ${active ? 'text-teal-300' : 'text-slate-400'}`} />
                 {item.label}
               </button>
             );
@@ -131,17 +133,17 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
 
         {/* Bottom Profile Row */}
         <div className="p-4 border-t border-white/20 dark:border-slate-700/30 space-y-2">
-          
-          <div className="flex items-center gap-3 p-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200/60 dark:border-slate-850 rounded-xl">
+          <div className="flex items-center gap-3 p-2.5 bg-white/10 dark:bg-slate-900/10 border border-white/20 dark:border-slate-700/30 rounded-xl">
             <img src={user?.avatar ?? '/favicon.ico'} alt={user?.name ?? 'Avatar'} className="h-9 w-9 rounded-full object-cover border border-white/20 dark:border-slate-700/30" referrerPolicy="no-referrer" />
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-bold truncate text-slate-900 dark:text-white">{user?.name ?? 'User'}</p>
+              <p className="text-xs font-bold truncate text-white">{user?.name ?? 'User'}</p>
               <p className="text-[9px] text-slate-400 capitalize truncate">{user?.role ?? ''}</p>
             </div>
             {user && (
               <button 
                 onClick={handleLogout}
-                className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-900 text-slate-400 hover:text-rose-600 rounded-lg transition"
+                type="button"
+                className="p-1.5 hover:bg-white/10 text-slate-400 hover:text-rose-400 rounded-lg transition"
                 title="Logout"
               >
                 <LogOut className="h-4 w-4" />
@@ -151,11 +153,11 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
         </div>
       </aside>
 
-      {/* Main Container */}
-      <div className="flex-1 flex flex-col min-w-0">
+      {/* Main Container (offset for fixed sidebar) */}
+      <div className="flex-1 flex flex-col min-w-0 md:ml-64">
         
         {/* Topbar */}
-        <header className="h-20 bg-white dark:bg-slate-900 border-b border-white/20 dark:border-slate-700/30 flex items-center justify-between px-8 z-10">
+        <header className="h-20 bg-white/10 dark:bg-slate-900/10 backdrop-blur-xl border-b border-white/20 dark:border-slate-700/30 flex items-center justify-between px-8 z-10">
           
           {/* Left indicator / Mobile Title */}
           <div className="flex items-center gap-2">
@@ -163,8 +165,8 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
               <Target className="h-4 w-4" />
             </span>
             <div className="flex items-center gap-1.5">
-              <span className="text-xs font-bold text-slate-800 dark:text-white md:inline-block hidden">Active Dashboard:</span>
-              <span className="text-[10px] font-extrabold uppercase tracking-widest bg-teal-50 dark:bg-teal-950/40 text-teal-600 dark:text-teal-400 px-2.5 py-1 rounded-full border border-teal-100/30 dark:border-teal-900/30">
+              <span className="text-xs font-bold text-slate-300 md:inline-block hidden">Active Dashboard:</span>
+              <span className="text-[10px] font-extrabold uppercase tracking-widest bg-white/10 border border-white/20 text-teal-300 px-2.5 py-1 rounded-full">
                 {user?.role === 'tech_lead' ? 'Tech Lead Reviewer' : user?.role === 'manager' ? 'Engineering Director' : user?.role === 'super_admin' ? 'Super Admin' : 'Software Intern'}
               </span>
             </div>
@@ -176,7 +178,8 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
             {/* Dark Mode toggle */}
             <button
               onClick={toggleDarkMode}
-              className="p-2 border border-white/20 dark:border-slate-700/30 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-950 transition"
+              type="button"
+              className="p-2 border border-white/20 dark:border-slate-700/30 rounded-xl text-slate-300 hover:text-white transition"
               title="Toggle Theme"
             >
               {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
@@ -186,7 +189,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
             <img 
               src={user?.avatar ?? '/favicon.ico'} 
               alt={user?.name ?? 'Avatar'} 
-              className="h-8 w-8 rounded-full object-cover border md:hidden" 
+              className="h-8 w-8 rounded-full object-cover border border-white/20 md:hidden" 
               onClick={handleLogout}
               title="Logout"
               referrerPolicy="no-referrer"
@@ -195,18 +198,19 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
         </header>
 
         {/* Mobile Navigation bar */}
-        <div className="md:hidden flex bg-white dark:bg-slate-900 border-b border-white/20 dark:border-slate-700/30 px-4 py-2 justify-around gap-1 shrink-0 overflow-x-auto">
+        <div className="md:hidden flex bg-white/10 dark:bg-slate-900/10 backdrop-blur-xl border-b border-white/20 dark:border-slate-700/30 px-4 py-2 justify-around gap-1 shrink-0 overflow-x-auto">
           {navItems.map((item) => {
             const Icon = item.icon;
             const active = activeTab === item.id;
             return (
               <button
                 key={item.id}
+                type="button"
                 onClick={() => setActiveTab(item.id)}
                 className={`flex flex-col items-center gap-1 py-1 px-3 rounded-lg text-[9px] font-semibold transition ${
                   active 
-                    ? 'text-teal-600 dark:text-teal-400 bg-teal-50/50 dark:bg-teal-950/30' 
-                    : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
+                    ? 'text-teal-300 bg-white/10' 
+                    : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
                 <Icon className="h-4 w-4" />
@@ -223,6 +227,9 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
           </div>
         </main>
       </div>
+
+      {/* Floating Chat Panel (fixed to screen) - shown for all authenticated users */}
+      {user && <ChatPanel currentUser={user} />}
     </div>
   );
 };

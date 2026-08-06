@@ -141,7 +141,7 @@ export const SuperAdminSettings: React.FC = () => {
         )}
       </AnimatePresence>
 
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-white/20 dark:border-slate-700/30 shadow-sm overflow-hidden">
+      <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-slate-700/30 shadow-sm overflow-hidden">
         <div className="p-6 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-teal-50 dark:bg-teal-950/40 rounded-lg">

@@ -112,7 +112,7 @@ export const ManagerOverview: React.FC<ManagerOverviewProps> = ({ currentUser })
     return (
       <div className="text-center py-20">
         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-teal-600 mx-auto mb-4"></div>
-        <p className="text-sm text-slate-500 dark:text-slate-400">Retrieving executive telemetry & DB metrics...</p>
+        <p className="text-sm text-white/60">Retrieving executive telemetry & DB metrics...</p>
       </div>
     );
   }
@@ -144,7 +144,8 @@ export const ManagerOverview: React.FC<ManagerOverviewProps> = ({ currentUser })
   const sortedHours = [...rosterData].slice().sort((a: any, b: any) => (b.avgWorkingHours || 0) - (a.avgWorkingHours || 0));
 
   return (
-    <div id="manager-dashboard-root" className="space-y-6">
+    <div id="manager-dashboard-root" className="min-h-[calc(100vh-5rem)] bg-gradient-to-br from-teal-950 via-cyan-950 to-emerald-950">
+      <div className="relative z-10 space-y-6">
 
       {/* Executive Control Header */}
       <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-slate-700/30 rounded-3xl p-6 md:p-8 shadow-lg shadow-teal-500/5 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
@@ -334,7 +335,7 @@ export const ManagerOverview: React.FC<ManagerOverviewProps> = ({ currentUser })
           </div>
 
           {/* Tech Leads Team Performance Summary Table */}
-          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 space-y-4">
+          <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl rounded-2xl shadow-lg shadow-teal-500/5 border border-white/20 dark:border-slate-700/30 p-6 space-y-4">
             <div>
               <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <Users className="h-4 w-4 text-purple-600" /> Tech Lead Mentors & Team History
@@ -572,6 +573,7 @@ export const ManagerOverview: React.FC<ManagerOverviewProps> = ({ currentUser })
           </div>
         )}
       </AnimatePresence>
+      </div>
     </div>
   );
 };

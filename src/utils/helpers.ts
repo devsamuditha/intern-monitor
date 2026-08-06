@@ -3,11 +3,16 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-// Helper to format dates cleanly
+// Helper to format dates cleanly (uses IST timezone for display)
 export const formatDate = (dateStr: string): string => {
   if (!dateStr || dateStr === "Never") return dateStr;
   try {
-    const date = new Date(dateStr);
+    const parts = dateStr.split('-');
+    if (parts.length !== 3) return dateStr;
+    const year = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10) - 1;
+    const day = parseInt(parts[2], 10);
+    const date = new Date(year, month, day);
     if (isNaN(date.getTime())) return dateStr;
     return date.toLocaleDateString('en-US', {
       month: 'short',

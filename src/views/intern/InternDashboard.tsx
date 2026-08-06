@@ -9,6 +9,7 @@ import { api } from '../../services/api';
 import { User, DailyLog, Task, Mistake, Mark, DaySession, TaskStatus } from '../../types';
 import { getSupabaseClient } from '../../lib/supabaseClient';
 import { DailyLogForm } from '../../components/intern/DailyLogForm';
+import { getISTDateString } from '../../utils/time';
 import {
   StatsHeader,
   StartDayHero,
@@ -16,8 +17,7 @@ import {
   EndDayPromptModal,
   TasksBoard,
   DailyLogTimeline,
-  FlaggedMistakesBanner,
-  InternMessages
+  FlaggedMistakesBanner
 } from '../../components/intern';
 import { formatDate } from '../../utils/helpers';
 
@@ -88,10 +88,12 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
       // Calculate real streak from submitted daily logs
       const myLogs = allLogs.filter((l: any) => l.intern_id === user.id);
       const logDates = Array.from(new Set(myLogs.map((l: any) => l.date))).sort().reverse();
-      const todayStr = new Date().toISOString().split('T')[0];
+      const todayStr = getISTDateString();
       const yesterdayDate = new Date();
       yesterdayDate.setDate(yesterdayDate.getDate() - 1);
-      const yesterdayStr = yesterdayDate.toISOString().split('T')[0];
+      const utcYesterday = yesterdayDate.getTime() + yesterdayDate.getTimezoneOffset() * 60000;
+      const istYesterday = new Date(utcYesterday + 5.5 * 3600000);
+      const yesterdayStr = istYesterday.toISOString().split('T')[0];
 
       let realStreak = 0;
       if (logDates.includes(todayStr) || logDates.includes(yesterdayStr)) {
@@ -222,7 +224,7 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
 
   const handleEndDayClick = async () => {
     // Check if daily journal submitted today
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = getISTDateString();
     const hasLogToday = logs.some(l => l.date === todayStr);
 
     if (!hasLogToday) {
@@ -314,86 +316,82 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
   if (loading) {
     return (
       <div className="text-center py-20">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-        <p className="text-sm text-slate-500">Syncing learning workspace...</p>
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-teal-600 mx-auto mb-4"></div>
+        <p className="text-sm text-white/60">Syncing learning workspace...</p>
       </div>
     );
   }
 
   return (
-    <div id="intern-workspace-root" className="space-y-6">
-      <StartDayHero
-        todaySession={todaySession}
-        sessionLoading={sessionLoading}
-        onStartDay={handleStartDayClick}
-        onEndDay={handleEndDayClick}
-      />
+    <div id="intern-workspace-root" className="min-h-[calc(100vh-5rem)] bg-gradient-to-br from-teal-950 via-cyan-950 to-emerald-950">
+      <div className="relative z-10 space-y-6">
+        <StartDayHero
+          todaySession={todaySession}
+          sessionLoading={sessionLoading}
+          onStartDay={handleStartDayClick}
+          onEndDay={handleEndDayClick}
+        />
 
-      <StartDayModal
-        show={showStartDayModal}
-        onClose={() => setShowStartDayModal(false)}
-        sessionLoading={sessionLoading}
-        startProject={startProject}
-        setStartProject={setStartProject}
-        startPlan={startPlan}
-        setStartPlan={setStartPlan}
-        startQuestions={startQuestions}
-        setStartQuestions={setStartQuestions}
-        startGitLink={startGitLink}
-        setStartGitLink={setStartGitLink}
-        onSubmit={confirmStartDaySubmit}
-      />
+        <StartDayModal
+          show={showStartDayModal}
+          onClose={() => setShowStartDayModal(false)}
+          sessionLoading={sessionLoading}
+          startProject={startProject}
+          setStartProject={setStartProject}
+          startPlan={startPlan}
+          setStartPlan={setStartPlan}
+          startQuestions={startQuestions}
+          setStartQuestions={setStartQuestions}
+          startGitLink={startGitLink}
+          setStartGitLink={setStartGitLink}
+          onSubmit={confirmStartDaySubmit}
+        />
 
-      <EndDayPromptModal
-        show={showEndDayPromptModal}
-        onClose={() => setShowEndDayPromptModal(false)}
-        onGoToJournal={handleGoToJournal}
-      />
+        <EndDayPromptModal
+          show={showEndDayPromptModal}
+          onClose={() => setShowEndDayPromptModal(false)}
+          onGoToJournal={handleGoToJournal}
+        />
 
-      <StatsHeader
-        streak={streak}
-        avgMark={avgMark}
-        completedTasksCount={completedTasksCount}
-        totalTasks={tasks.length}
-        totalLogs={logs.length}
-      />
+        <StatsHeader
+          streak={streak}
+          avgMark={avgMark}
+          completedTasksCount={completedTasksCount}
+          totalTasks={tasks.length}
+          totalLogs={logs.length}
+        />
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-        {/* Left Column: Log Form & Flagged Mistakes */}
-        <div className="lg:col-span-5 space-y-6">
-          <DailyLogForm user={user} onSuccess={handleLogSubmitSuccess} />
+          {/* Left Column: Log Form & Flagged Mistakes */}
+          <div className="lg:col-span-5 space-y-6 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-4">
+            <DailyLogForm user={user} onSuccess={handleLogSubmitSuccess} todaySession={todaySession} />
 
-          <FlaggedMistakesBanner mistakes={mistakes} />
-        </div>
+            <FlaggedMistakesBanner mistakes={mistakes} />
+          </div>
 
-        {/* Right Column: Timelines, Tasks, Feedback */}
-        <div className="lg:col-span-7 space-y-6">
+          {/* Right Column: Timelines, Tasks, Feedback */}
+          <div className="lg:col-span-7 space-y-6 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-4">
 
-          <TasksBoard
-            tasks={tasks}
-            onTaskStatusToggle={handleTaskStatusToggle}
-          />
+            <TasksBoard
+              tasks={tasks}
+              onTaskStatusToggle={handleTaskStatusToggle}
+            />
 
-          <DailyLogTimeline
-            logs={logs}
-            marks={marks}
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            dateFilter={dateFilter}
-            setDateFilter={setDateFilter}
-          />
-        </div>
-      </div>
-
-      {/* Messages Section */}
-      <div className="mt-6">
-        <h2 className="text-xl font-bold text-slate-800 dark:text-white mb-4">Messages</h2>
-        <InternMessages user={user} />
-      </div>
-    </div>
-  );
-};
+            <DailyLogTimeline
+              logs={logs}
+              marks={marks}
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              dateFilter={dateFilter}
+              setDateFilter={setDateFilter}
+            />
+          </div>
+         </div>
+       </div>
+     </div>
+   );
+ };
 
 
 

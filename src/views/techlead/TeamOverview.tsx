@@ -228,7 +228,7 @@ export const TeamOverview: React.FC<TeamOverviewProps> = ({ currentUser }) => {
       ) : (
         <>
           {/* TODAY'S LIVE ATTENDANCE & START DAY FEED */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-4">
+      <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-slate-700/30 rounded-2xl p-6 shadow-sm space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <div className="bg-emerald-50 dark:bg-emerald-950/50 p-2 rounded-xl text-emerald-600 dark:text-emerald-400">
@@ -581,23 +581,23 @@ const UpcomingProjectsView: React.FC<{ currentUser: User }> = ({ currentUser }) 
 
   return (
     <div id="upcoming-projects-techlead-root" className="space-y-6">
-      <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl rounded-2xl p-6 border border-white/20 dark:border-slate-700/30 shadow-lg shadow-teal-500/5">
-        <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-          Upcoming Projects <Calendar className="h-5 w-5 text-teal-600" />
+      <div className="bg-white/10 dark:bg-slate-900/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 dark:border-slate-700/30 shadow-lg shadow-teal-500/5">
+        <h2 className="text-lg font-bold text-white flex items-center gap-2">
+          Upcoming Projects <Calendar className="h-5 w-5 text-teal-400" />
         </h2>
-        <p className="text-xs text-slate-500 dark:text-slate-400">
+        <p className="text-xs text-slate-300">
           Projects scheduled by management for the upcoming sprint.
         </p>
       </div>
 
       {projects.length === 0 ? (
-        <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-slate-700/30 p-12 text-center space-y-3">
-          <div className="bg-slate-50 dark:bg-slate-950 p-4 rounded-full w-14 h-14 flex items-center justify-center mx-auto text-slate-400">
+        <div className="bg-white/10 dark:bg-slate-900/10 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-slate-700/30 p-12 text-center space-y-3">
+          <div className="bg-white/10 p-4 rounded-full w-14 h-14 flex items-center justify-center mx-auto text-slate-400">
             <Calendar className="h-7 w-7" />
           </div>
           <div className="space-y-1">
-            <p className="text-sm font-bold text-slate-900 dark:text-white">No upcoming projects scheduled yet</p>
-            <p className="text-xs text-slate-400 max-w-sm mx-auto">
+            <p className="text-sm font-bold text-white">No upcoming projects scheduled yet</p>
+            <p className="text-xs text-slate-300 max-w-sm mx-auto">
               Check back later or ask your manager to add upcoming projects to the pipeline.
             </p>
           </div>
@@ -611,7 +611,7 @@ const UpcomingProjectsView: React.FC<{ currentUser: User }> = ({ currentUser }) 
                 key={proj.id}
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-slate-700/30 rounded-2xl overflow-hidden shadow-lg shadow-teal-500/5 flex flex-col hover:shadow-md transition duration-250 group"
+                className="bg-white/10 dark:bg-slate-900/10 backdrop-blur-xl border border-white/20 dark:border-slate-700/30 rounded-2xl overflow-hidden shadow-lg shadow-teal-500/5 flex flex-col hover:shadow-md transition duration-250 group"
               >
                 <div className="h-44 bg-slate-100 dark:bg-slate-950 relative overflow-hidden shrink-0">
                   <img
@@ -634,22 +634,22 @@ const UpcomingProjectsView: React.FC<{ currentUser: User }> = ({ currentUser }) 
 
                 <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
                   <div className="space-y-1.5">
-                    <h3 className="font-extrabold text-slate-900 dark:text-white leading-tight">{proj.name}</h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-3 leading-relaxed">{proj.description}</p>
+                    <h3 className="font-extrabold text-white leading-tight">{proj.name}</h3>
+                    <p className="text-xs text-slate-300 line-clamp-3 leading-relaxed">{proj.description}</p>
                   </div>
 
-                  <div className="space-y-3 pt-3 border-t border-slate-200 dark:border-slate-800">
+                  <div className="space-y-3 pt-3 border-t border-white/20 dark:border-slate-700/30">
                     {proj.tech_stack.length > 0 && (
                       <div className="flex flex-wrap gap-1">
                         {proj.tech_stack.map(tech => (
-                          <span key={tech} className="px-2 py-0.5 rounded bg-slate-50 dark:bg-slate-950 text-[9px] font-semibold text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-900">
+                          <span key={tech} className="px-2 py-0.5 rounded bg-white/10 border border-white/20 text-[9px] font-semibold text-teal-200">
                             {tech}
                           </span>
                         ))}
                       </div>
                     )}
 
-                    <div className="flex flex-col gap-1 text-[10px] text-slate-500 dark:text-slate-400">
+                    <div className="flex flex-col gap-1 text-[10px] text-slate-300">
                       {proj.start_date && (
                         <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> Starts: {new Date(proj.start_date).toLocaleDateString()}</span>
                       )}
@@ -663,7 +663,7 @@ const UpcomingProjectsView: React.FC<{ currentUser: User }> = ({ currentUser }) 
                         href={proj.github_url}
                         target="_blank"
                         rel="noreferrer"
-                        className="text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-teal-600 dark:hover:text-teal-400 flex items-center gap-1.5"
+                        className="text-xs font-bold text-slate-300 hover:text-teal-300 flex items-center gap-1.5"
                       >
                         <Github className="h-4 w-4" /> Repo
                       </a>

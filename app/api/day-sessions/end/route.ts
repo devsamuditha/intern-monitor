@@ -5,6 +5,7 @@ import { mapDaySession } from "@/app/api/_lib/mappers";
 import { validateBody } from "@/app/api/_lib/validation";
 import { EndDaySchema } from "@/app/api/_lib/validation";
 import { getRelativeDateStr } from "@/app/api/_lib/mappers";
+import { getISTTimeString } from '../../../../src/utils/time';
 
 export async function POST(request: NextRequest) {
   try {
@@ -35,7 +36,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "No active day session found for today" }, { status: 404 });
     }
 
-    const timeStr = new Date().toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true });
+    const timeStr = getISTTimeString();
 
     const updated = await prisma.daySession.update({
       where: { id: existing.id },

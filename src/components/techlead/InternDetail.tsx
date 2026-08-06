@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { formatDate, getTaskPriorityColor, getTaskStatusColor } from '../../utils/helpers';
 import { scaleIn } from '../../utils/motion';
+import { ThemedIcon } from '../../components/ui/ThemedIcon';
 
 interface InternDetailProps {
   internId: string;
@@ -312,8 +313,8 @@ export const InternDetail: React.FC<InternDetailProps> = ({ internId, currentUse
 
   if (!intern) {
     return (
-      <div className="text-center py-20 bg-white dark:bg-slate-900 rounded-2xl border">
-        <p className="text-sm text-slate-500">Intern not found.</p>
+      <div className="text-center py-20 bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20">
+        <p className="text-sm text-slate-300">Intern not found.</p>
         <button onClick={onBack} className="mt-4 px-4 py-2 bg-teal-600 text-white text-xs rounded-xl">Go Back</button>
       </div>
     );
@@ -322,39 +323,39 @@ export const InternDetail: React.FC<InternDetailProps> = ({ internId, currentUse
   return (
     <div id="intern-detail-drilldown" className="space-y-6">
       {/* Back & Profile Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl rounded-2xl p-6 border border-white/20 dark:border-slate-700/30 shadow-lg shadow-teal-500/5">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-lg shadow-teal-500/5">
         <div className="flex items-center gap-4">
           <button 
             onClick={onBack}
-            className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-950 text-slate-600 dark:text-slate-400 transition"
+            className="p-2.5 rounded-xl border border-white/20 hover:bg-white/10 text-slate-300 transition"
           >
             <ArrowLeft className="h-4 w-4" />
           </button>
-          <img src={intern.avatar} alt={intern.name} className="h-16 w-16 rounded-full object-cover border-2 border-teal-100 dark:border-teal-950 shadow-sm" referrerPolicy="no-referrer" />
+          <img src={intern.avatar} alt={intern.name} className="h-16 w-16 rounded-full object-cover border-2 border-teal-500/30 shadow-sm" referrerPolicy="no-referrer" />
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="text-xl font-bold text-slate-900 dark:text-white">{intern.name}</h2>
+              <h2 className="text-xl font-bold text-white">{intern.name}</h2>
               <span className="text-[10px] text-slate-400 font-medium">Registered User</span>
 
               {todaySession?.status === 'active' && (
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping inline-block" />
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping inline-block" />
                   Day Started at {todaySession.started_at}
                 </span>
               )}
               {todaySession?.status === 'completed' && (
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white/10 text-slate-300 border border-white/20">
                   Day Ended at {todaySession.ended_at}
                 </span>
               )}
               {!todaySession && (
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30">
                   Not started day yet
                 </span>
               )}
             </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400">{intern.email}</p>
-            <p className="text-[10px] text-teal-600 dark:text-teal-400 mt-0.5 font-semibold bg-teal-50 dark:bg-teal-950/40 px-2 py-0.5 rounded-full inline-block">
+            <p className="text-xs text-slate-300">{intern.email}</p>
+            <p className="text-[10px] text-teal-300 mt-0.5 font-semibold bg-teal-500/20 px-2 py-0.5 rounded-full inline-block">
               Assigned Intern
             </p>
           </div>
@@ -454,8 +455,8 @@ export const InternDetail: React.FC<InternDetailProps> = ({ internId, currentUse
             onClick={() => setActiveTab(tab)}
             className={`px-4 py-2.5 text-xs font-semibold rounded-t-xl transition-all capitalize shrink-0 ${
               activeTab === tab
-                ? 'bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-t-2 border-teal-600 text-teal-700 dark:text-teal-400 font-bold border-x border-white/20 dark:border-slate-700/30 shadow-lg shadow-teal-500/5'
-                : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-300'
+                ? 'bg-white/10 text-teal-300 font-bold border-x border-white/20 border-t-2 border-teal-500'
+                : 'text-slate-400 hover:text-white'
             }`}
           >
             {tab === 'logs' ? 'Daily Logs' : tab === 'tasks' ? 'Tasks Assigned' : tab === 'mistakes' ? 'Mistakes Log' : 'Direct Message'}
@@ -470,29 +471,29 @@ export const InternDetail: React.FC<InternDetailProps> = ({ internId, currentUse
             {/* Logs List */}
             <div className="lg:col-span-7 space-y-4">
               {logs.length === 0 ? (
-                <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl text-center border border-slate-200 dark:border-slate-800">
-                  <FileText className="h-8 w-8 text-slate-300 mx-auto mb-2" />
-                  <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">No logs submitted yet</p>
+                <div className="bg-white/10 backdrop-blur-xl p-8 rounded-2xl text-center border border-white/20">
+                  <FileText className="h-8 w-8 text-slate-400 mx-auto mb-2" />
+                  <p className="text-sm font-semibold text-white">No logs submitted yet</p>
                 </div>
               ) : (
                 logs.map(log => (
                   <div 
                     key={log.id}
-                    className={`p-5 rounded-2xl bg-white dark:bg-slate-900 border shadow-sm space-y-3.5 transition ${
+                    className={`p-5 rounded-2xl bg-white/10 border shadow-sm space-y-3.5 transition ${
                       selectedLogForReview?.id === log.id 
                          ? 'border-teal-500 ring-2 ring-teal-500/10' 
-                        : 'border-slate-200 dark:border-slate-800'
+                        : 'border-white/20'
                     }`}
                   >
                     <div className="flex justify-between items-start gap-2">
                       <div>
                         <span className="text-[10px] text-slate-400 font-semibold">{formatDate(log.date)}</span>
-                        <h4 className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">{log.summary}</h4>
+                        <h4 className="text-sm font-bold text-white mt-0.5">{log.summary}</h4>
                       </div>
                       <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${
                         log.status === 'reviewed' 
-                          ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300' 
-                          : 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300'
+                          ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' 
+                          : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
                       }`}>
                         {log.status === 'reviewed' ? 'Reviewed' : 'Awaiting Review'}
                       </span>
@@ -501,7 +502,7 @@ export const InternDetail: React.FC<InternDetailProps> = ({ internId, currentUse
                     <div className="space-y-2">
                       <div>
                         <p className="text-[10px] font-medium text-slate-400">Detailed Changes</p>
-                        <p className="text-xs text-slate-700 dark:text-slate-300 font-mono whitespace-pre-wrap bg-slate-50 dark:bg-slate-950 p-2.5 rounded-xl border border-slate-200 dark:border-slate-900 mt-1">
+                        <p className="text-xs text-slate-300 font-mono whitespace-pre-wrap bg-white/5 p-2.5 rounded-xl border border-white/10 mt-1">
                           {log.changes}
                         </p>
                       </div>
@@ -509,7 +510,7 @@ export const InternDetail: React.FC<InternDetailProps> = ({ internId, currentUse
                       {log.technologies.length > 0 && (
                         <div className="flex flex-wrap gap-1">
                           {log.technologies.map(t => (
-                            <span key={t} className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-[10px] text-slate-600 dark:text-slate-400">
+                            <span key={t} className="px-2 py-0.5 rounded-md bg-white/10 border border-white/20 text-[10px] text-teal-200">
                               {t}
                             </span>
                           ))}
@@ -518,7 +519,7 @@ export const InternDetail: React.FC<InternDetailProps> = ({ internId, currentUse
 
                       {/* Screenshot Preview */}
                       {log.screenshot_url && (
-                        <div className="max-w-md border dark:border-slate-800 rounded-xl overflow-hidden mt-2">
+                        <div className="max-w-md border border-white/20 rounded-xl overflow-hidden mt-2">
                           <img src={log.screenshot_url} alt="Log draft snapshot" className="w-full object-cover max-h-48" referrerPolicy="no-referrer" />
                         </div>
                       )}
@@ -529,7 +530,7 @@ export const InternDetail: React.FC<InternDetailProps> = ({ internId, currentUse
                           href={log.github_url} 
                           target="_blank" 
                           rel="noreferrer"
-                           className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 hover:text-teal-600 dark:hover:text-teal-400 flex items-center gap-1.5"
+                           className="text-[10px] font-semibold text-slate-300 hover:text-teal-300 flex items-center gap-1.5"
                         >
                           <ExternalLink className="h-3.5 w-3.5" /> Commit Log
                         </a>
@@ -543,7 +544,7 @@ export const InternDetail: React.FC<InternDetailProps> = ({ internId, currentUse
                           onClick={() => openFlagConfirm('daily_log', log.id, log.summary)}
                           disabled={flaggedItems.has(log.id)}
                           className={`inline-flex items-center gap-1 text-[9px] hover:text-rose-400 transition ${
-                            flaggedItems.has(log.id) ? 'text-slate-300 cursor-default' : 'text-slate-400 hover:text-rose-500'
+                            flaggedItems.has(log.id) ? 'text-slate-300 cursor-default' : 'text-slate-400 hover:text-rose-400'
                           }`}
                         >
                           <AlertTriangle className="h-3 w-3" />
@@ -578,15 +579,15 @@ export const InternDetail: React.FC<InternDetailProps> = ({ internId, currentUse
                   variants={scaleIn}
                   initial="initial"
                   animate="animate"
-                  className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-teal-200 dark:border-teal-900/40 shadow-lg shadow-teal-500/5 rounded-2xl p-5 sticky top-4 space-y-4"
+                  className="bg-white/10 backdrop-blur-xl border border-teal-500/20 shadow-lg shadow-teal-500/5 rounded-2xl p-5 sticky top-4 space-y-4"
                 >
-                  <div className="flex justify-between items-center pb-2 border-b">
-                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                  <div className="flex justify-between items-center pb-2 border-b border-white/20">
+                    <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1">
                       Reviewing: {selectedLogForReview.summary.substring(0, 25)}...
                     </h4>
                     <button 
                       onClick={() => setSelectedLogForReview(null)}
-                      className="text-slate-400 hover:text-slate-600 text-xs"
+                      className="text-slate-400 hover:text-white text-xs"
                     >
                       Cancel
                     </button>
@@ -595,7 +596,7 @@ export const InternDetail: React.FC<InternDetailProps> = ({ internId, currentUse
                   <form onSubmit={handleReviewLogSubmit} className="space-y-4">
                     {/* Score (stars) */}
                     <div>
-                      <label className="block text-[10px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide mb-1">
+                      <label className="block text-[10px] font-bold text-teal-100 uppercase tracking-wide mb-1">
                         Score / Rating (1 to {markingScale === '1-10' ? 10 : 5})
                       </label>
                       <div className="flex items-center gap-1.5">
@@ -618,54 +619,54 @@ export const InternDetail: React.FC<InternDetailProps> = ({ internId, currentUse
                       </div>
                     </div>
 
-                    {/* Comment */}
-                    <div>
-                      <label className="block text-[10px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide mb-1">Feedback Comment</label>
-                      <textarea
-                        rows={3}
-                        placeholder="Type encouraging feedback, highlights, or tips..."
-                        value={reviewComment}
-                        onChange={(e) => setReviewComment(e.target.value)}
-                        className="w-full text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-3 py-2 text-slate-900 dark:text-white"
-                      />
-                    </div>
+                     {/* Comment */}
+                     <div>
+                       <label className="block text-[10px] font-bold text-teal-100 uppercase tracking-wide mb-1">Feedback Comment</label>
+                       <textarea
+                         rows={3}
+                         placeholder="Type encouraging feedback, highlights, or tips..."
+                         value={reviewComment}
+                         onChange={(e) => setReviewComment(e.target.value)}
+                         className="w-full text-xs rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-white placeholder:text-[10px] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
+                       />
+                     </div>
 
-                    {/* Flag Mistake (Optional) */}
-                    <div className="bg-rose-50/50 dark:bg-rose-950/20 p-4 rounded-xl border border-rose-200 dark:border-rose-900/30 space-y-3">
-                      <div className="flex items-center gap-1.5">
-                        <AlertTriangle className="h-4 w-4 text-rose-600 dark:text-rose-400" />
-                        <span className="text-xs font-bold text-rose-800 dark:text-rose-300">Flag Mistake / Blunder (Optional)</span>
-                      </div>
-                      <input
-                        type="text"
-                        placeholder="e.g. Hardcoded Stripe secret keys directly in checkout.tsx"
-                        value={flagMistakeNote}
-                        onChange={(e) => setFlagMistakeNote(e.target.value)}
-                        className="w-full text-xs rounded-lg border border-rose-200 dark:border-rose-900 bg-white dark:bg-slate-950 px-2.5 py-1.5 text-slate-900 dark:text-white"
-                      />
-                      <div className="flex gap-2">
-                        {(['low', 'medium', 'high'] as const).map(sev => (
-                          <button
-                            type="button"
-                            key={sev}
-                            onClick={() => setFlagMistakeSeverity(sev)}
-                            className={`flex-1 py-1 text-[10px] font-bold capitalize rounded-md transition ${
-                              flagMistakeSeverity === sev
-                                ? 'bg-rose-600 text-white'
-                                : 'bg-white dark:bg-slate-900 text-rose-600 border border-rose-100 dark:border-rose-900/40 hover:bg-rose-50'
-                            }`}
-                          >
-                            {sev} severity
-                          </button>
-                        ))}
-                      </div>
-                    </div>
+                     {/* Flag Mistake (Optional) */}
+                     <div className="bg-amber-500/10 p-4 rounded-xl border border-amber-500/20 space-y-3">
+                       <div className="flex items-center gap-1.5">
+                         <ThemedIcon icon={AlertTriangle} color="amber" size={16} />
+                         <span className="text-xs font-bold text-amber-200">Flag Mistake / Blunder (Optional)</span>
+                       </div>
+                       <input
+                         type="text"
+                         placeholder="e.g. Hardcoded Stripe secret keys directly in checkout.tsx"
+                         value={flagMistakeNote}
+                         onChange={(e) => setFlagMistakeNote(e.target.value)}
+                         className="w-full text-xs rounded-lg border border-white/20 bg-white/5 px-2.5 py-1.5 text-white placeholder:text-[10px] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+                       />
+                       <div className="flex gap-2">
+                         {(['low', 'medium', 'high'] as const).map(sev => (
+                           <button
+                             type="button"
+                             key={sev}
+                             onClick={() => setFlagMistakeSeverity(sev)}
+                             className={`flex-1 py-1 text-[10px] font-bold capitalize rounded-md transition ${
+                               flagMistakeSeverity === sev
+                                 ? 'bg-rose-600 text-white'
+                                 : 'bg-white/5 text-rose-300 border border-white/20 hover:bg-white/10'
+                             }`}
+                           >
+                             {sev} severity
+                           </button>
+                         ))}
+                       </div>
+                     </div>
 
-                    <button
-                      type="submit"
-                       className="w-full py-2 bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold rounded-xl shadow-sm"
-                     >
-                      Save Log Review & Submit Marks ✨
+                     <button
+                       type="submit"
+                        className="w-full py-2 bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold rounded-xl shadow-sm"
+                      >
+                       Save Log Review & Submit Marks ✨
                     </button>
                   </form>
                 </motion.div>
@@ -699,44 +700,44 @@ export const InternDetail: React.FC<InternDetailProps> = ({ internId, currentUse
                 variants={scaleIn}
                 initial="initial"
                 animate="animate"
-                className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl p-5 rounded-2xl border border-white/20 dark:border-slate-700/30 shadow-lg shadow-teal-500/5 space-y-4"
+                className="bg-white/10 backdrop-blur-xl p-5 rounded-2xl border border-white/20 shadow-lg shadow-teal-500/5 space-y-4"
               >
                 <div className="flex justify-between items-center">
-                  <h4 className="text-sm font-bold text-slate-900 dark:text-white">Assign Task details</h4>
-                  <button onClick={() => setShowTaskForm(false)} className="text-xs text-slate-400 hover:text-slate-600">Close</button>
+                  <h4 className="text-sm font-bold text-white">Assign Task details</h4>
+                  <button onClick={() => setShowTaskForm(false)} className="text-xs text-slate-400 hover:text-white">Close</button>
                 </div>
                 <form onSubmit={handleAssignTask} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Task Title</label>
+                    <label className="block text-[10px] font-bold text-teal-100 uppercase mb-1">Task Title</label>
                     <input 
                       type="text" 
                       placeholder="e.g., Run Jest integration tests" 
                       value={taskTitle}
                       onChange={(e) => setTaskTitle(e.target.value)}
-                      className="w-full text-xs rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-3 py-2 text-slate-900 dark:text-white focus:outline"
+                      className="w-full text-xs rounded-lg border border-white/20 bg-white/5 px-3 py-2 text-white placeholder:text-[10px] placeholder:text-slate-400 focus:outline"
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Due Date</label>
+                    <label className="block text-[10px] font-bold text-teal-100 uppercase mb-1">Due Date</label>
                     <input 
                       type="date" 
                       value={taskDueDate}
                       onChange={(e) => setTaskDueDate(e.target.value)}
-                      className="w-full text-xs rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-3 py-2 text-slate-900 dark:text-white"
+                      className="w-full text-xs rounded-lg border border-white/20 bg-white/5 px-3 py-2 text-white focus:outline"
                     />
                   </div>
                   <div className="md:col-span-2">
-                    <label className="block text-[10px] font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Description</label>
+                    <label className="block text-[10px] font-bold text-teal-100 uppercase mb-1">Description</label>
                     <textarea 
                       rows={2} 
                       placeholder="e.g. Set up a mock Stripe environment and assert shipping validations work flawlessly..."
                       value={taskDesc}
                       onChange={(e) => setTaskDesc(e.target.value)}
-                      className="w-full text-xs rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-3 py-2 text-slate-900 dark:text-white"
+                      className="w-full text-xs rounded-lg border border-white/20 bg-white/5 px-3 py-2 text-white placeholder:text-[10px] placeholder:text-slate-400 focus:outline"
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Priority</label>
+                    <label className="block text-[10px] font-bold text-teal-100 uppercase mb-1">Priority</label>
                     <div className="flex gap-2">
                       {(['low', 'medium', 'high'] as const).map(p => (
                         <button
@@ -746,7 +747,7 @@ export const InternDetail: React.FC<InternDetailProps> = ({ internId, currentUse
                           className={`flex-1 py-1 text-[10px] font-bold capitalize rounded-md transition ${
                             taskPriority === p
                               ? 'bg-teal-600 text-white shadow-sm'
-                              : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
+                              : 'bg-white/10 text-white/70 border border-white/20 hover:bg-white/20'
                           }`}
                         >
                           {p}
@@ -766,15 +767,15 @@ export const InternDetail: React.FC<InternDetailProps> = ({ internId, currentUse
             {/* Tasks List */}
             <div className="space-y-3">
               {tasks.length === 0 ? (
-                <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl text-center border border-slate-200 dark:border-slate-800">
-                  <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">No tasks assigned to this intern.</p>
+                <div className="bg-white/10 backdrop-blur-xl p-8 rounded-2xl text-center border border-white/20">
+                  <p className="text-sm font-semibold text-white">No tasks assigned to this intern.</p>
                 </div>
               ) : (
                 tasks.map(task => (
-                  <div key={task.id} className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div key={task.id} className="bg-white/10 p-4 rounded-xl border border-white/20 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
-                        <h4 className="text-sm font-bold text-slate-900 dark:text-white">{task.title}</h4>
+                        <h4 className="text-sm font-bold text-white">{task.title}</h4>
                         <span className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase ${getTaskPriorityColor(task.priority)}`}>
                           {task.priority} Priority
                         </span>
@@ -782,7 +783,7 @@ export const InternDetail: React.FC<InternDetailProps> = ({ internId, currentUse
                           {task.status}
                         </span>
                       </div>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xl">{task.description}</p>
+                      <p className="text-xs text-slate-300 max-w-xl">{task.description}</p>
                       <p className="text-[10px] text-slate-400 flex items-center gap-1">
                         <Calendar className="h-3 w-3" /> Due: {formatDate(task.due_date)}
                       </p>
@@ -793,11 +794,11 @@ export const InternDetail: React.FC<InternDetailProps> = ({ internId, currentUse
                       {task.status === 'done' && (
                         <div>
                           {task.score !== undefined ? (
-                            <div className="bg-teal-50 dark:bg-teal-950/40 border border-teal-100 dark:border-teal-900 p-2 rounded-lg inline-block text-left max-w-[200px]">
-                              <p className="text-[9px] font-bold text-teal-700 dark:text-teal-400 flex items-center gap-0.5 uppercase tracking-wide">
+                            <div className="bg-teal-500/20 border border-teal-500/30 p-2 rounded-lg inline-block text-left max-w-[200px]">
+                              <p className="text-[9px] font-bold text-teal-300 flex items-center gap-0.5 uppercase tracking-wide">
                                 Rated {task.score}/5 <Star className="h-2.5 w-2.5 fill-teal-500 text-teal-500" />
                               </p>
-                              <p className="text-[10px] text-slate-600 dark:text-slate-400 italic mt-0.5 line-clamp-2">"{task.comment}"</p>
+                              <p className="text-[10px] text-slate-300 italic mt-0.5 line-clamp-2">"{task.comment}"</p>
                             </div>
                            ) : (
                              !readOnly ? (
@@ -835,33 +836,33 @@ export const InternDetail: React.FC<InternDetailProps> = ({ internId, currentUse
 
         {activeTab === 'mistakes' && (
           <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">Flagged Mistakes Timeline</h3>
+            <h3 className="text-sm font-semibold text-white">Flagged Mistakes Timeline</h3>
             <div className="space-y-3">
               {mistakes.length === 0 ? (
-                <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl text-center border border-slate-200 dark:border-slate-800">
-                  <p className="text-sm font-semibold text-emerald-600">No blunders flagged. Exceptional coding standards! 🌟</p>
+                <div className="bg-white/10 backdrop-blur-xl p-8 rounded-2xl text-center border border-white/20">
+                  <p className="text-sm font-semibold text-emerald-300">No blunders flagged. Exceptional coding standards! 🌟</p>
                 </div>
               ) : (
                 mistakes.map(mistake => (
-                  <div key={mistake.id} className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-rose-100 dark:border-rose-950/40 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div key={mistake.id} className="bg-white/10 p-4 rounded-xl border border-white/20 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
                         <span className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase ${
                           mistake.severity === 'high' 
-                            ? 'bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300' 
-                            : 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300'
+                            ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' 
+                            : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
                         }`}>
                           {mistake.severity} Severity
                         </span>
                         <span className={`px-2 py-0.5 rounded text-[8px] font-bold ${
                           mistake.resolved 
-                            ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950' 
-                            : 'bg-rose-100 text-rose-700 dark:bg-rose-950'
+                            ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' 
+                            : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
                         }`}>
                           {mistake.resolved ? 'Resolved' : 'Critical Action Needed'}
                         </span>
                       </div>
-                      <p className="text-xs font-bold text-slate-900 dark:text-white">{mistake.note}</p>
+                      <p className="text-xs font-bold text-white">{mistake.note}</p>
                       <p className="text-[10px] text-slate-400">Flagged on: {formatDate(mistake.date)}</p>
                     </div>
 
@@ -870,8 +871,8 @@ export const InternDetail: React.FC<InternDetailProps> = ({ internId, currentUse
                         onClick={() => handleResolveMistake(mistake.id, mistake.resolved)}
                         className={`px-3 py-1.5 text-[10px] font-bold rounded-lg border transition ${
                           mistake.resolved
-                            ? 'bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100'
-                            : 'bg-emerald-50 text-emerald-600 border-emerald-200/50 hover:bg-emerald-100 dark:bg-emerald-950/30'
+                            ? 'bg-white/10 text-slate-300 border-white/20 hover:bg-white/20'
+                            : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/30'
                         }`}
                       >
                         {mistake.resolved ? 'Mark Unresolved' : 'Approve Resolution'}
@@ -880,20 +881,20 @@ export const InternDetail: React.FC<InternDetailProps> = ({ internId, currentUse
                       <span className="text-xs text-slate-400 italic">
                         {mistake.resolved ? 'Resolved' : 'Awaiting intern action'}
                        </span>
-                     )}
-                   </div>
-                ))
-              )}
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
         {activeTab === 'chat' && (
-          <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-slate-700/30 shadow-lg shadow-teal-500/5 flex flex-col h-[420px]">
+          <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-lg shadow-teal-500/5 flex flex-col h-[420px]">
             {/* Chat header */}
-            <div className="px-5 py-3 border-b border-white/20 dark:border-slate-700/30 flex items-center gap-2">
-              <MessageSquare className="h-4 w-4 text-teal-600" />
-              <span className="text-xs font-bold text-slate-800 dark:text-white">Chat with {intern.name}</span>
+            <div className="px-5 py-3 border-b border-white/20 flex items-center gap-2">
+              <ThemedIcon icon={MessageSquare} color="teal" size={16} />
+              <span className="text-xs font-bold text-white">Chat with {intern.name}</span>
               <span className="text-[9px] text-slate-400 uppercase italic">Auto-refresh active</span>
             </div>
 
@@ -911,11 +912,11 @@ export const InternDetail: React.FC<InternDetailProps> = ({ internId, currentUse
                     <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
                       <div className={`max-w-xs md:max-w-md p-3 rounded-2xl text-xs space-y-1 shadow-sm ${
                         isMe 
-                          ? 'bg-teal-600 text-white rounded-tr-none' 
-                          : 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-tl-none'
+                          ? 'bg-gradient-to-br from-teal-500 to-cyan-500 text-white rounded-tr-none' 
+                          : 'bg-white/10 text-white rounded-tl-none'
                       }`}>
                         <p className="leading-relaxed whitespace-pre-wrap">{msg.content}</p>
-                        <div className={`text-[8px] flex items-center justify-end gap-1 ${isMe ? 'text-teal-200' : 'text-slate-400'}`}>
+                        <div className={`text-[8px] flex items-center justify-end gap-1 ${isMe ? 'text-white/70' : 'text-slate-300'}`}>
                           <span>{formatDate(msg.timestamp.split('T')[0])} {msg.timestamp.includes('T') ? msg.timestamp.split('T')[1].substring(0, 5) : ''}</span>
                           {isMe && (
                             msg.read ? (
@@ -950,13 +951,13 @@ export const InternDetail: React.FC<InternDetailProps> = ({ internId, currentUse
             </div>
 
             {/* Chat typing block */}
-            <form onSubmit={handleSendChatMessage} className="p-3 border-t border-white/20 dark:border-slate-700/30 flex gap-2">
+            <form onSubmit={handleSendChatMessage} className="p-3 border-t border-white/20 flex gap-2">
               <input
                 type="text"
                 placeholder="Type your message..."
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
-                className="flex-1 text-xs rounded-xl border border-white/20 dark:border-slate-700/30 bg-slate-50 dark:bg-slate-950 px-3 py-2 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
+                className="flex-1 text-xs rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-white placeholder:text-[10px] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
               />
               <button
                 type="submit"
@@ -969,78 +970,78 @@ export const InternDetail: React.FC<InternDetailProps> = ({ internId, currentUse
          )}
        </div>
 
-       {/* Flag Confirmation Modal */}
-       {flagConfirmOpen && (
-         <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-           <motion.div
-             variants={scaleIn}
-             initial="initial"
-             animate="animate"
-             exit="exit"
-             className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-slate-700/30 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 relative"
-           >
-             <div className="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-800">
-               <div className="flex items-center gap-2">
-                 <div className="p-2 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400">
-                   <AlertTriangle className="h-5 w-5" />
-                 </div>
-                 <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
-                   Flag Content for Review
-                 </h3>
-               </div>
-               <button
-                 onClick={closeFlagConfirm}
-                 className="p-1 text-slate-400 hover:text-slate-600 rounded-lg"
-               >
-                 <X className="h-5 w-5" />
-               </button>
-             </div>
-             <p className="text-sm text-slate-700 dark:text-slate-300">
-               {flagConfirmContent?.title && (
-                 <span className="font-semibold">{flagConfirmContent.title}</span>
-               )}
-               {' — Enter a reason for flagging this content:'}
-             </p>
-             <textarea
-               rows={3}
-               placeholder="Describe the issue..."
-               value={flagReason}
-               onChange={(e) => setFlagReason(e.target.value)}
-               className="w-full text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-3 py-2 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
-             />
-             <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
-               <button
-                 type="button"
-                 onClick={closeFlagConfirm}
-                 className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100"
-               >
-                 Cancel
-               </button>
-               <button
-                 type="button"
-                 onClick={handleFlagSubmit}
-                 disabled={flagging || !flagReason.trim()}
-                 className="px-5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition shadow-md shadow-amber-600/20 inline-flex items-center gap-2 disabled:opacity-50"
-               >
-                 {flagging ? (
-                   <>
-                     <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
-                     Flagging...
-                   </>
-                 ) : (
-                   <>
-                     <AlertTriangle className="h-3.5 w-3.5" />
-                     Flag for Review
-                   </>
-                 )}
-               </button>
-             </div>
-           </motion.div>
-         </div>
-       )}
-     </div>
-   );
-};
+        {/* Flag Confirmation Modal */}
+        {flagConfirmOpen && (
+          <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <motion.div
+              variants={scaleIn}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 relative"
+            >
+              <div className="flex justify-between items-center pb-3 border-b border-white/20">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 rounded-xl bg-amber-500/20 text-amber-400">
+                    <AlertTriangle className="h-5 w-5" />
+                  </div>
+                  <h3 className="text-base font-extrabold text-white">
+                    Flag Content for Review
+                  </h3>
+                </div>
+                <button
+                  onClick={closeFlagConfirm}
+                  className="p-1 text-slate-300 hover:text-white rounded-lg"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+              <p className="text-sm text-slate-300">
+                {flagConfirmContent?.title && (
+                  <span className="font-semibold text-white">{flagConfirmContent.title}</span>
+                )}
+                {' — Enter a reason for flagging this content:'}
+              </p>
+              <textarea
+                rows={3}
+                placeholder="Describe the issue..."
+                value={flagReason}
+                onChange={(e) => setFlagReason(e.target.value)}
+                className="w-full text-xs rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-white placeholder:text-[10px] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
+              />
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-white/20">
+                <button
+                  type="button"
+                  onClick={closeFlagConfirm}
+                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:bg-white/10"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleFlagSubmit}
+                  disabled={flagging || !flagReason.trim()}
+                  className="px-5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition shadow-md shadow-amber-600/20 inline-flex items-center gap-2 disabled:opacity-50"
+                >
+                  {flagging ? (
+                    <>
+                      <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
+                      Flagging...
+                    </>
+                  ) : (
+                    <>
+                      <AlertTriangle className="h-3.5 w-3.5" />
+                      Flag for Review
+                    </>
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </div>
+    );
+  };
 
 
 

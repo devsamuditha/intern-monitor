@@ -40,27 +40,27 @@ export const StartDayModal: React.FC<StartDayModalProps> = ({
   if (!show) return null;
 
   return (
-    <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-teal-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <motion.div
         variants={scaleIn}
         initial="initial"
         animate="animate"
         exit="exit"
-        className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-slate-700/30 rounded-2xl max-w-lg w-full p-6 shadow-2xl relative space-y-4"
+        className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl max-w-lg w-full p-6 shadow-2xl relative space-y-4"
       >
-        <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
+        <div className="flex items-center justify-between pb-3 border-b border-white/20">
           <div className="flex items-center gap-2">
-            <div className="p-2 bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 rounded-xl">
+            <div className="p-2 bg-emerald-950/60 text-emerald-400 rounded-xl">
               <Zap className="h-5 w-5 fill-emerald-500/20" />
             </div>
             <div>
-              <h3 className="text-base font-extrabold text-slate-900 dark:text-white">Start Your Day</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">Set your goals and let your Tech Lead know what you are working on today.</p>
+              <h3 className="text-base font-extrabold text-white">Start Your Day</h3>
+              <p className="text-xs text-white/60">Set your goals and let your Tech Lead know what you are working on today.</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
+            className="p-1 rounded-lg text-white/50 hover:text-white hover:bg-white/10"
           >
             <X className="h-5 w-5" />
           </button>
@@ -69,54 +69,54 @@ export const StartDayModal: React.FC<StartDayModalProps> = ({
         <form onSubmit={onSubmit} className="space-y-3.5">
           {/* Today Project */}
           <div>
-            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Today Project *</label>
+            <label className="block text-xs font-bold text-white/70 mb-1">Today Project *</label>
             <input
               type="text"
               required
               placeholder="e.g. InternTrack Revamp, Checkout Service, API Integration"
               value={startProject}
               onChange={(e) => setStartProject(e.target.value)}
-              className="w-full text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-3 py-2 text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+              className="w-full text-xs rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-white placeholder:text-[10px] placeholder:text-white/40 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
             />
           </div>
 
           {/* What are you doing today */}
           <div>
-            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">What are you doing today? *</label>
+            <label className="block text-xs font-bold text-white/70 mb-1">What are you doing today? *</label>
             <textarea
               required
               rows={3}
               placeholder="e.g., Implementing day session start/end modal flow, handling validations and PR review"
               value={startPlan}
               onChange={(e) => setStartPlan(e.target.value)}
-              className="w-full text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-3 py-2 text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+              className="w-full text-xs rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-white placeholder:text-[10px] placeholder:text-white/40 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
             />
           </div>
 
           {/* If you have any questions */}
           <div>
-            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">If you have any questions? (Optional)</label>
+            <label className="block text-xs font-bold text-white/70 mb-1">If you have any questions? (Optional)</label>
             <input
               type="text"
               placeholder="e.g., Need clarification on API rate limit parameters or DB schema"
               value={startQuestions}
               onChange={(e) => setStartQuestions(e.target.value)}
-              className="w-full text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-3 py-2 text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+              className="w-full text-xs rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-white placeholder:text-[10px] placeholder:text-white/40 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
             />
           </div>
 
           {/* Git Link */}
           <div>
-            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Git Link *</label>
+            <label className="block text-xs font-bold text-white/70 mb-1">Git Link *</label>
             <div className="relative">
-              <Github className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+              <Github className="absolute left-3 top-2.5 h-4 w-4 text-white/50" />
               <input
                 type="url"
                 required
                 placeholder="https://github.com/org/repo or https://github.com/org/repo/tree/feature-branch"
                 value={startGitLink}
                 onChange={(e) => setStartGitLink(e.target.value)}
-                className="w-full text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 pl-9 pr-3 py-2 text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-mono"
+                className="w-full text-xs rounded-xl border border-white/20 bg-white/5 pl-9 pr-3 py-2 text-white placeholder:text-[10px] placeholder:text-white/40 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-mono"
               />
             </div>
           </div>
@@ -125,7 +125,7 @@ export const StartDayModal: React.FC<StartDayModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+              className="px-4 py-2 rounded-xl text-xs font-semibold text-white/60 hover:bg-white/10"
             >
               Cancel
             </button>

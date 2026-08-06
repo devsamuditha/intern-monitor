@@ -120,7 +120,7 @@ export const SuperAdminModeration: React.FC = () => {
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3 items-center">
-        <div className="flex items-center gap-1 bg-white dark:bg-slate-900 rounded-xl border border-white/20 dark:border-slate-700/30 p-1">
+        <div className="flex items-center gap-1 bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl rounded-xl border border-white/20 dark:border-slate-700/30 p-1">
           {(['pending', 'dismissed', 'resolved', 'all'] as StatusFilter[]).map(s => (
             <button
               key={s}
@@ -136,7 +136,7 @@ export const SuperAdminModeration: React.FC = () => {
           ))}
         </div>
 
-        <div className="flex items-center gap-1 bg-white dark:bg-slate-900 rounded-xl border border-white/20 dark:border-slate-700/30 p-1">
+        <div className="flex items-center gap-1 bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl rounded-xl border border-white/20 dark:border-slate-700/30 p-1">
           {(['all', 'message', 'question', 'reply', 'daily_log'] as ContentTypeFilter[]).map(ct => (
             <button
               key={ct}
@@ -156,7 +156,7 @@ export const SuperAdminModeration: React.FC = () => {
       {/* Cards */}
       <div className="space-y-4">
         {flags.length === 0 ? (
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-white/20 dark:border-slate-700/30 p-12 text-center">
+          <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-slate-700/30 p-12 text-center">
             <p className="text-sm text-slate-400 dark:text-slate-500">No content flags to review.</p>
           </div>
         ) : (

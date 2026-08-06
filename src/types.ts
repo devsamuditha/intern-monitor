@@ -19,18 +19,19 @@ export interface User {
 }
 
 export interface Project {
-  id: string;
-  name: string;
-  description: string;
-  github_url: string;
-  tech_stack: string[];
-  owner_id: string;
-  screenshots: string[];
-  status?: ProjectStatus;
-  start_date?: string;
-  end_date?: string;
-  assigned_tech_lead_ids?: string[];
-}
+   id: string;
+   name: string;
+   description: string;
+   github_url: string;
+   tech_stack: string[];
+   owner_id: string;
+   owner_name?: string;
+   screenshots: string[];
+   status?: ProjectStatus;
+   start_date?: string;
+   end_date?: string;
+   assigned_tech_lead_ids?: string[];
+ }
 
 export interface DailyLog {
   id: string;

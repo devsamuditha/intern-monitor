@@ -10,6 +10,7 @@ import { User } from '../../types.ts';
 import { scaleIn } from '../../utils/motion';
 import { TrendingUp, Users, Flag, Activity, RefreshCw, Server, Shield, AlertTriangle, ArrowRight, BarChart3, Award, Clock, Target, Zap, Globe, Code, Terminal, Rocket, Layers, ChevronRight } from 'lucide-react';
 import { getSupabaseClient } from '../../lib/supabaseClient';
+import { QUICK_LINK_COLORS } from '../../components/ui/theme/ThemeTokens';
 
 interface SuperAdminOverviewProps {
   currentUser: User;
@@ -324,18 +325,33 @@ export const SuperAdminOverview: React.FC<SuperAdminOverviewProps> = ({ currentU
               { label: 'Audit', icon: Activity, path: '/superadmin/audit', color: 'indigo' },
               { label: 'Moderation', icon: Flag, path: '/superadmin/moderation', color: 'rose' },
               { label: 'Settings', icon: Server, path: '/superadmin/settings', color: 'amber' },
-            ].map((link) => (
-              <div
-                key={link.path}
-                onClick={() => handleNavigate(link.path)}
-                className={`flex items-center gap-3 p-4 rounded-xl bg-${link.color}-50/50 dark:bg-${link.color}-950/20 border border-${link.color}-100/30 dark:border-${link.color}-900/20 cursor-pointer hover:bg-${link.color}-100/50 dark:hover:bg-${link.color}-950/30 transition group`}
-              >
-                <div className={`p-2 bg-${link.color}-100 dark:bg-${link.color}-950/40 rounded-lg group-hover:scale-110 transition-transform`}>
-                  <link.icon className={`h-4 w-4 text-${link.color}-600 dark:text-${link.color}-400`} />
+            ].map((link) => {
+              const colors = QUICK_LINK_COLORS[link.color];
+              const hoverLight: Record<string, string> = {
+                teal: 'hover:bg-teal-100/50',
+                indigo: 'hover:bg-indigo-100/50',
+                rose: 'hover:bg-rose-100/50',
+                amber: 'hover:bg-amber-100/50',
+              };
+              const hoverDark: Record<string, string> = {
+                teal: 'dark:hover:bg-teal-950/30',
+                indigo: 'dark:hover:bg-indigo-950/30',
+                rose: 'dark:hover:bg-rose-950/30',
+                amber: 'dark:hover:bg-amber-950/30',
+              };
+              return (
+                <div
+                  key={link.path}
+                  onClick={() => handleNavigate(link.path)}
+                  className={`flex items-center gap-3 p-4 rounded-xl ${colors.bg} ${colors.bgDark} border ${colors.border} ${colors.borderDark} cursor-pointer ${hoverLight[link.color]} ${hoverDark[link.color]} transition group`}
+                >
+                  <div className={`p-2 ${colors.iconBg} ${colors.iconBgDark} rounded-lg group-hover:scale-110 transition-transform`}>
+                    <link.icon className={`h-4 w-4 ${colors.iconText} ${colors.iconTextDark}`} />
+                  </div>
+                  <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{link.label}</span>
                 </div>
-                <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{link.label}</span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>

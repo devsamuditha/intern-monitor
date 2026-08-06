@@ -24,7 +24,7 @@ export default function Home() {
 
   if (loading || redirecting) {
     return (
-      <div className="min-h-screen bg-[#F9FAFB] dark:bg-slate-950 flex flex-col items-center justify-center text-slate-500">
+      <div className="min-h-screen bg-[#F9FAFB] dark:bg-slate-950 flex flex-col items-center justify-center text-slate-500 ">
         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600 mb-3"></div>
         <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">Loading InternTrack...</p>
       </div>
