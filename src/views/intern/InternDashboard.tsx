@@ -4,7 +4,8 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
+import { Preloader } from '@/src/components/ui/Preloader';
 import { api } from '../../services/api';
 import { User, DailyLog, Task, Mistake, Mark, DaySession, TaskStatus } from '../../types';
 import { getSupabaseClient } from '../../lib/supabaseClient';
@@ -313,84 +314,88 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
 
   const completedTasksCount = tasks.filter(t => t.status === 'done').length;
 
-  if (loading) {
-    return (
-      <div className="text-center py-20">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-teal-600 mx-auto mb-4"></div>
-        <p className="text-sm text-white/60">Syncing learning workspace...</p>
-      </div>
-    );
-  }
-
   return (
-    <div id="intern-workspace-root" className="min-h-[calc(100vh-5rem)] bg-gradient-to-br from-teal-950 via-cyan-950 to-emerald-950">
-      <div className="relative z-10 space-y-6">
-        <StartDayHero
-          todaySession={todaySession}
-          sessionLoading={sessionLoading}
-          onStartDay={handleStartDayClick}
-          onEndDay={handleEndDayClick}
-        />
-
-        <StartDayModal
-          show={showStartDayModal}
-          onClose={() => setShowStartDayModal(false)}
-          sessionLoading={sessionLoading}
-          startProject={startProject}
-          setStartProject={setStartProject}
-          startPlan={startPlan}
-          setStartPlan={setStartPlan}
-          startQuestions={startQuestions}
-          setStartQuestions={setStartQuestions}
-          startGitLink={startGitLink}
-          setStartGitLink={setStartGitLink}
-          onSubmit={confirmStartDaySubmit}
-        />
-
-        <EndDayPromptModal
-          show={showEndDayPromptModal}
-          onClose={() => setShowEndDayPromptModal(false)}
-          onGoToJournal={handleGoToJournal}
-        />
-
-        <StatsHeader
-          streak={streak}
-          avgMark={avgMark}
-          completedTasksCount={completedTasksCount}
-          totalTasks={tasks.length}
-          totalLogs={logs.length}
-        />
-
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-
-          {/* Left Column: Log Form & Flagged Mistakes */}
-          <div className="lg:col-span-5 space-y-6 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-4">
-            <DailyLogForm user={user} onSuccess={handleLogSubmitSuccess} todaySession={todaySession} />
-
-            <FlaggedMistakesBanner mistakes={mistakes} />
-          </div>
-
-          {/* Right Column: Timelines, Tasks, Feedback */}
-          <div className="lg:col-span-7 space-y-6 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-4">
-
-            <TasksBoard
-              tasks={tasks}
-              onTaskStatusToggle={handleTaskStatusToggle}
+    <AnimatePresence mode="wait">
+      {loading ? (
+        <Preloader key="preloader" visible={loading} />
+      ) : (
+        <motion.div
+          key="dashboard"
+          id="intern-workspace-root"
+          className="min-h-[calc(100vh-5rem)] bg-gradient-to-br from-teal-950 via-cyan-950 to-emerald-950"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3, delay: 0.1 }}
+        >
+          <div className="relative z-10 space-y-6">
+            <StartDayHero
+              todaySession={todaySession}
+              sessionLoading={sessionLoading}
+              onStartDay={handleStartDayClick}
+              onEndDay={handleEndDayClick}
             />
 
-            <DailyLogTimeline
-              logs={logs}
-              marks={marks}
-              searchTerm={searchTerm}
-              setSearchTerm={setSearchTerm}
-              dateFilter={dateFilter}
-              setDateFilter={setDateFilter}
+            <StartDayModal
+              show={showStartDayModal}
+              onClose={() => setShowStartDayModal(false)}
+              sessionLoading={sessionLoading}
+              startProject={startProject}
+              setStartProject={setStartProject}
+              startPlan={startPlan}
+              setStartPlan={setStartPlan}
+              startQuestions={startQuestions}
+              setStartQuestions={setStartQuestions}
+              startGitLink={startGitLink}
+              setStartGitLink={setStartGitLink}
+              onSubmit={confirmStartDaySubmit}
             />
+
+            <EndDayPromptModal
+              show={showEndDayPromptModal}
+              onClose={() => setShowEndDayPromptModal(false)}
+              onGoToJournal={handleGoToJournal}
+            />
+
+            <StatsHeader
+              streak={streak}
+              avgMark={avgMark}
+              completedTasksCount={completedTasksCount}
+              totalTasks={tasks.length}
+              totalLogs={logs.length}
+            />
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+              {/* Left Column: Log Form & Flagged Mistakes */}
+              <div className="lg:col-span-5 space-y-6 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-4">
+                <DailyLogForm user={user} onSuccess={handleLogSubmitSuccess} todaySession={todaySession} />
+
+                <FlaggedMistakesBanner mistakes={mistakes} />
+              </div>
+
+              {/* Right Column: Timelines, Tasks, Feedback */}
+              <div className="lg:col-span-7 space-y-6 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-4">
+
+                <TasksBoard
+                  tasks={tasks}
+                  onTaskStatusToggle={handleTaskStatusToggle}
+                />
+
+                <DailyLogTimeline
+                  logs={logs}
+                  marks={marks}
+                  searchTerm={searchTerm}
+                  setSearchTerm={setSearchTerm}
+                  dateFilter={dateFilter}
+                  setDateFilter={setDateFilter}
+                />
+              </div>
+            </div>
           </div>
-         </div>
-       </div>
-     </div>
-   );
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
  };
 
 

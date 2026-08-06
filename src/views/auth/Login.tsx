@@ -7,9 +7,10 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../context/AuthContext";
 import { ArrowRight, User as UserIcon, Lock, Eye, EyeOff } from "lucide-react";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 
 import { NetworkBackground } from "@/src/components/ui/NetworkBackground";
+import { Preloader } from "@/src/components/ui/Preloader";
 
 /* ------------------------------------------------------------------ */
 /*  Login page                                                        */
@@ -177,9 +178,15 @@ export const Login: React.FC = () => {
             </button>
           </form>
         </div>
-      </div>
-    </div>
-  );
-};
+       </div>
+
+       <AnimatePresence>
+         {loading && (
+           <Preloader key="login-preloader" visible={loading} />
+         )}
+       </AnimatePresence>
+     </div>
+   );
+ };
 
 export default Login;
