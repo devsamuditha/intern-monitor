@@ -11,7 +11,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { 
   LayoutDashboard, FolderKanban, MessageSquare, Sun, Moon, 
-  Users, TrendingUp, LogOut, Shield, Target, Settings, AlertTriangle
+  Users, TrendingUp, LogOut, Shield, Target, Settings, AlertTriangle, Building2
 } from "lucide-react";
 import { api } from "../../services/api";
 import { ChatPanel } from "../intern/ChatPanel";
@@ -68,6 +68,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
       case 'super_admin':
         return [
           { id: 'overview', label: 'Overview', icon: TrendingUp },
+          { id: 'organizations', label: 'Organizations', icon: Building2 },
           { id: 'users', label: 'Users', icon: Users },
           { id: 'audit', label: 'Audit', icon: Shield },
           { id: 'moderation', label: 'Moderation', icon: AlertTriangle },
@@ -117,7 +118,21 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
               <button
                 key={item.id}
                 type="button"
-                onClick={() => setActiveTab(item.id)}
+                onClick={() => {
+                  setActiveTab(item.id);
+                  if (role === 'super_admin') {
+                    router.push(`/superadmin/${item.id}`);
+                  } else if (role === 'manager') {
+                    router.push(`/manager/${item.id}`);
+                  } else if (role === 'tech_lead') {
+                    router.push(`/team/${item.id}`);
+                  } else if (role === 'intern') {
+                    if (item.id === 'dashboard') router.push(`/dashboard`);
+                    else if (item.id === 'projects') router.push(`/projects`);
+                    else if (item.id === 'discussions') router.push(`/discussions`);
+                    else router.push(`/${item.id}`);
+                  }
+                }}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold transition-all duration-150 ${
                   active 
                     ? 'bg-white/10 text-teal-300' 
@@ -206,7 +221,21 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
               <button
                 key={item.id}
                 type="button"
-                onClick={() => setActiveTab(item.id)}
+                onClick={() => {
+                  setActiveTab(item.id);
+                  if (role === 'super_admin') {
+                    router.push(`/superadmin/${item.id}`);
+                  } else if (role === 'manager') {
+                    router.push(`/manager/${item.id}`);
+                  } else if (role === 'tech_lead') {
+                    router.push(`/team/${item.id}`);
+                  } else if (role === 'intern') {
+                    if (item.id === 'dashboard') router.push(`/dashboard`);
+                    else if (item.id === 'projects') router.push(`/projects`);
+                    else if (item.id === 'discussions') router.push(`/discussions`);
+                    else router.push(`/${item.id}`);
+                  }
+                }}
                 className={`flex flex-col items-center gap-1 py-1 px-3 rounded-lg text-[9px] font-semibold transition ${
                   active 
                     ? 'text-teal-300 bg-white/10' 

@@ -45,6 +45,7 @@ export async function POST(request: NextRequest) {
       userId: user.id,
       role: user.role,
       mustChangePassword: false,
+      organizationId: user.organizationId as string,
     });
 
     const response = NextResponse.json({ success: true, mustChangePassword: false });

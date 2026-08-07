@@ -7,6 +7,7 @@ export interface SessionPayload {
   userId: string;
   role: Role;
   mustChangePassword: boolean;
+  organizationId: string | null;
 }
 
 const SESSION_SECRET = process.env.SESSION_SECRET || "dev-secret-change-me";

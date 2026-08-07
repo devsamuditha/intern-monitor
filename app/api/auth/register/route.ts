@@ -29,6 +29,7 @@ export async function POST(request: NextRequest) {
       role: body.role,
       techLeadId: body.techLeadId,
       actorId: user.id,
+      organizationId: user.organizationId,
     });
     return NextResponse.json(result, { status: 201 });
   } catch (error: any) {

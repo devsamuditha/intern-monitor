@@ -70,8 +70,9 @@ export async function POST(request: NextRequest) {
         userId: userObj.id,
         contentId,
         contentType: contentTypeLower,
-        reason,
-        status: "pending",
+        reason: body.reason,
+        status: 'PENDING',
+        organizationId: user.organizationId as string,
       },
     });
 

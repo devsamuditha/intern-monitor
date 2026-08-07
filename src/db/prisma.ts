@@ -29,3 +29,24 @@ export function getPrisma(): PrismaClient {
   
   return prisma;
 }
+
+export function getTenantPrisma(organizationId: string) {
+  const basePrisma = getPrisma();
+  return basePrisma.$extends({
+    query: {
+      $allModels: {
+        async $allOperations({ model, operation, args, query }) {
+          if (model === 'Organization') {
+            return query(args);
+          }
+          if (['findMany', 'findFirst', 'findUnique', 'update', 'updateMany', 'delete', 'deleteMany', 'count'].includes(operation)) {
+             const anyArgs = (args || {}) as any;
+             anyArgs.where = { ...(anyArgs.where || {}), organizationId };
+             return query(anyArgs);
+          }
+          return query(args);
+        },
+      },
+    },
+  });
+}

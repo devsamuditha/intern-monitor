@@ -458,7 +458,7 @@ export const api = {
     return handleResponse(res);
   },
 
-  createUserBySuperAdmin: async (data: { name: string; email: string; username: string; password: string; role: string; techLeadId?: string }): Promise<{ user: User; username: string; password: string }> => {
+  createUserBySuperAdmin: async (data: { name: string; email: string; username: string; password: string; role: string; techLeadId?: string; organizationId?: string }): Promise<{ user: User; username: string; password: string }> => {
     const res = await fetch("/api/superadmin/users", {
       method: "POST",
       headers: await getAuthHeaders(),
@@ -472,6 +472,40 @@ export const api = {
       method: "PATCH",
       headers: await getAuthHeaders(),
       body: JSON.stringify({ techLeadId })
+    });
+    return handleResponse(res);
+  },
+
+  // SuperAdmin Organizations
+  getOrganizations: async (): Promise<any[]> => {
+    const res = await fetch("/api/superadmin/organizations", {
+      headers: await getAuthHeaders(),
+    });
+    return handleResponse(res);
+  },
+
+  createOrganization: async (data: { name: string; slug: string }): Promise<any> => {
+    const res = await fetch("/api/superadmin/organizations", {
+      method: "POST",
+      headers: await getAuthHeaders(),
+      body: JSON.stringify(data),
+    });
+    return handleResponse(res);
+  },
+
+  updateOrganization: async (id: string, data: { name?: string; slug?: string }): Promise<any> => {
+    const res = await fetch(`/api/superadmin/organizations/${id}`, {
+      method: "PUT",
+      headers: await getAuthHeaders(),
+      body: JSON.stringify(data),
+    });
+    return handleResponse(res);
+  },
+
+  deleteOrganization: async (id: string): Promise<{ success: boolean }> => {
+    const res = await fetch(`/api/superadmin/organizations/${id}`, {
+      method: "DELETE",
+      headers: await getAuthHeaders(),
     });
     return handleResponse(res);
   },

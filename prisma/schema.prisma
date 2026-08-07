@@ -41,8 +41,38 @@ enum ProjectStatus {
   ARCHIVED
 }
 
+enum SubscriptionPlan {
+  FREE
+  PRO
+  ENTERPRISE
+}
+
+model Organization {
+  id               String           @id @default(uuid())
+  name             String
+  slug             String           @unique
+  subscriptionPlan SubscriptionPlan @default(FREE)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  users            User[]
+  projects         Project[]
+  dailyLogs        DailyLog[]
+  tasks            Task[]
+  marks            Mark[]
+  mistakes         Mistake[]
+  messages         Message[]
+  questions        Question[]
+  replies          Reply[]
+  daySessions      DaySession[]
+  auditLogs        AuditLog[]
+  systemSettings   SystemSetting[]
+  contentFlags     ContentFlag[]
+}
+
 model User {
   id                String    @id @default(uuid())
+  organizationId    String?   // Nullable for Super Admins
   name              String
   email             String    @unique
   username          String    @unique
@@ -54,6 +84,8 @@ model User {
   isActive          Boolean   @default(true)
   createdAt         DateTime  @default(now())
 
+  organization     Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  
   // Self-relation: Tech Lead has many Interns
   techLead         User?     @relation("TechLeadInterns", fields: [techLeadId], references: [id], onDelete: SetNull)
   interns          User[]    @relation("TechLeadInterns")
@@ -78,10 +110,12 @@ model User {
 
   @@index([role])
   @@index([techLeadId])
+  @@index([organizationId])
 }
 
 model Project {
   id          String       @id @default(uuid())
+  organizationId String
   name        String
   description String
   githubUrl   String?
@@ -94,16 +128,19 @@ model Project {
   assignedTechLeadIds String[] @default([])
   createdAt   DateTime     @default(now())
 
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   owner       User         @relation("ProjectOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   dailyLogs   DailyLog[]
 
   @@index([ownerId])
   @@index([status])
   @@index([startDate])
+  @@index([organizationId])
 }
 
 model DailyLog {
   id            String     @id @default(uuid())
+  organizationId String
   internId      String
   projectId     String
   summary       String
@@ -116,6 +153,7 @@ model DailyLog {
   isHidden      Boolean    @default(false)
   createdAt     DateTime   @default(now())
 
+  organization  Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   intern        User       @relation(fields: [internId], references: [id], onDelete: Cascade)
   project       Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
   marks         Mark[]
@@ -125,10 +163,12 @@ model DailyLog {
   @@index([projectId])
   @@index([date])
   @@index([isHidden])
+  @@index([organizationId])
 }
 
 model Task {
   id           String       @id @default(uuid())
+  organizationId String
   assignedToId String
   assignedById String
   title        String
@@ -143,6 +183,7 @@ model Task {
   prLink       String?
   createdAt    DateTime     @default(now())
 
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   assignedTo   User         @relation("TaskAssignedTo", fields: [assignedToId], references: [id], onDelete: Cascade)
   assignedBy   User         @relation("TaskAssignedBy", fields: [assignedById], references: [id], onDelete: Cascade)
   marks        Mark[]
@@ -151,10 +192,12 @@ model Task {
   @@index([assignedById])
   @@index([status])
   @@index([dueDate])
+  @@index([organizationId])
 }
 
 model Mark {
   id            String    @id @default(uuid())
+  organizationId String
   internId      String
   givenById     String
   relatedLogId  String?
@@ -164,6 +207,7 @@ model Mark {
   date          String    // YYYY-MM-DD
   createdAt     DateTime  @default(now())
 
+  organization  Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   intern        User      @relation("MarkIntern", fields: [internId], references: [id], onDelete: Cascade)
   givenBy       User      @relation("MarkGivenBy", fields: [givenById], references: [id], onDelete: Cascade)
   relatedLog    DailyLog? @relation(fields: [relatedLogId], references: [id], onDelete: Cascade)
@@ -173,10 +217,12 @@ model Mark {
   @@index([givenById])
   @@index([relatedLogId])
   @@index([relatedTaskId])
+  @@index([organizationId])
 }
 
 model Mistake {
   id           String          @id @default(uuid())
+  organizationId String
   internId     String
   flaggedById  String
   relatedLogId String
@@ -186,6 +232,7 @@ model Mistake {
   resolved     Boolean         @default(false)
   createdAt    DateTime        @default(now())
 
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   intern       User            @relation("MistakeIntern", fields: [internId], references: [id], onDelete: Cascade)
   flaggedBy    User            @relation("MistakeFlaggedBy", fields: [flaggedById], references: [id], onDelete: Cascade)
   relatedLog   DailyLog        @relation(fields: [relatedLogId], references: [id], onDelete: Cascade)
@@ -193,10 +240,12 @@ model Mistake {
   @@index([internId])
   @@index([flaggedById])
   @@index([relatedLogId])
+  @@index([organizationId])
 }
 
 model Message {
   id        String   @id @default(uuid())
+  organizationId String
   fromId    String
   toId      String
   content   String
@@ -204,47 +253,56 @@ model Message {
   isHidden  Boolean  @default(false)
   createdAt DateTime @default(now())
 
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   from      User     @relation("MessageFrom", fields: [fromId], references: [id], onDelete: Cascade)
   to        User     @relation("MessageTo", fields: [toId], references: [id], onDelete: Cascade)
 
   @@index([fromId])
   @@index([toId])
   @@index([isHidden])
+  @@index([organizationId])
 }
 
 model Question {
   id        String   @id @default(uuid())
+  organizationId String
   internId  String
   title     String
   content   String
   isHidden  Boolean  @default(false)
   createdAt DateTime @default(now())
 
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   intern    User     @relation(fields: [internId], references: [id], onDelete: Cascade)
   replies   Reply[]
 
   @@index([internId])
   @@index([isHidden])
+  @@index([organizationId])
 }
 
 model Reply {
   id         String   @id @default(uuid())
+  organizationId String
   questionId String
   authorId   String
   content    String
   isHidden   Boolean  @default(false)
   createdAt  DateTime @default(now())
 
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
   author     User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
 
   @@index([questionId])
   @@index([authorId])
   @@index([isHidden])
+  @@index([organizationId])
 }
 
 model DaySession {
   id           String   @id @default(uuid())
+  organizationId String
   internId     String
   date         String   // YYYY-MM-DD
   startedAt    String
@@ -257,42 +315,52 @@ model DaySession {
   endJournal   String?
   createdAt    DateTime @default(now())
 
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   intern       User     @relation(fields: [internId], references: [id], onDelete: Cascade)
 
-    @@index([internId])
+  @@index([internId])
   @@index([date])
+  @@index([organizationId])
 }
 
 model AuditLog {
   id        String    @id @default(uuid())
+  organizationId String
   userId    String
   action    String
   targetType String?
   details   String?
   timestamp DateTime @default(now())
 
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([timestamp])
   @@index([targetType])
   @@index([action])
+  @@index([organizationId])
 }
 
 model SystemSetting {
   id        String   @id @default(uuid())
-  key       String   @unique
+  organizationId String
+  key       String
   value     String
   updatedBy String?
   updatedAt DateTime @updatedAt
 
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   updater    User?    @relation(fields: [updatedBy], references: [id], onDelete: SetNull)
 
   @@index([key])
+  @@index([organizationId])
+  @@unique([organizationId, key])
 }
 
 model ContentFlag {
   id          String   @id @default(uuid())
+  organizationId String
   userId      String
   contentId   String
   contentType String
@@ -302,9 +370,11 @@ model ContentFlag {
   createdAt   DateTime @default(now())
   resolvedAt  DateTime?
 
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([contentId])
   @@index([status])
+  @@index([organizationId])
 }

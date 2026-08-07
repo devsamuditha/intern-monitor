@@ -7,8 +7,9 @@ import { ScoreTaskSchema } from "@/app/api/_lib/validation";
 import { getRelativeDateStr } from "@/app/api/_lib/mappers";
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  let user: any;
   try {
-    await withAuth(request);
+    user = await withAuth(request);
   } catch (err: any) {
     const status = err.message.includes("Forbidden") ? 403 : err.message.includes("Unauthorized") ? 401 : 500;
     return NextResponse.json({ error: err.message }, { status });
@@ -42,8 +43,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         givenById: reviewer_id,
         relatedTaskId: updatedTask.id,
         score: Number(score),
-        comment: comment || null,
-        date: todayStr,
+        comment: body.comment || null,
+        date: new Date().toISOString(),
+        organizationId: user.organizationId as string,
       },
     });
 

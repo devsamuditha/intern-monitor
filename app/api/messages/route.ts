@@ -6,8 +6,9 @@ import { validateBody } from "@/app/api/_lib/validation";
 import { SendMessageSchema, ReadMessagesSchema } from "@/app/api/_lib/validation";
 
 export async function GET(request: NextRequest) {
+  let user: any;
   try {
-    await withAuth(request);
+    user = await withAuth(request);
   } catch (err: any) {
     const status = err.message.includes("Forbidden") ? 403 : err.message.includes("Unauthorized") ? 401 : 500;
     return NextResponse.json({ error: err.message }, { status });
@@ -37,8 +38,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  let user: any;
   try {
-    await withAuth(request);
+    user = await withAuth(request);
   } catch (err: any) {
     const status = err.message.includes("Forbidden") ? 403 : err.message.includes("Unauthorized") ? 401 : 500;
     return NextResponse.json({ error: err.message }, { status });
@@ -51,15 +53,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: err.message }, { status: 400 });
   }
 
-  const { from_id, to_id, content } = body;
-
   try {
     const prisma = getPrisma();
     const created = await prisma.message.create({
       data: {
-        fromId: from_id,
-        toId: to_id,
-        content,
+        fromId: user.id,
+        toId: body.to_id,
+        content: body.content,
+        organizationId: user.organizationId as string,
       },
     });
     return NextResponse.json(mapMessage(created));
@@ -69,8 +70,9 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PUT(request: NextRequest) {
+  let user: any;
   try {
-    await withAuth(request);
+    user = await withAuth(request);
   } catch (err: any) {
     const status = err.message.includes("Forbidden") ? 403 : err.message.includes("Unauthorized") ? 401 : 500;
     return NextResponse.json({ error: err.message }, { status });

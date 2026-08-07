@@ -154,6 +154,7 @@ export const CreateUserBySuperAdminSchema = z.object({
     message: "Role must be intern, tech_lead, manager, or super_admin"
   }),
   techLeadId: z.string().optional().nullable(),
+  organizationId: z.string().optional().nullable(),
 });
 
 export const ReassignTechLeadSchema = z.object({

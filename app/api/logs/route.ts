@@ -8,8 +8,9 @@ import { uploadBase64Image } from "@/src/lib/supabase";
 import { getRelativeDateStr } from "@/app/api/_lib/mappers";
 
 export async function GET(request: NextRequest) {
+  let user: any;
   try {
-    await withAuth(request);
+    user = await withAuth(request);
   } catch (err: any) {
     const status = err.message.includes("Forbidden") ? 403 : err.message.includes("Unauthorized") ? 401 : 500;
     return NextResponse.json({ error: err.message }, { status });
@@ -39,8 +40,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  let user: any;
   try {
-    await withAuth(request);
+    user = await withAuth(request);
   } catch (err: any) {
     const status = err.message.includes("Forbidden") ? 403 : err.message.includes("Unauthorized") ? 401 : 500;
     return NextResponse.json({ error: err.message }, { status });
@@ -78,7 +80,8 @@ export async function POST(request: NextRequest) {
         screenshotUrl: resolvedScreenshotUrl,
         githubUrl: github_url,
         date: todayStr,
-        status: "submitted",
+        status: 'DRAFT',
+        organizationId: user.organizationId as string,
       },
     });
 

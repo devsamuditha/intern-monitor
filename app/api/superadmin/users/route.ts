@@ -29,6 +29,7 @@ export async function POST(request: NextRequest) {
       password: body.password,
       role: body.role,
       techLeadId: body.techLeadId,
+      organizationId: body.organizationId,
       actorId: user.id,
     });
     return NextResponse.json(result, { status: 201 });

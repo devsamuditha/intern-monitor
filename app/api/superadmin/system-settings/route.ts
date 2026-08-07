@@ -57,7 +57,7 @@ export async function PUT(request: NextRequest) {
 
   try {
     const prisma = getPrisma();
-    const existing = await prisma.systemSetting.findUnique({ where: { key } });
+    const existing = await prisma.systemSetting.findUnique({ where: { organizationId_key: { organizationId: user.organizationId as string, key } } });
     const oldValue = existing?.value;
 
     let coercedValue: string;
@@ -94,12 +94,13 @@ export async function PUT(request: NextRequest) {
     }
 
     const updated = await prisma.systemSetting.upsert({
-      where: { key },
+      where: { organizationId_key: { organizationId: user.organizationId as string, key } },
       update: {
         value: coercedValue,
         updatedBy: user.id,
       },
       create: {
+        organizationId: user.organizationId as string,
         key,
         value: coercedValue,
         updatedBy: user.id,

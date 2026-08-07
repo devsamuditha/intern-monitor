@@ -49,6 +49,7 @@ export async function POST(request: NextRequest) {
       userId: dbUser.id,
       role: dbUser.role,
       mustChangePassword: dbUser.mustChangePassword,
+      organizationId: dbUser.organizationId,
     });
 
     const response = NextResponse.json({ user: { ...mapUser(dbUser), mustChangePassword: dbUser.mustChangePassword } });

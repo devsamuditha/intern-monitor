@@ -6,8 +6,9 @@ import { validateBody } from "@/app/api/_lib/validation";
 import { AskQuestionSchema, ReplyQuestionSchema } from "@/app/api/_lib/validation";
 
 export async function GET(request: NextRequest) {
+  let user: any;
   try {
-    await withAuth(request);
+    user = await withAuth(request);
   } catch (err: any) {
     const status = err.message.includes("Forbidden") ? 403 : err.message.includes("Unauthorized") ? 401 : 500;
     return NextResponse.json({ error: err.message }, { status });
@@ -32,8 +33,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  let user: any;
   try {
-    await withAuth(request);
+    user = await withAuth(request);
   } catch (err: any) {
     const status = err.message.includes("Forbidden") ? 403 : err.message.includes("Unauthorized") ? 401 : 500;
     return NextResponse.json({ error: err.message }, { status });
@@ -46,15 +48,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: err.message }, { status: 400 });
   }
 
-  const { intern_id, title, content } = body;
-
   try {
     const prisma = getPrisma();
     const created = await prisma.question.create({
       data: {
-        internId: intern_id,
-        title,
-        content,
+        internId: user.id,
+        title: body.title,
+        content: body.content,
+        organizationId: user.organizationId as string,
       },
       include: { replies: true },
     });

@@ -16,6 +16,7 @@ export interface CreateUserParams {
   role: string;
   techLeadId?: string | null;
   actorId?: string;
+  organizationId?: string | null;
 }
 
 export interface CreateUserResult {
@@ -76,6 +77,7 @@ export async function createUserWithCredentials(params: CreateUserParams): Promi
       avatarUrl,
       techLeadId: prismaRole === Role.INTERN ? (params.techLeadId || null) : null,
       isActive: true,
+      organizationId: params.organizationId || null,
     },
   });
 
