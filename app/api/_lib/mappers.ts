@@ -122,8 +122,24 @@ export function mapQuestion(dbQ: any) {
   };
 }
 
+const LATE_THRESHOLD_MINUTES = 9 * 60 + 30;
+
+export function parseTimeToMinutes(timeStr: string): number {
+  const match = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+  if (!match) return 0;
+  let hours = parseInt(match[1], 10);
+  const minutes = parseInt(match[2], 10);
+  const period = match[3].toUpperCase();
+  if (period === 'PM' && hours !== 12) hours += 12;
+  if (period === 'AM' && hours === 12) hours = 0;
+  return hours * 60 + minutes;
+}
+
 export function mapDaySession(dbSession: any) {
   if (!dbSession) return null;
+  const isLate = dbSession.startedAt
+    ? parseTimeToMinutes(dbSession.startedAt) > LATE_THRESHOLD_MINUTES
+    : false;
   return {
     id: dbSession.id,
     intern_id: dbSession.internId,
@@ -131,6 +147,7 @@ export function mapDaySession(dbSession: any) {
     started_at: dbSession.startedAt,
     ended_at: dbSession.endedAt || undefined,
     status: dbSession.status,
+    is_late: isLate,
     today_project: dbSession.todayProject || undefined,
     today_plan: dbSession.todayPlan || undefined,
     questions: dbSession.questions || undefined,

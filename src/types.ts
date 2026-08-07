@@ -124,8 +124,9 @@ export interface DaySession {
   date: string; // YYYY-MM-DD
   started_at: string; // HH:MM AM/PM
   ended_at?: string; // HH:MM AM/PM
-  status: 'active' | 'completed';
-  today_project?: string;
+   status: 'active' | 'completed';
+   is_late?: boolean;
+   today_project?: string;
   today_plan?: string;
   questions?: string;
   git_link?: string;

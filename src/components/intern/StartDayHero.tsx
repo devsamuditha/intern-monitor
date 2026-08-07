@@ -5,11 +5,11 @@
 
 import React, { useState, useEffect } from 'react';
 import {
-  Zap, CheckCircle2, Sun, FolderGit2, FileText, HelpCircle, Github, ExternalLink, Clock
+  Zap, CheckCircle2, Sun, FolderGit2, FileText, HelpCircle, Github, ExternalLink, AlertTriangle
 } from 'lucide-react';
 import { DaySession } from '../../types.ts';
 import { ThemedIcon } from '../../components/ui/ThemedIcon';
-import { formatISTTimeHHMMSS, getISTHour, getISTMinute } from '../../utils/time';
+import { formatISTTimeHHMMSS } from '../../utils/time';
 
 interface StartDayHeroProps {
   todaySession: DaySession | null;
@@ -32,12 +32,6 @@ export const StartDayHero: React.FC<StartDayHeroProps> = ({
     }, 1000);
     return () => clearInterval(interval);
   }, []);
-
-  const istHour = getISTHour();
-  const istMinute = getISTMinute();
-  const istTimeMinutes = istHour * 60 + istMinute;
-  const deadlineMinutes = 9 * 60 + 30;
-  const pastStartWindow = istTimeMinutes >= deadlineMinutes;
 
   return (
     <div className={`p-6 rounded-2xl transition-all shadow-sm ${
@@ -100,24 +94,14 @@ export const StartDayHero: React.FC<StartDayHeroProps> = ({
             <span className="text-xs font-mono text-white/50">{istTime}</span>
           </div>
           {!todaySession ? (
-            pastStartWindow ? (
-              <div>
-                <div className="w-full sm:w-auto px-6 py-3 rounded-xl bg-slate-800/50 border border-slate-700/50 text-slate-400 font-medium text-sm flex items-center justify-center gap-2 cursor-not-allowed">
-                  <Clock className="h-4 w-4" />
-                  Past start window
-                </div>
-                <p className="text-[10px] text-slate-500 text-center mt-1">Day start deadline is 9:30 AM IST</p>
-              </div>
-            ) : (
-              <button
-                onClick={onStartDay}
-                disabled={sessionLoading}
-                className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-sm shadow-emerald-500/25 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
-              >
-                
-                🚀 Start My Day
-              </button>
-            )
+            <button
+              onClick={onStartDay}
+              disabled={sessionLoading}
+              className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-sm shadow-emerald-500/25 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+            >
+              
+              🚀 Start My Day
+            </button>
           ) : todaySession.status === 'active' ? (
             <div className="flex items-center gap-2">
               <button
@@ -135,6 +119,16 @@ export const StartDayHero: React.FC<StartDayHeroProps> = ({
           )}
         </div>
       </div>
+
+      {/* Late start warning banner */}
+      {todaySession?.is_late && todaySession.status === 'active' && (
+        <div className="mt-4 p-3 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-200 flex items-center gap-2.5 text-xs">
+          <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0" />
+          <span>
+            You started late today at {todaySession.started_at}. The deadline was 9:30 AM IST.
+          </span>
+        </div>
+      )}
 
       {/* Display Active/Completed Today Session details */}
       {todaySession && (todaySession.today_project || todaySession.today_plan || todaySession.questions || todaySession.git_link) && (

@@ -299,6 +299,11 @@ export const TeamOverview: React.FC<TeamOverviewProps> = ({ currentUser }) => {
                         <span className="text-emerald-700 dark:text-emerald-400 font-extrabold flex items-center gap-1">
                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping inline-block" />
                           Started {sess.started_at}
+                          {sess?.is_late && (
+                            <span className="px-1.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                              LATE
+                            </span>
+                          )}
                         </span>
                       ) : isCompleted ? (
                         <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1">
@@ -416,9 +421,13 @@ export const TeamOverview: React.FC<TeamOverviewProps> = ({ currentUser }) => {
                         <td className="py-3.5 px-2">
                           <div className="flex items-center gap-1.5">
                             {isActive ? (
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 flex items-center gap-1">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping inline-block" />
-                                Started {sess.started_at}
+                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold flex items-center gap-1 ${
+                                sess?.is_late
+                                  ? 'bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800'
+                                  : 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
+                              }`}>
+                                <span className={`w-1.5 h-1.5 rounded-full animate-ping inline-block ${sess?.is_late ? 'bg-amber-500' : 'bg-emerald-500'}`} />
+                                {sess?.is_late ? 'Late Started ' : 'Started '}{sess.started_at}
                               </span>
                             ) : isCompleted ? (
                               <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400">
