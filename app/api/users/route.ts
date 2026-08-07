@@ -3,6 +3,7 @@ import { withAuth } from "@/app/api/_lib/withAuth";
 import { getPrisma } from "@/src/db/prisma";
 import { mapUser } from "@/app/api/_lib/mappers";
 import { logger } from "@/src/lib/logger";
+import { scopeToOrganization } from "@/app/api/_lib/tenant";
 
 export async function GET(request: NextRequest) {
   let user;
@@ -14,7 +15,7 @@ export async function GET(request: NextRequest) {
   }
 
   const { role, assigned_tech_lead_id } = Object.fromEntries(request.nextUrl.searchParams);
-  const whereClause: any = {};
+  const whereClause: any = scopeToOrganization({}, user);
   try {
     const prisma = getPrisma();
     if (role) {

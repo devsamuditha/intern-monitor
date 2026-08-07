@@ -6,7 +6,7 @@ import { useAuth } from "@/src/context/AuthContext";
 import { useTheme } from "@/src/context/ThemeContext";
 import {
   LayoutDashboard, FolderKanban, MessageSquare, Sun, Moon,
-  Users, TrendingUp, LogOut, Shield, Target, Settings, AlertTriangle
+  Users, TrendingUp, LogOut, Shield, Target, Settings, AlertTriangle, Trophy
 } from "lucide-react";
 import { api } from "@/src/services/api";
 import type { User } from "@/src/types";
@@ -37,6 +37,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
         return baseItems([
           { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
           { id: "projects", label: "My Projects", icon: FolderKanban },
+          { id: "ranking", label: "Rankings", icon: Trophy },
         ]);
       case "tech_lead":
         return baseItems([
@@ -65,12 +66,14 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
   const isActive = (tabId: string) => {
     if (tabId === "dashboard") return pathname === "/dashboard" || pathname === "/";
     if (tabId === "all_projects") return pathname === "/projects";
+    if (tabId === "ranking") return pathname === "/dashboard/ranking";
     return pathname === `/dashboard/${tabId}`;
   };
 
   const handleNavClick = (tabId: string) => {
     if (tabId === "dashboard") router.push("/dashboard");
     else if (tabId === "all_projects") router.push("/projects");
+    else if (tabId === "ranking") router.push("/dashboard/ranking");
     else router.push(`/dashboard/${tabId}`);
   };
 
@@ -147,6 +150,15 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
           </div>
 
           <div className="flex items-center gap-3">
+            {user.role === "intern" && (
+              <button
+                onClick={() => router.push("/dashboard/ranking")}
+                className="p-2 border border-white/20 dark:border-slate-700/30 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-950 transition"
+                title="Rankings"
+              >
+                <Trophy className="h-4 w-4" />
+              </button>
+            )}
             <button
               onClick={toggleDarkMode}
               className="p-2 border border-white/20 dark:border-slate-700/30 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-950 transition"

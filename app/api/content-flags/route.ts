@@ -5,6 +5,7 @@ import { mapContentFlag } from "@/app/api/_lib/mappers";
 import { validateBody } from "@/app/api/_lib/validation";
 import { CreateContentFlagSchema } from "@/app/api/_lib/validation";
 import { logAudit } from "@/app/api/_lib/mappers";
+import { scopeToOrganization } from "@/app/api/_lib/tenant";
 
 export async function POST(request: NextRequest) {
   let user;
@@ -59,6 +60,7 @@ export async function POST(request: NextRequest) {
         contentId,
         contentType: contentTypeLower,
         status: "pending",
+        ...scopeToOrganization({}, user),
       },
     });
     if (existing) {

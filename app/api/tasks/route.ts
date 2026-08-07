@@ -3,12 +3,14 @@ import { withAuth } from "@/app/api/_lib/withAuth";
 import { getPrisma } from "@/src/db/prisma";
 import { mapTask } from "@/app/api/_lib/mappers";
 import { TaskStatus, TaskPriority } from "@prisma/client";
+import { scopeToOrganization } from "@/app/api/_lib/tenant";
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
+  let user;
   try {
-    await withAuth(request);
+    user = await withAuth(request);
   } catch (err: any) {
     const status = err.message.includes("Forbidden") ? 403 : err.message.includes("Unauthorized") ? 401 : 500;
     return NextResponse.json({ error: err.message }, { status });
@@ -18,7 +20,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const prisma = getPrisma();
-    const whereClause: any = {};
+    const whereClause: any = scopeToOrganization({}, user);
     if (assigned_to) {
       whereClause.assignedToId = String(assigned_to);
     }
@@ -64,6 +66,7 @@ export async function POST(request: NextRequest) {
         dueDate: body.due_date,
         priority: (body.priority || "MEDIUM").toUpperCase(),
         status: "TODO",
+        organizationId: user.organizationId as string,
       },
     });
 

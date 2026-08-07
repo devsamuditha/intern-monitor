@@ -4,9 +4,10 @@ import { getPrisma } from "@/src/db/prisma";
 import { mapQuestion } from "@/app/api/_lib/mappers";
 import { validateBody } from "@/app/api/_lib/validation";
 import { AskQuestionSchema, ReplyQuestionSchema } from "@/app/api/_lib/validation";
+import { scopeToOrganization } from "@/app/api/_lib/tenant";
 
 export async function GET(request: NextRequest) {
-  let user: any;
+  let user;
   try {
     user = await withAuth(request);
   } catch (err: any) {
@@ -17,7 +18,7 @@ export async function GET(request: NextRequest) {
   try {
     const prisma = getPrisma();
     const dbQs = await prisma.question.findMany({
-      where: { isHidden: false },
+      where: scopeToOrganization({ isHidden: false }, user),
       include: {
         replies: {
           where: { isHidden: false },
@@ -33,7 +34,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  let user: any;
+  let user;
   try {
     user = await withAuth(request);
   } catch (err: any) {

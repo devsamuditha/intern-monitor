@@ -3,6 +3,7 @@ import { withAuth } from "@/app/api/_lib/withAuth";
 import { getPrisma } from "@/src/db/prisma";
 import { Role, TaskStatus } from "@prisma/client";
 import { getRelativeDateStr, mapDaySession } from "@/app/api/_lib/mappers";
+import { scopeToOrganization } from "@/app/api/_lib/tenant";
 
 export const dynamic = 'force-dynamic';
 
@@ -20,7 +21,7 @@ export async function GET(request: NextRequest) {
   try {
     const prisma = getPrisma();
 
-    const internsClause: any = { role: Role.INTERN };
+    const internsClause: any = scopeToOrganization({ role: Role.INTERN }, user);
     if (tech_lead_id) {
       internsClause.techLeadId = String(tech_lead_id);
     }
@@ -31,23 +32,23 @@ export async function GET(request: NextRequest) {
 
     const todayStr = getRelativeDateStr(0);
     const allLogs = await prisma.dailyLog.findMany({
-      where: { internId: { in: internIds }, isHidden: false },
+      where: scopeToOrganization({ internId: { in: internIds }, isHidden: false }, user),
     });
     const allMarks = await prisma.mark.findMany({
-      where: { internId: { in: internIds } },
+      where: scopeToOrganization({ internId: { in: internIds } }, user),
     });
     const allTasks = await prisma.task.findMany({
-      where: { assignedToId: { in: internIds } },
+      where: scopeToOrganization({ assignedToId: { in: internIds } }, user),
     });
     const allMistakes = await prisma.mistake.findMany({
-      where: { internId: { in: internIds } },
+      where: scopeToOrganization({ internId: { in: internIds } }, user),
     });
     const todaySessions = await (prisma as any).daySession.findMany({
-      where: { date: todayStr },
+      where: scopeToOrganization({ date: todayStr }, user),
     });
     const last7Days = Array.from({ length: 7 }, (_, idx) => getRelativeDateStr(-idx)).reverse();
     const allWeekSessions = await (prisma as any).daySession.findMany({
-      where: { date: { in: last7Days } },
+      where: scopeToOrganization({ date: { in: last7Days } }, user),
     });
 
     const submittedTodayCount = allLogs.filter((l: any) => l.date === todayStr).length;

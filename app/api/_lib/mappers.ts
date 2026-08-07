@@ -9,6 +9,7 @@ export function mapUser(dbUser: any) {
     avatar: dbUser.avatarUrl,
     assigned_tech_lead_id: dbUser.techLeadId || undefined,
     mustChangePassword: dbUser.mustChangePassword,
+    organizationId: dbUser.organizationId || undefined,
   };
 }
 

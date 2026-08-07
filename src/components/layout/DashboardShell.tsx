@@ -11,7 +11,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { 
   LayoutDashboard, FolderKanban, MessageSquare, Sun, Moon, 
-  Users, TrendingUp, LogOut, Shield, Target, Settings, AlertTriangle, Building2
+  Users, TrendingUp, LogOut, Shield, Target, Settings, AlertTriangle, Building2, Trophy
 } from "lucide-react";
 import { api } from "../../services/api";
 import { ChatPanel } from "../intern/ChatPanel";
@@ -55,6 +55,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
         return baseItems([
           { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
           { id: 'projects', label: 'My Projects', icon: FolderKanban },
+          { id: 'ranking', label: 'Rankings', icon: Trophy },
         ]);
       case 'tech_lead':
         return baseItems([
@@ -129,6 +130,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
                   } else if (role === 'intern') {
                     if (item.id === 'dashboard') router.push(`/dashboard`);
                     else if (item.id === 'projects') router.push(`/projects`);
+                    else if (item.id === 'ranking') router.push(`/dashboard/ranking`);
                     else if (item.id === 'discussions') router.push(`/discussions`);
                     else router.push(`/${item.id}`);
                   }
@@ -190,6 +192,17 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
           {/* Right Controls */}
           <div className="flex items-center gap-3">
             
+            {role === 'intern' && (
+              <button
+                onClick={() => router.push('/dashboard/ranking')}
+                type="button"
+                className="p-2 border border-white/20 dark:border-slate-700/30 rounded-xl text-slate-300 hover:text-white transition"
+                title="Rankings"
+              >
+                <Trophy className="h-4 w-4" />
+              </button>
+            )}
+
             {/* Dark Mode toggle */}
             <button
               onClick={toggleDarkMode}
@@ -232,6 +245,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
                   } else if (role === 'intern') {
                     if (item.id === 'dashboard') router.push(`/dashboard`);
                     else if (item.id === 'projects') router.push(`/projects`);
+                    else if (item.id === 'ranking') router.push(`/dashboard/ranking`);
                     else if (item.id === 'discussions') router.push(`/discussions`);
                     else router.push(`/${item.id}`);
                   }

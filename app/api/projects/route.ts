@@ -5,10 +5,12 @@ import { Role } from "@prisma/client";
 import { mapProject } from "@/app/api/_lib/mappers";
 import { validateBody } from "@/app/api/_lib/validation";
 import { ProjectSchema } from "@/app/api/_lib/validation";
+import { scopeToOrganization } from "@/app/api/_lib/tenant";
 
 export async function GET(request: NextRequest) {
+  let user;
   try {
-    await withAuth(request);
+    user = await withAuth(request);
   } catch (err: any) {
     const status = err.message.includes("Forbidden") ? 403 : err.message.includes("Unauthorized") ? 401 : 500;
     return NextResponse.json({ error: err.message }, { status });
@@ -20,7 +22,7 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get("status");
     const assignedTechLeadId = searchParams.get("assigned_tech_lead_id");
 
-    const where: any = {};
+    const where: any = scopeToOrganization({}, user);
     if (status) where.status = status.toUpperCase();
     if (assignedTechLeadId) {
       const ids = assignedTechLeadId.split(',').map(s => s.trim()).filter(Boolean);
@@ -31,14 +33,14 @@ export async function GET(request: NextRequest) {
       }
     }
 
-const dbProjects = await prisma.project.findMany({
-       where,
-       include: { owner: { select: { name: true } } },
-       orderBy: [
-         { createdAt: "desc" },
-         { name: "asc" },
-       ],
-     });
+ const dbProjects = await prisma.project.findMany({
+        where,
+        include: { owner: { select: { name: true } } },
+        orderBy: [
+          { createdAt: "desc" },
+          { name: "asc" },
+        ],
+      });
     return NextResponse.json(dbProjects.map(mapProject));
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -46,8 +48,9 @@ const dbProjects = await prisma.project.findMany({
 }
 
 export async function POST(request: NextRequest) {
+  let user;
   try {
-    const user = await withAuth(request);
+    user = await withAuth(request);
     requireRole(user, [Role.MANAGER, Role.TECH_LEAD, Role.SUPER_ADMIN, Role.INTERN]);
   } catch (err: any) {
     const status = err.message.includes("Forbidden") ? 403 : err.message.includes("Unauthorized") ? 401 : 500;
@@ -111,6 +114,7 @@ export async function POST(request: NextRequest) {
         startDate: start_date || undefined,
         endDate: end_date || undefined,
         assignedTechLeadIds: assigned_tech_lead_ids || undefined,
+        organizationId: user.organizationId as string,
       } as any,
     });
     return NextResponse.json(mapProject(created));

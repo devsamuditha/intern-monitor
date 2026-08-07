@@ -4,9 +4,10 @@ import { getPrisma } from "@/src/db/prisma";
 import { mapMessage } from "@/app/api/_lib/mappers";
 import { validateBody } from "@/app/api/_lib/validation";
 import { SendMessageSchema, ReadMessagesSchema } from "@/app/api/_lib/validation";
+import { scopeToOrganization } from "@/app/api/_lib/tenant";
 
 export async function GET(request: NextRequest) {
-  let user: any;
+  let user;
   try {
     user = await withAuth(request);
   } catch (err: any) {
@@ -28,6 +29,7 @@ export async function GET(request: NextRequest) {
           { fromId: String(user_b), toId: String(user_a) },
         ],
         isHidden: false,
+        ...scopeToOrganization({}, user),
       },
       orderBy: { createdAt: "asc" },
     });
@@ -38,7 +40,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  let user: any;
+  let user;
   try {
     user = await withAuth(request);
   } catch (err: any) {
@@ -70,7 +72,7 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PUT(request: NextRequest) {
-  let user: any;
+  let user;
   try {
     user = await withAuth(request);
   } catch (err: any) {
@@ -94,6 +96,7 @@ export async function PUT(request: NextRequest) {
         toId: String(user_id),
         fromId: String(sender_id),
         read: false,
+        ...scopeToOrganization({}, user),
       },
       data: { read: true },
     });

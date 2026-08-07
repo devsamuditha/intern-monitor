@@ -607,6 +607,13 @@ export const api = {
       headers: await getAuthHeaders(),
     });
     return handleResponse(res);
+  },
+
+  getInternRanking: async (): Promise<{ ranking: any[]; topPerformerThisWeek: any }> => {
+    const res = await fetch("/api/ranking", {
+      headers: await getAuthHeaders(),
+    });
+    return handleResponse(res);
   }
 };
 

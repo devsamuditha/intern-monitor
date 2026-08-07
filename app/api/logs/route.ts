@@ -6,9 +6,10 @@ import { validateBody } from "@/app/api/_lib/validation";
 import { SubmitDailyLogSchema } from "@/app/api/_lib/validation";
 import { uploadBase64Image } from "@/src/lib/supabase";
 import { getRelativeDateStr } from "@/app/api/_lib/mappers";
+import { scopeToOrganization } from "@/app/api/_lib/tenant";
 
 export async function GET(request: NextRequest) {
-  let user: any;
+  let user;
   try {
     user = await withAuth(request);
   } catch (err: any) {
@@ -20,7 +21,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const prisma = getPrisma();
-    const whereClause: any = {};
+    const whereClause: any = scopeToOrganization({}, user);
     if (intern_id) {
       whereClause.internId = String(intern_id);
     }
@@ -40,7 +41,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  let user: any;
+  let user;
   try {
     user = await withAuth(request);
   } catch (err: any) {

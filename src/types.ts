@@ -16,6 +16,7 @@ export interface User {
   avatar: string;
   assigned_tech_lead_id?: string;
   mustChangePassword?: boolean;
+  organizationId?: string;
 }
 
 export interface Project {

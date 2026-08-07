@@ -1,14 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@/app/api/_lib/withAuth";
 import { getPrisma } from "@/src/db/prisma";
+import { scopeToOrganization } from "@/app/api/_lib/tenant";
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
+  let user;
+  try {
+    user = await withAuth(request);
+  } catch (err: any) {
+    const status = err.message.includes("Forbidden") ? 403 : err.message.includes("Unauthorized") ? 401 : 500;
+    return NextResponse.json({ error: err.message }, { status });
+  }
 
   try {
     const prisma = getPrisma();
     const settings = await prisma.systemSetting.findMany({
+      where: scopeToOrganization({}, user),
       orderBy: { key: "asc" },
     });
     const result: Record<string, any> = {};

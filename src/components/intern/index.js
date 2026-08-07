@@ -13,3 +13,4 @@ export { DailyLogTimeline } from './DailyLogTimeline';
 export { FlaggedMistakesBanner } from './FlaggedMistakesBanner';
 export { InternMessages } from './InternMessages';
 export { ChatPanel } from './ChatPanel';
+export { RankingChart } from './RankingChart';

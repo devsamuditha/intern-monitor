@@ -6,10 +6,12 @@ import { validateBody } from "@/app/api/_lib/validation";
 import { StartDaySchema } from "@/app/api/_lib/validation";
 import { getRelativeDateStr } from "@/app/api/_lib/mappers";
 import { getISTTimeString } from '../../../../src/utils/time';
+import { scopeToOrganization } from "@/app/api/_lib/tenant";
 
 export async function POST(request: NextRequest) {
+  let user;
   try {
-    await withAuth(request);
+    user = await withAuth(request);
   } catch (err: any) {
     const status = err.message.includes("Forbidden") ? 403 : err.message.includes("Unauthorized") ? 401 : 500;
     return NextResponse.json({ error: err.message }, { status });
@@ -29,7 +31,7 @@ export async function POST(request: NextRequest) {
     const todayStr = getRelativeDateStr(0);
 
     const existing = await prisma.daySession.findFirst({
-      where: { internId: intern_id, date: todayStr },
+      where: scopeToOrganization({ internId: intern_id, date: todayStr }, user),
     });
 
     if (existing) {
@@ -57,6 +59,7 @@ export async function POST(request: NextRequest) {
         todayPlan: today_plan || null,
         questions: questions || null,
         gitLink: git_link || null,
+        organizationId: user.organizationId as string,
       },
     });
 
