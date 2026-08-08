@@ -60,6 +60,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
       case 'tech_lead':
         return baseItems([
           { id: 'team_overview', label: 'Team Overview', icon: Users },
+          { id: 'projects', label: 'Projects', icon: FolderKanban },
         ]);
       case 'manager':
         return baseItems([
@@ -126,7 +127,11 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
                   } else if (role === 'manager') {
                     router.push(`/manager/${item.id}`);
                   } else if (role === 'tech_lead') {
-                    router.push(`/team/${item.id}`);
+                    if (item.id === 'projects') {
+                      router.push('/projects');
+                    } else {
+                      router.push(`/team/${item.id}`);
+                    }
                   } else if (role === 'intern') {
                     if (item.id === 'dashboard') router.push(`/dashboard`);
                     else if (item.id === 'projects') router.push(`/projects`);
@@ -241,7 +246,11 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
                   } else if (role === 'manager') {
                     router.push(`/manager/${item.id}`);
                   } else if (role === 'tech_lead') {
-                    router.push(`/team/${item.id}`);
+                    if (item.id === 'projects') {
+                      router.push('/projects');
+                    } else {
+                      router.push(`/team/${item.id}`);
+                    }
                   } else if (role === 'intern') {
                     if (item.id === 'dashboard') router.push(`/dashboard`);
                     else if (item.id === 'projects') router.push(`/projects`);

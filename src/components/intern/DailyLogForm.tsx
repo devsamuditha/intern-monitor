@@ -62,9 +62,10 @@ export const DailyLogForm: React.FC<DailyLogFormProps> = ({ user, onSuccess, tod
         }
 
         if (pList.length > 0 && !selectedProjectId) {
-          const own = pList.find(p => p.owner_id === user.id);
-          setSelectedProjectId(own ? own.id : pList[0].id);
-          if (!githubUrl) setGithubUrl(own ? own.github_url : pList[0].github_url);
+          const relevant = pList.filter(p => p.owner_id === user.id || p.assigned_intern_ids?.includes(user.id));
+          const own = relevant.find(p => p.owner_id === user.id);
+          setSelectedProjectId(own ? own.id : (relevant[0]?.id || pList[0].id));
+          if (!githubUrl) setGithubUrl(own ? own.github_url : (relevant[0]?.github_url || pList[0].github_url));
         }
       } catch (err) {
         console.error("Error loading projects", err);

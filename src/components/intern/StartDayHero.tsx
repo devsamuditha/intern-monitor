@@ -10,6 +10,7 @@ import {
 import { DaySession } from '../../types.ts';
 import { ThemedIcon } from '../../components/ui/ThemedIcon';
 import { formatISTTimeHHMMSS } from '../../utils/time';
+import { parseTimeToMinutes } from '@/app/api/_lib/mappers';
 
 interface StartDayHeroProps {
   todaySession: DaySession | null;
@@ -25,10 +26,16 @@ export const StartDayHero: React.FC<StartDayHeroProps> = ({
   onEndDay
 }) => {
   const [istTime, setIstTime] = useState(formatISTTimeHHMMSS());
+  const [isLateNow, setIsLateNow] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => {
       setIstTime(formatISTTimeHHMMSS());
+      const now = new Date();
+      const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+      const istDate = new Date(utc + 5.5 * 3600000);
+      const istTimeStr = istDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+      setIsLateNow(parseTimeToMinutes(istTimeStr) > 9 * 60 + 30);
     }, 1000);
     return () => clearInterval(interval);
   }, []);
@@ -94,15 +101,25 @@ export const StartDayHero: React.FC<StartDayHeroProps> = ({
             <span className="text-xs font-mono text-white/50">{istTime}</span>
           </div>
           {!todaySession ? (
-            <button
-              onClick={onStartDay}
-              disabled={sessionLoading}
-              className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-sm shadow-emerald-500/25 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
-            >
-              
-              🚀 Start My Day
-            </button>
-          ) : todaySession.status === 'active' ? (
+            <>
+              {isLateNow && (
+                <div className="mb-3 p-3 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-200 flex items-center gap-2.5 text-xs">
+                  <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0" />
+                  <span>
+                    It is past 9:30 AM IST. Starting now will mark your session as LATE for your Tech Lead.
+                  </span>
+                </div>
+              )}
+              <button
+                onClick={onStartDay}
+                disabled={sessionLoading}
+                className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-sm shadow-emerald-500/25 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              >
+               
+               Start My Day
+             </button>
+           </>
+         ) : todaySession.status === 'active' ? (
             <div className="flex items-center gap-2">
               <button
                 onClick={onEndDay}

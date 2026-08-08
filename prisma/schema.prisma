@@ -126,6 +126,7 @@ model Project {
   startDate   DateTime?
   endDate     DateTime?
   assignedTechLeadIds String[] @default([])
+  assignedInternIds String[] @default([])
   createdAt   DateTime     @default(now())
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)

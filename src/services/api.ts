@@ -143,6 +143,11 @@ export const api = {
     return handleResponse(res);
   },
 
+  getPublicInterns: async (): Promise<User[]> => {
+    const res = await fetch("/api/public/interns");
+    return handleResponse(res);
+  },
+
   // Users
   getUsers: async (filters?: { role?: string; assigned_tech_lead_id?: string }): Promise<User[]> => {
     const params = new URLSearchParams();

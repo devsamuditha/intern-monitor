@@ -56,6 +56,7 @@ export const ProjectSchema = z.object({
     z.date().optional().nullable()
   ),
   assigned_tech_lead_ids: z.array(z.string()).optional(),
+  assigned_intern_ids: z.array(z.string()).optional(),
 });
 
 export const SubmitDailyLogSchema = z.object({

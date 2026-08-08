@@ -33,14 +33,21 @@ export async function GET(request: NextRequest) {
       }
     }
 
- const dbProjects = await prisma.project.findMany({
-        where,
-        include: { owner: { select: { name: true } } },
-        orderBy: [
-          { createdAt: "desc" },
-          { name: "asc" },
-        ],
-      });
+    if (user.role === Role.INTERN) {
+      where.OR = [
+        { ownerId: user.id },
+        { assignedInternIds: { has: user.id } },
+      ];
+    }
+
+  const dbProjects = await prisma.project.findMany({
+      where,
+      include: { owner: { select: { name: true } } },
+      orderBy: [
+        { createdAt: "desc" },
+        { name: "asc" },
+      ],
+    });
     return NextResponse.json(dbProjects.map(mapProject));
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -51,7 +58,7 @@ export async function POST(request: NextRequest) {
   let user;
   try {
     user = await withAuth(request);
-    requireRole(user, [Role.MANAGER, Role.TECH_LEAD, Role.SUPER_ADMIN, Role.INTERN]);
+    requireRole(user, [Role.MANAGER, Role.TECH_LEAD, Role.SUPER_ADMIN]);
   } catch (err: any) {
     const status = err.message.includes("Forbidden") ? 403 : err.message.includes("Unauthorized") ? 401 : 500;
     return NextResponse.json({ error: err.message }, { status });
@@ -76,6 +83,7 @@ export async function POST(request: NextRequest) {
     start_date,
     end_date,
     assigned_tech_lead_ids,
+    assigned_intern_ids,
   } = body;
 
   try {
@@ -97,6 +105,7 @@ export async function POST(request: NextRequest) {
           startDate: start_date || undefined,
           endDate: end_date || undefined,
           assignedTechLeadIds: assigned_tech_lead_ids || undefined,
+          assignedInternIds: assigned_intern_ids || [],
         },
       });
       return NextResponse.json(mapProject(updated));
@@ -114,6 +123,7 @@ export async function POST(request: NextRequest) {
         startDate: start_date || undefined,
         endDate: end_date || undefined,
         assignedTechLeadIds: assigned_tech_lead_ids || undefined,
+        assignedInternIds: assigned_intern_ids || [],
         organizationId: user.organizationId as string,
       } as any,
     });

@@ -24,6 +24,7 @@ export const UpcomingProjectsManager: React.FC<UpcomingProjectsManagerProps> = (
   const [showForm, setShowForm] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [techLeads, setTechLeads] = useState<User[]>([]);
+  const [interns, setInterns] = useState<User[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -35,17 +36,20 @@ export const UpcomingProjectsManager: React.FC<UpcomingProjectsManagerProps> = (
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [assignedTechLeadIds, setAssignedTechLeadIds] = useState<string[]>([]);
+  const [assignedInternIds, setAssignedInternIds] = useState<string[]>([]);
   const [status, setStatus] = useState<'planned' | 'upcoming' | 'active'>('upcoming');
 
   const loadProjects = async () => {
     try {
       setLoading(true);
-      const [projList, leads] = await Promise.all([
+      const [projList, leads, internList] = await Promise.all([
         api.getProjects({ status: 'upcoming' }),
         api.getPublicTechLeads(),
+        api.getPublicInterns(),
       ]);
       setProjects(projList);
       setTechLeads(leads);
+      setInterns(internList);
     } catch (e) {
       console.error(e);
       setMessage({ type: 'error', text: 'Failed to load upcoming projects.' });
@@ -66,6 +70,7 @@ export const UpcomingProjectsManager: React.FC<UpcomingProjectsManagerProps> = (
     setStartDate('');
     setEndDate('');
     setAssignedTechLeadIds([]);
+    setAssignedInternIds([]);
     setStatus('upcoming');
     setEditingProject(null);
   };
@@ -84,6 +89,7 @@ export const UpcomingProjectsManager: React.FC<UpcomingProjectsManagerProps> = (
     setStartDate(proj.start_date || '');
     setEndDate(proj.end_date || '');
     setAssignedTechLeadIds(proj.assigned_tech_lead_ids || []);
+    setAssignedInternIds(proj.assigned_intern_ids || []);
     setStatus(proj.status === 'planned' || proj.status === 'upcoming' || proj.status === 'active' ? proj.status : 'upcoming');
     setShowForm(true);
   };
@@ -132,6 +138,7 @@ export const UpcomingProjectsManager: React.FC<UpcomingProjectsManagerProps> = (
         start_date: startDate || undefined,
         end_date: endDate || undefined,
         assigned_tech_lead_ids: assignedTechLeadIds,
+        assigned_intern_ids: assignedInternIds,
         screenshots: screenshotUrl ? [screenshotUrl] : [],
       };
 
@@ -280,6 +287,28 @@ export const UpcomingProjectsManager: React.FC<UpcomingProjectsManagerProps> = (
                         className="h-3.5 w-3.5 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
                       />
                       <span className="text-xs text-slate-200">{lead.name}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-[10px] font-bold text-teal-100 uppercase mb-1">Assigned Interns (optional)</label>
+                <div className="flex flex-wrap gap-3">
+                  {interns.map(intern => (
+                    <label key={intern.id} className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={assignedInternIds.includes(intern.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setAssignedInternIds([...assignedInternIds, intern.id]);
+                          } else {
+                            setAssignedInternIds(assignedInternIds.filter(id => id !== intern.id));
+                          }
+                        }}
+                        className="h-3.5 w-3.5 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+                      />
+                      <span className="text-xs text-slate-200">{intern.name}</span>
                     </label>
                   ))}
                 </div>

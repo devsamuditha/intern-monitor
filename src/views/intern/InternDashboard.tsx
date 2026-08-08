@@ -73,7 +73,8 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
       setProjectsList(allProjects || []);
 
       if (allProjects && allProjects.length > 0) {
-        const own = allProjects.find(p => p.owner_id === user.id) || allProjects[0];
+        const relevant = allProjects.filter(p => p.owner_id === user.id || p.assigned_intern_ids?.includes(user.id));
+        const own = relevant.find(p => p.owner_id === user.id) || relevant[0];
         if (own) {
           setStartProject(own.name);
           setStartGitLink(own.github_url);

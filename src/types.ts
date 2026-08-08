@@ -32,7 +32,8 @@ export interface Project {
    start_date?: string;
    end_date?: string;
    assigned_tech_lead_ids?: string[];
- }
+   assigned_intern_ids?: string[];
+  }
 
 export interface DailyLog {
   id: string;

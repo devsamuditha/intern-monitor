@@ -28,6 +28,7 @@ return {
      start_date: dbProj.startDate ? dbProj.startDate.toISOString() : undefined,
      end_date: dbProj.endDate ? dbProj.endDate.toISOString() : undefined,
      assigned_tech_lead_ids: dbProj.assignedTechLeadIds || [],
+     assigned_intern_ids: dbProj.assignedInternIds || [],
    };
 }
 
