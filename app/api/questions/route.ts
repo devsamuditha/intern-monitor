@@ -19,9 +19,12 @@ export async function GET(request: NextRequest) {
     const prisma = getPrisma();
     const dbQs = await prisma.question.findMany({
       where: scopeToOrganization({ isHidden: false }, user),
-      include: {
+      select: {
+        id: true, internId: true, title: true, content: true,
+        isHidden: true, createdAt: true, organizationId: true,
         replies: {
           where: { isHidden: false },
+          select: { id: true, authorId: true, content: true, createdAt: true, isHidden: true },
           orderBy: { createdAt: "asc" },
         },
       },
@@ -58,7 +61,6 @@ export async function POST(request: NextRequest) {
         content: body.content,
         organizationId: user.organizationId as string,
       },
-      include: { replies: true },
     });
     return NextResponse.json(mapQuestion(created));
   } catch (error: any) {

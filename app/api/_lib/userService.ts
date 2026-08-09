@@ -40,19 +40,32 @@ export async function createUserWithCredentials(params: CreateUserParams): Promi
   let username: string;
   if (params.username) {
     username = params.username.toLowerCase().trim();
-    const usernameExists = await prisma.user.findUnique({ where: { username } });
+    const usernameExists = await prisma.user.findFirst({
+      where: { username },
+      select: { id: true },
+    });
     if (usernameExists) {
       throw new Error("Username already exists");
     }
   } else {
     username = generateUsername(params.name);
-    let attempts = 0;
-    while (await prisma.user.findUnique({ where: { username } })) {
-      username = generateUniqueUsername(generateUsername(params.name));
-      attempts++;
-      if (attempts > 6) {
+    const existing = await prisma.user.findFirst({
+      where: { username },
+      select: { id: true },
+    });
+    if (existing) {
+      let attempts = 0;
+      while (attempts < 6) {
+        username = generateUniqueUsername(generateUsername(params.name));
+        const found = await prisma.user.findFirst({
+          where: { username },
+          select: { id: true },
+        });
+        if (!found) break;
+        attempts++;
+      }
+      if (attempts >= 6) {
         username = `${generateUsername(params.name)}${Date.now()}`;
-        break;
       }
     }
   }

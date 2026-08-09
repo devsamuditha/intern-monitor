@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getPrisma } from "@/src/db/prisma";
-import { mapUser } from "@/app/api/_lib/mappers";
+import { mapUser, AUTH_USER_SELECT } from "@/app/api/_lib/mappers";
 import { validateBody } from "@/app/api/_lib/validation";
 import { LoginSchema } from "@/app/api/_lib/validation";
 import { comparePassword } from "@/src/lib/auth";
@@ -30,6 +30,7 @@ export async function POST(request: NextRequest) {
     const prisma = getPrisma();
     const dbUser = await prisma.user.findUnique({
       where: { username: username.toLowerCase() },
+      select: AUTH_USER_SELECT,
     });
 
     if (!dbUser) {

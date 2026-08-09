@@ -41,13 +41,13 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     });
 
     if (action === "resolve") {
-      await hideContent(prisma, flag.contentType, flag.contentId);
-      await logAudit(prisma, userObj.id, "CONTENT_FLAG_RESOLVED", flag.contentType.toUpperCase(), flag.contentId, { isHidden: false }, { isHidden: true });
+      await hideContent(prisma, flag.contentType, flag.contentId, userObj.organizationId as string);
+      await logAudit(prisma, userObj.id, "CONTENT_FLAG_RESOLVED", flag.contentType.toUpperCase(), flag.contentId, { isHidden: false }, { isHidden: true }, userObj.organizationId as string);
     } else {
-      await logAudit(prisma, userObj.id, "CONTENT_FLAG_DISMISSED", flag.contentType.toUpperCase(), flag.contentId);
+      await logAudit(prisma, userObj.id, "CONTENT_FLAG_DISMISSED", flag.contentType.toUpperCase(), flag.contentId, undefined, undefined, userObj.organizationId as string);
     }
 
-    const preview = await buildContentPreview(prisma, flag.contentType, flag.contentId);
+    const preview = await buildContentPreview(prisma, flag.contentType, flag.contentId, userObj.organizationId as string);
     return NextResponse.json({ ...mapContentFlag(flag), preview });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });

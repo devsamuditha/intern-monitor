@@ -5,6 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../services/api';
 import { User, Task, Project } from '../../types.ts';
 import { InternDetail } from '../../components/techlead/InternDetail';
@@ -24,89 +25,80 @@ interface ManagerOverviewProps {
 }
 
 export const ManagerOverview: React.FC<ManagerOverviewProps> = ({ currentUser }) => {
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<'telemetry' | 'users' | 'upcoming_projects'>('telemetry');
-  const [analytics, setAnalytics] = useState<any | null>(null);
-  const [techLeads, setTechLeads] = useState<User[]>([]);
-  const [allUsers, setAllUsers] = useState<User[]>([]);
-  const [allTasks, setAllTasks] = useState<Task[]>([]);
-  const [loading, setLoading] = useState(true);
 
   // Drilldown states
   const [drilldownInternId, setDrilldownInternId] = useState<string | null>(null);
   const [drilldownTechLead, setDrilldownTechLead] = useState<User | null>(null);
 
-  const loadData = async () => {
-    try {
-      const [allStats, users, tasks] = await Promise.all([
-        api.getAnalytics(), // Load global real aggregated analytics from DB
-        api.getUsers(),
-        api.getTasks()
-      ]);
-      setAnalytics(allStats);
-      setAllUsers(users);
-      setTechLeads(users.filter(u => u.role === 'tech_lead'));
-      setAllTasks(tasks);
-    } catch (e) {
-      console.error("Failed to load manager dashboard data:", e);
-    } finally {
-      setLoading(false);
-    }
+  const analyticsQuery = useQuery({
+    queryKey: ["analytics"],
+    queryFn: () => api.getAnalytics(),
+    staleTime: 2 * 60 * 1000,
+  });
+  const usersQuery = useQuery({
+    queryKey: ["users"],
+    queryFn: () => api.getUsers(),
+    staleTime: 2 * 60 * 1000,
+  });
+  const tasksQuery = useQuery({
+    queryKey: ["tasks"],
+    queryFn: () => api.getTasks(),
+    staleTime: 2 * 60 * 1000,
+  });
+
+  const analytics = analyticsQuery.data;
+  const allUsers = usersQuery.data || [];
+  const allTasks = tasksQuery.data || [];
+  const techLeads = allUsers.filter(u => u.role === 'tech_lead');
+  const loading = analyticsQuery.isLoading || usersQuery.isLoading || tasksQuery.isLoading;
+
+  const invalidateDashboard = () => {
+    queryClient.invalidateQueries({ queryKey: ["analytics"] });
+    queryClient.invalidateQueries({ queryKey: ["users"] });
+    queryClient.invalidateQueries({ queryKey: ["tasks"] });
   };
 
   useEffect(() => {
-    loadData();
-
     let subscriptionChannel: any = null;
 
     const setupRealtime = async () => {
+      let cleanup: (() => void) | undefined;
       try {
         const supabase = await getSupabaseClient();
         subscriptionChannel = supabase
           .channel('manager-oversight')
-          .on(
-            'postgres_changes',
-            { event: '*', schema: 'public', table: 'User' },
-            () => { loadData(); }
-          )
-          .on(
-            'postgres_changes',
-            { event: '*', schema: 'public', table: 'DailyLog' },
-            () => { loadData(); }
-          )
-          .on(
-            'postgres_changes',
-            { event: '*', schema: 'public', table: 'Task' },
-            () => { loadData(); }
-          )
-          .on(
-            'postgres_changes',
-            { event: '*', schema: 'public', table: 'DaySession' },
-            () => { loadData(); }
-          )
-          .on(
-            'postgres_changes',
-            { event: '*', schema: 'public', table: 'Project' },
-            () => { loadData(); }
-          )
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'User' }, () => {
+            invalidateDashboard();
+          })
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'DailyLog' }, () => {
+            invalidateDashboard();
+          })
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'Task' }, () => {
+            invalidateDashboard();
+          })
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'DaySession' }, () => {
+            invalidateDashboard();
+          })
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'Project' }, () => {
+            invalidateDashboard();
+          })
           .subscribe();
+        cleanup = () => { if (subscriptionChannel) subscriptionChannel.unsubscribe(); };
       } catch (err) {
         console.warn("Realtime subscriptions are inactive in ManagerOverview:", err);
       }
+      return cleanup;
     };
 
-    setupRealtime();
-
-    const pollInterval = setInterval(() => {
-      loadData();
-    }, 30000);
+    let cleanup: (() => void) | undefined;
+    setupRealtime().then((c) => { cleanup = c; });
 
     return () => {
-      if (subscriptionChannel) {
-        subscriptionChannel.unsubscribe();
-      }
-      clearInterval(pollInterval);
+      cleanup?.();
     };
-  }, [drilldownInternId]);
+  }, []);
 
   if (loading) {
     return (
@@ -209,9 +201,9 @@ export const ManagerOverview: React.FC<ManagerOverviewProps> = ({ currentUser })
       </div>
 
       {activeTab === 'users' ? (
-        <UserManagement currentUser={currentUser} onRefresh={loadData} />
+        <UserManagement currentUser={currentUser} onRefresh={invalidateDashboard} />
       ) : activeTab === 'upcoming_projects' ? (
-        <UpcomingProjectsManager currentUser={currentUser} onRefresh={loadData} />
+        <UpcomingProjectsManager currentUser={currentUser} onRefresh={invalidateDashboard} />
       ) : (
         <>
           {/* Stats Widgets Grid */}

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@/app/api/_lib/withAuth";
 import { getPrisma } from "@/src/db/prisma";
-import { mapUser } from "@/app/api/_lib/mappers";
+import { mapUser, SAFE_USER_SELECT } from "@/app/api/_lib/mappers";
 import { logger } from "@/src/lib/logger";
 import { scopeToOrganization } from "@/app/api/_lib/tenant";
 
@@ -27,6 +27,7 @@ export async function GET(request: NextRequest) {
 
     const dbUsers = await prisma.user.findMany({
       where: whereClause,
+      select: SAFE_USER_SELECT,
       orderBy: { name: "asc" },
     });
 

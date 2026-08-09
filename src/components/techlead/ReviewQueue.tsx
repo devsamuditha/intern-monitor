@@ -15,6 +15,7 @@ import {
 import { formatDate } from '../../utils/helpers';
 import { scaleIn } from '../../utils/motion';
 import { ThemedIcon } from '../../components/ui/ThemedIcon';
+import { useMarkingScale } from '../../context/SettingsContext';
 
 interface ReviewQueueProps {
   currentUser: User;
@@ -52,7 +53,7 @@ export const ReviewQueue: React.FC<ReviewQueueProps> = ({ currentUser, onSelectI
   const [searchQuery, setSearchQuery] = useState('');
 
   // Platform settings
-  const [markingScale, setMarkingScale] = useState<'1-5' | '1-10'>('1-5');
+  const markingScale = useMarkingScale();
 
   // Filter states (for future use)
   const [typeFilter, setTypeFilter] = useState<QueueItemType>('all');
@@ -196,21 +197,6 @@ export const ReviewQueue: React.FC<ReviewQueueProps> = ({ currentUser, onSelectI
    useEffect(() => {
      setCurrentPage(1);
    }, [statusFilter, typeFilter, selectedInternFilter, searchQuery, itemsPerPage]);
-
-   // Load platform marking scale setting
-   useEffect(() => {
-     const fetchSettings = async () => {
-       try {
-         const data = await api.getSettings();
-         if (data.marking_scale) {
-           setMarkingScale(data.marking_scale);
-         }
-       } catch (e) {
-         // Default to 1-5 if settings unavailable
-       }
-     };
-     fetchSettings();
-   }, []);
 
    const handleOpenReviewModal = (item: UnifiedReviewItem) => {
     setActiveItem(item);

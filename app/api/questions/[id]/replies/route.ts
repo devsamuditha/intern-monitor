@@ -4,6 +4,7 @@ import { getPrisma } from "@/src/db/prisma";
 import { mapQuestion } from "@/app/api/_lib/mappers";
 import { validateBody } from "@/app/api/_lib/validation";
 import { ReplyQuestionSchema } from "@/app/api/_lib/validation";
+import { scopeToOrganization } from "@/app/api/_lib/tenant";
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   let user: any;
@@ -35,11 +36,14 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       },
     });
 
-    const updatedQ = await prisma.question.findUnique({
-      where: { id },
-      include: {
+    const updatedQ = await prisma.question.findFirst({
+      where: { id, ...scopeToOrganization({}, user) },
+      select: {
+        id: true, internId: true, title: true, content: true,
+        isHidden: true, createdAt: true, organizationId: true,
         replies: {
           orderBy: { createdAt: "asc" },
+          select: { id: true, authorId: true, content: true, createdAt: true, isHidden: true },
         },
       },
     });

@@ -111,6 +111,7 @@ model User {
   @@index([role])
   @@index([techLeadId])
   @@index([organizationId])
+  @@index([organizationId, role])
 }
 
 model Project {
@@ -137,6 +138,8 @@ model Project {
   @@index([status])
   @@index([startDate])
   @@index([organizationId])
+  @@index([organizationId, status])
+  @@index([endDate])
 }
 
 model DailyLog {
@@ -165,6 +168,7 @@ model DailyLog {
   @@index([date])
   @@index([isHidden])
   @@index([organizationId])
+  @@index([organizationId, internId, date])
 }
 
 model Task {
@@ -194,6 +198,9 @@ model Task {
   @@index([status])
   @@index([dueDate])
   @@index([organizationId])
+  @@index([assignedToId, status])
+  @@index([priority])
+  @@index([organizationId, assignedToId, status])
 }
 
 model Mark {
@@ -219,6 +226,8 @@ model Mark {
   @@index([relatedLogId])
   @@index([relatedTaskId])
   @@index([organizationId])
+  @@index([internId, date])
+  @@index([organizationId, internId, date])
 }
 
 model Mistake {
@@ -242,6 +251,9 @@ model Mistake {
   @@index([flaggedById])
   @@index([relatedLogId])
   @@index([organizationId])
+  @@index([internId, resolved])
+  @@index([date])
+  @@index([internId, date, resolved])
 }
 
 model Message {
@@ -262,6 +274,8 @@ model Message {
   @@index([toId])
   @@index([isHidden])
   @@index([organizationId])
+  @@index([read])
+  @@index([toId, isHidden, createdAt])
 }
 
 model Question {
@@ -280,6 +294,7 @@ model Question {
   @@index([internId])
   @@index([isHidden])
   @@index([organizationId])
+  @@index([organizationId, internId, createdAt])
 }
 
 model Reply {
@@ -299,6 +314,7 @@ model Reply {
   @@index([authorId])
   @@index([isHidden])
   @@index([organizationId])
+  @@index([questionId, createdAt])
 }
 
 model DaySession {
@@ -317,11 +333,13 @@ model DaySession {
   createdAt    DateTime @default(now())
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  intern       User     @relation(fields: [internId], references: [id], onDelete: Cascade)
+  intern       User       @relation(fields: [internId], references: [id], onDelete: Cascade)
 
   @@index([internId])
   @@index([date])
   @@index([organizationId])
+  @@index([organizationId, date, status])
+  @@index([internId, date, status])
 }
 
 model AuditLog {
@@ -341,6 +359,7 @@ model AuditLog {
   @@index([targetType])
   @@index([action])
   @@index([organizationId])
+  @@index([userId, timestamp, action])
 }
 
 model SystemSetting {
@@ -378,4 +397,5 @@ model ContentFlag {
   @@index([contentId])
   @@index([status])
   @@index([organizationId])
+  @@index([organizationId, status, createdAt])
 }

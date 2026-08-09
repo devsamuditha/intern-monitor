@@ -25,6 +25,7 @@ interface DailyLogReviewModalProps {
   projects: Project[];
   logData: LogData;
   onFieldChange: (data: Partial<LogData>) => void;
+  submitting?: boolean;
 }
 
 const COMMON_TECHS = ['React', 'TypeScript', 'Tailwind CSS', 'Node.js', 'Express', 'Prisma', 'PostgreSQL', 'Motion', 'Python', 'FastAPI', 'Docker', 'Next.js'];
@@ -36,6 +37,7 @@ export const DailyLogReviewModal: React.FC<DailyLogReviewModalProps> = ({
   projects,
   logData,
   onFieldChange,
+  submitting = false,
 }) => {
   const [localData, setLocalData] = useState<LogData>(logData);
   const [errors, setErrors] = useState<Partial<Record<keyof LogData, string>>>({});
@@ -333,10 +335,11 @@ export const DailyLogReviewModal: React.FC<DailyLogReviewModalProps> = ({
           <button
             type="button"
             onClick={handleConfirm}
-            className="px-5 py-2 rounded-xl text-xs font-extrabold bg-teal-600 hover:bg-teal-700 text-white shadow-md shadow-teal-600/20 flex items-center gap-1.5"
+            disabled={submitting}
+            className="px-5 py-2 rounded-xl text-xs font-extrabold bg-teal-600 hover:bg-teal-700 text-white shadow-md shadow-teal-600/20 flex items-center gap-1.5 disabled:opacity-50"
           >
             <CheckCircle2 className="h-4 w-4" />
-            Confirm & Submit
+            {submitting ? 'Submitting...' : 'Confirm & Submit'}
           </button>
         </div>
       </motion.div>

@@ -3,8 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { useSuperAdminContentFlags, useUpdateContentFlag } from '@/src/hooks/queries/useQueries';
 import { api } from '../../services/api';
 import { ContentFlag } from '../../types.ts';
 import { scaleIn } from '../../utils/motion';
@@ -14,10 +15,6 @@ type StatusFilter = 'pending' | 'dismissed' | 'resolved' | 'all';
 type ContentTypeFilter = 'all' | 'message' | 'question' | 'reply' | 'daily_log';
 
 export const SuperAdminModeration: React.FC = () => {
-  const [flags, setFlags] = useState<ContentFlag[]>([]);
-  const [total, setTotal] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [processing, setProcessing] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('pending');
   const [contentTypeFilter, setContentTypeFilter] = useState<ContentTypeFilter>('all');
   const [limit, setLimit] = useState(50);
@@ -26,37 +23,33 @@ export const SuperAdminModeration: React.FC = () => {
   const [confirmAction, setConfirmAction] = useState<{ id: string; action: 'dismiss' | 'resolve' } | null>(null);
   const [confirmLoading, setConfirmLoading] = useState(false);
 
-  const loadFlags = async () => {
-    try {
-      const params: any = { limit, offset };
-      if (statusFilter !== 'all') params.status = statusFilter;
-      if (contentTypeFilter !== 'all') params.contentType = contentTypeFilter;
-      const data = await api.getContentFlags(params);
-      setFlags(data.flags || data);
-      setTotal(data.total);
-    } catch (e) {
-      console.error("Failed to load content flags:", e);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const filters: any = { limit, offset };
+  if (statusFilter !== 'all') filters.status = statusFilter;
+  if (contentTypeFilter !== 'all') filters.contentType = contentTypeFilter;
 
-  useEffect(() => {
-    loadFlags();
-  }, [statusFilter, contentTypeFilter, limit, offset]);
+  const { data, isLoading: loading, refetch } = useSuperAdminContentFlags(filters);
+  const flags: ContentFlag[] = data?.flags || [];
+  const total = data?.total || 0;
+  const updateFlagMutation = useUpdateContentFlag();
 
   const handleAction = async (id: string, action: 'dismiss' | 'resolve') => {
-    setProcessing(id);
+    setConfirmAction({ id, action });
+  };
+
+  const executeAction = async () => {
+    if (!confirmAction) return;
+    setConfirmLoading(true);
     try {
-      await api.updateContentFlag(id, action);
-      await loadFlags();
+      await updateFlagMutation.mutateAsync(confirmAction);
     } catch (e) {
       console.error("Failed to update flag:", e);
     } finally {
-      setProcessing(null);
+      setConfirmLoading(false);
       setConfirmAction(null);
     }
   };
+
+  const loadFlags = refetch;
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -110,7 +103,7 @@ export const SuperAdminModeration: React.FC = () => {
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Review and resolve flagged content</p>
         </div>
         <button
-          onClick={loadFlags}
+          onClick={() => refetch()}
           className="flex items-center gap-2 px-4 py-2 rounded-xl border border-white/20 dark:border-slate-700/30 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-950 text-slate-600 dark:text-slate-300 text-xs font-semibold transition"
         >
           <RefreshCw className="h-4 w-4" />
@@ -211,17 +204,17 @@ export const SuperAdminModeration: React.FC = () => {
                 <div className="flex items-center gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
                   <button
                     onClick={() => setConfirmAction({ id: flag.id, action: 'dismiss' })}
-                    disabled={processing === flag.id}
+                    disabled={confirmAction?.id === flag.id && confirmLoading}
                     className="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 text-[10px] font-bold transition disabled:opacity-50"
                   >
                     Dismiss
                   </button>
                   <button
                     onClick={() => setConfirmAction({ id: flag.id, action: 'resolve' })}
-                    disabled={processing === flag.id}
+                    disabled={confirmAction?.id === flag.id && confirmLoading}
                     className="px-3 py-1.5 rounded-lg bg-teal-600 text-white hover:bg-teal-700 text-[10px] font-bold transition disabled:opacity-50 shadow-sm"
                   >
-                    {processing === flag.id ? (
+                    {confirmAction?.id === flag.id && confirmLoading ? (
                       <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
                     ) : (
                       <>Resolve</>
@@ -299,7 +292,7 @@ export const SuperAdminModeration: React.FC = () => {
                 </button>
                 <button
                   type="button"
-                  onClick={() => handleAction(confirmAction.id, confirmAction.action)}
+                  onClick={executeAction}
                   disabled={confirmLoading}
                   className={`px-5 py-2 rounded-xl text-xs font-bold transition shadow-md ${
                     confirmAction.action === 'resolve'

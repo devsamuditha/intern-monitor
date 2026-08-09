@@ -32,19 +32,25 @@ export async function POST(request: NextRequest) {
     let contentAuthorId: string | null = null;
     const contentTypeLower = contentType.toLowerCase();
 
-    if (contentTypeLower === "message") {
-      const msg = await prisma.message.findUnique({ where: { id: contentId } });
-      if (msg) contentAuthorId = msg.fromId;
-    } else if (contentTypeLower === "question") {
-      const q = await prisma.question.findUnique({ where: { id: contentId } });
-      if (q) contentAuthorId = q.internId;
-    } else if (contentTypeLower === "reply") {
-      const r = await prisma.reply.findUnique({ where: { id: contentId } });
-      if (r) contentAuthorId = r.authorId;
-    } else if (contentTypeLower === "daily_log") {
-      const log = await prisma.dailyLog.findUnique({ where: { id: contentId } });
-      if (log) contentAuthorId = log.internId;
-    }
+    const [msg, q, r, log] = await Promise.all([
+      contentTypeLower === "message"
+        ? prisma.message.findUnique({ where: { id: contentId }, select: { fromId: true } })
+        : null,
+      contentTypeLower === "question"
+        ? prisma.question.findUnique({ where: { id: contentId }, select: { internId: true } })
+        : null,
+      contentTypeLower === "reply"
+        ? prisma.reply.findUnique({ where: { id: contentId }, select: { authorId: true } })
+        : null,
+      contentTypeLower === "daily_log"
+        ? prisma.dailyLog.findUnique({ where: { id: contentId }, select: { internId: true } })
+        : null,
+    ]);
+
+    if (contentTypeLower === "message" && msg) contentAuthorId = msg.fromId;
+    else if (contentTypeLower === "question" && q) contentAuthorId = q.internId;
+    else if (contentTypeLower === "reply" && r) contentAuthorId = r.authorId;
+    else if (contentTypeLower === "daily_log" && log) contentAuthorId = log.internId;
 
     if (!contentAuthorId) {
       return NextResponse.json({ error: "Content not found" }, { status: 404 });

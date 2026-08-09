@@ -3,9 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { api } from '../../services/api';
+import { useSuperAdminAuditLogs, useSuperAdminAuditSummary, useSuperAdminUsers } from '@/src/hooks/queries/useQueries';
 import { User } from '../../types.ts';
 import { scaleIn } from '../../utils/motion';
 import { RefreshCw, ChevronDown, ChevronUp, Calendar, User as UserIcon, Filter } from 'lucide-react';
@@ -98,13 +98,8 @@ function renderDiff(details?: string): React.ReactNode {
 }
 
 export const SuperAdminAudit: React.FC<SuperAdminAuditProps> = ({ currentUser }) => {
-  const [logs, setLogs] = useState<any[]>([]);
-  const [total, setTotal] = useState(0);
   const [limit, setLimit] = useState(50);
   const [offset, setOffset] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [summary, setSummary] = useState<{ actorId: string; actorName: string; count: number }[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const [filters, setFilters] = useState<Filters>({
@@ -115,58 +110,21 @@ export const SuperAdminAudit: React.FC<SuperAdminAuditProps> = ({ currentUser })
     endDate: '',
   });
 
-  const loadLogs = async () => {
-    setLoading(true);
-    try {
-      const params: any = {};
-      if (filters.action) params.action = filters.action;
-      if (filters.targetType) params.targetType = filters.targetType;
-      if (filters.actorId) params.actorId = filters.actorId;
-      if (filters.startDate) params.startDate = filters.startDate;
-      if (filters.endDate) params.endDate = filters.endDate;
-      params.limit = limit;
-      params.offset = offset;
+  const auditParams: any = {};
+  if (filters.action) auditParams.action = filters.action;
+  if (filters.targetType) auditParams.targetType = filters.targetType;
+  if (filters.actorId) auditParams.actorId = filters.actorId;
+  if (filters.startDate) auditParams.startDate = filters.startDate;
+  if (filters.endDate) auditParams.endDate = filters.endDate;
+  auditParams.limit = limit;
+  auditParams.offset = offset;
 
-      const data = await api.getAuditLogs(params);
-      setLogs(data.logs);
-      setTotal(data.total);
-      setLimit(data.limit);
-      setOffset(data.offset);
-    } catch (e) {
-      console.error("Failed to load audit logs:", e);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { data: auditData, isLoading: loading, refetch: loadLogs } = useSuperAdminAuditLogs(auditParams);
+  const { data: summary = [], isLoading: summaryLoading } = useSuperAdminAuditSummary();
+  const { data: users = [] } = useSuperAdminUsers();
 
-  const loadSummary = async () => {
-    try {
-      const data = await api.getAuditLogsSummary();
-      setSummary(data);
-    } catch (e) {
-      console.error("Failed to load summary:", e);
-    }
-  };
-
-  useEffect(() => {
-    loadSummary();
-  }, []);
-
-  useEffect(() => {
-    loadLogs();
-  }, [filters, limit, offset]);
-
-  useEffect(() => {
-    const loadUsers = async () => {
-      try {
-        const all = await api.getUsers();
-        setUsers(all);
-      } catch {
-        // ignore
-      }
-    };
-    loadUsers();
-  }, []);
+  const logs = auditData?.logs || [];
+  const total = auditData?.total || 0;
 
   const handleFilterChange = (key: keyof Filters, value: string) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
@@ -240,7 +198,7 @@ export const SuperAdminAudit: React.FC<SuperAdminAuditProps> = ({ currentUser })
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Platform-wide activity and change history</p>
         </div>
         <button
-          onClick={loadLogs}
+          onClick={() => loadLogs()}
           className="flex items-center gap-2 px-4 py-2 rounded-xl border border-white/20 dark:border-slate-700/30 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-950 text-slate-600 dark:text-slate-300 text-xs font-semibold transition"
         >
           <RefreshCw className="h-4 w-4" />

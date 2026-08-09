@@ -18,6 +18,7 @@ export async function GET(request: NextRequest) {
     const prisma = getPrisma();
     const settings = await prisma.systemSetting.findMany({
       where: scopeToOrganization({}, user),
+      select: { id: true, key: true, value: true, organizationId: true, updatedAt: true },
       orderBy: { key: "asc" },
     });
     const result: Record<string, any> = {};

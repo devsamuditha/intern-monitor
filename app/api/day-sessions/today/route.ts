@@ -25,7 +25,14 @@ export async function GET(request: NextRequest) {
     if (intern_id) {
       whereClause.internId = String(intern_id);
     }
-    const dbSessions = await prisma.daySession.findMany({ where: whereClause });
+    const dbSessions = await prisma.daySession.findMany({
+      where: whereClause,
+      select: {
+        id: true, internId: true, date: true, startedAt: true, endedAt: true,
+        status: true, todayProject: true, todayPlan: true, questions: true,
+        gitLink: true, endJournal: true, organizationId: true,
+      },
+    });
     return NextResponse.json(dbSessions.map(mapDaySession));
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });

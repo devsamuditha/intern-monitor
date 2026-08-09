@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { getPrisma } from "@/src/db/prisma";
 import { verifySession, SESSION_COOKIE_NAME } from "@/src/lib/jwt";
 import { logger } from "@/src/lib/logger";
+import { SAFE_USER_SELECT } from "@/app/api/_lib/mappers";
 
 export class AuthError extends Error {
   public status: number;
@@ -34,8 +35,9 @@ export async function withAuth(request: NextRequest) {
 
   try {
     const prisma = getPrisma();
-    const dbUser = await prisma.user.findUnique({
+     const dbUser = await prisma.user.findUnique({
       where: { id: payload.userId },
+      select: SAFE_USER_SELECT,
     });
 
     if (!dbUser) {

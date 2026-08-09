@@ -30,6 +30,12 @@ export async function GET(request: NextRequest) {
 
     const dbTasks = await prisma.task.findMany({
       where: whereClause,
+      select: {
+        id: true, organizationId: true, assignedToId: true, assignedById: true,
+        title: true, description: true, dueDate: true, priority: true,
+        status: true, completedAt: true, score: true, comment: true,
+        blockers: true, prLink: true, createdAt: true,
+      },
       orderBy: { createdAt: "desc" },
     });
 

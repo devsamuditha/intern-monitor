@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@/app/api/_lib/withAuth";
 import { getPrisma } from "@/src/db/prisma";
+import { mapUser, AUTH_USER_SELECT } from "@/app/api/_lib/mappers";
 import { validateBody } from "@/app/api/_lib/validation";
 import { ChangePasswordSchema, ResetFirstPasswordSchema } from "@/app/api/_lib/validation";
 import { hashPassword, comparePassword } from "@/src/lib/auth";
@@ -17,7 +18,11 @@ export async function POST(request: NextRequest) {
 
   try {
     const prisma = getPrisma();
-    const isFirstLogin = user.mustChangePassword;
+    const dbUser = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: AUTH_USER_SELECT,
+    });
+    const isFirstLogin = dbUser?.mustChangePassword;
 
     let newPassword: string;
 
@@ -26,7 +31,7 @@ export async function POST(request: NextRequest) {
       newPassword = body.password;
     } else {
       const body = await validateBody(ChangePasswordSchema)(request);
-      const passwordValid = await comparePassword(body.currentPassword, user.passwordHash);
+      const passwordValid = await comparePassword(body.currentPassword, dbUser!.passwordHash);
       if (!passwordValid) {
         return NextResponse.json({ error: "Current password is incorrect" }, { status: 401 });
       }

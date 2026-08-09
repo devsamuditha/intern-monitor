@@ -27,28 +27,39 @@ export async function GET(request: NextRequest) {
     }
     const targetInterns = await prisma.user.findMany({
       where: internsClause,
+      select: { id: true, name: true, avatarUrl: true, isActive: true, techLeadId: true },
     });
     const internIds = targetInterns.map((i: any) => i.id);
 
     const todayStr = getRelativeDateStr(0);
     const allLogs = await prisma.dailyLog.findMany({
       where: scopeToOrganization({ internId: { in: internIds }, isHidden: false }, user),
+      select: {
+        id: true, internId: true, projectId: true, summary: true,
+        technologies: true, changes: true, githubUrl: true, date: true,
+        status: true, organizationId: true,
+      },
     });
     const allMarks = await prisma.mark.findMany({
       where: scopeToOrganization({ internId: { in: internIds } }, user),
+      select: { id: true, internId: true, score: true, date: true, organizationId: true },
     });
     const allTasks = await prisma.task.findMany({
       where: scopeToOrganization({ assignedToId: { in: internIds } }, user),
+      select: { id: true, assignedToId: true, status: true, score: true, organizationId: true },
     });
     const allMistakes = await prisma.mistake.findMany({
       where: scopeToOrganization({ internId: { in: internIds } }, user),
+      select: { id: true, internId: true, resolved: true, organizationId: true },
     });
     const todaySessions = await (prisma as any).daySession.findMany({
       where: scopeToOrganization({ date: todayStr }, user),
+      select: { id: true, internId: true, status: true, startedAt: true, endedAt: true, organizationId: true },
     });
     const last7Days = Array.from({ length: 7 }, (_, idx) => getRelativeDateStr(-idx)).reverse();
     const allWeekSessions = await (prisma as any).daySession.findMany({
       where: scopeToOrganization({ date: { in: last7Days } }, user),
+      select: { id: true, internId: true, startedAt: true, endedAt: true, organizationId: true },
     });
 
     const submittedTodayCount = allLogs.filter((l: any) => l.date === todayStr).length;

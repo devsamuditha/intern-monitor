@@ -27,6 +27,7 @@ export async function GET(request: NextRequest) {
 
     const dbMistakes = await prisma.mistake.findMany({
       where: whereClause,
+      select: { id: true, internId: true, flaggedById: true, note: true, severity: true, date: true, resolved: true, organizationId: true, relatedLogId: true },
       orderBy: { createdAt: "desc" },
     });
 

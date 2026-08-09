@@ -5,8 +5,7 @@ import { mapUser } from "@/app/api/_lib/mappers";
 import { getRelativeDateStr } from "@/app/api/_lib/mappers";
 import { Role, TaskStatus } from "@prisma/client";
 import { logAudit, mapAuditLog } from "@/app/api/_lib/mappers";
-import { validateBody } from "@/app/api/_lib/validation";
-import { CreateUserBySuperAdminSchema, ReassignTechLeadSchema } from "@/app/api/_lib/validation";
+import { scopeToOrganization } from "@/app/api/_lib/tenant";
 import { logger } from "@/src/lib/logger";
 
 export async function GET(request: NextRequest) {
@@ -86,13 +85,14 @@ export async function GET(request: NextRequest) {
       .slice(0, 5);
 
     const pendingFlags = await prisma.contentFlag.count({
-      where: { status: "pending" },
+      where: scopeToOrganization({ status: "pending" }, user),
     });
 
     const recentAuditLogs = await prisma.auditLog.findMany({
+      where: scopeToOrganization({}, user),
       take: 10,
       orderBy: { timestamp: "desc" },
-      include: { user: true },
+      include: { user: { select: { id: true, name: true, email: true } } },
     });
 
     return NextResponse.json({

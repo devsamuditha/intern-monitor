@@ -6,10 +6,12 @@ import { validateBody } from "@/app/api/_lib/validation";
 import { UpdateTaskSchema, TaskStatusSchema } from "@/app/api/_lib/validation";
 import { getRelativeDateStr } from "@/app/api/_lib/mappers";
 import { isValidGithubUrl } from "@/app/api/_lib/mappers";
+import { scopeToOrganization } from "@/app/api/_lib/tenant";
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  let user;
   try {
-    await withAuth(request);
+    user = await withAuth(request);
   } catch (err: any) {
     const status = err.message.includes("Forbidden") ? 403 : err.message.includes("Unauthorized") ? 401 : 500;
     return NextResponse.json({ error: err.message }, { status });
@@ -31,7 +33,10 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
   try {
     const prisma = getPrisma();
-    const existing = await prisma.task.findUnique({ where: { id } });
+    const existing = await prisma.task.findFirst({
+      where: { id, ...scopeToOrganization({}, user) },
+      select: { id: true, organizationId: true, prLink: true },
+    });
     if (!existing) return NextResponse.json({ error: "Task not found" }, { status: 404 });
 
     const todayStr = getRelativeDateStr(0);
@@ -49,8 +54,9 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     const updated = await prisma.task.update({
-      where: { id },
+      where: { id, ...scopeToOrganization({}, user) },
       data: updateData,
+      select: { id: true, organizationId: true, assignedToId: true, assignedById: true, title: true, description: true, dueDate: true, priority: true, status: true, completedAt: true, score: true, comment: true, blockers: true, prLink: true, createdAt: true },
     });
 
     return NextResponse.json(mapTask(updated));
@@ -60,8 +66,9 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 }
 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  let user;
   try {
-    await withAuth(request);
+    user = await withAuth(request);
   } catch (err: any) {
     const status = err.message.includes("Forbidden") ? 403 : err.message.includes("Unauthorized") ? 401 : 500;
     return NextResponse.json({ error: err.message }, { status });
@@ -70,6 +77,11 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   const { id } = await params;
   try {
     const prisma = getPrisma();
+    const existing = await prisma.task.findFirst({
+      where: { id, ...scopeToOrganization({}, user) },
+      select: { id: true },
+    });
+    if (!existing) return NextResponse.json({ error: "Task not found" }, { status: 404 });
     await prisma.task.delete({ where: { id } });
     return NextResponse.json({ success: true });
   } catch (error: any) {

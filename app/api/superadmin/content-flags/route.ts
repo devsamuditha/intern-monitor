@@ -3,6 +3,7 @@ import { withAuth, requireSuperAdmin } from "@/app/api/_lib/withAuth";
 import { getPrisma } from "@/src/db/prisma";
 import { mapContentFlag } from "@/app/api/_lib/mappers";
 import { buildContentPreview } from "@/app/api/_lib/mappers";
+import { scopeToOrganization } from "@/app/api/_lib/tenant";
 
 export async function GET(request: NextRequest) {
   let user;
@@ -18,7 +19,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const prisma = getPrisma();
-    const where: any = {};
+    const where: any = scopeToOrganization({}, user);
     if (status && typeof status === "string") where.status = status;
     if (contentType && typeof contentType === "string") where.contentType = contentType.toLowerCase();
 
@@ -29,7 +30,7 @@ export async function GET(request: NextRequest) {
       prisma.contentFlag.findMany({
         where,
         orderBy: { createdAt: "desc" },
-        include: { user: true },
+        include: { user: { select: { id: true, name: true } } },
         take: parsedLimit,
         skip: parsedOffset,
       }),
@@ -38,7 +39,7 @@ export async function GET(request: NextRequest) {
 
     const flagsWithPreview = await Promise.all(
       flags.map(async (flag) => {
-        const preview = await buildContentPreview(prisma, flag.contentType, flag.contentId);
+        const preview = await buildContentPreview(prisma, flag.contentType, flag.contentId, user.organizationId as string);
         return { ...mapContentFlag(flag), preview };
       })
     );

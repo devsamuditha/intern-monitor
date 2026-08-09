@@ -3,9 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { api } from '../../services/api';
+import { useSuperAdminSettings, useUpdateSystemSetting } from '@/src/hooks/queries/useQueries';
 import { scaleIn } from '../../utils/motion';
 import { RefreshCw, Save, Settings as SettingsIcon, AlertTriangle, CheckCircle2, XCircle } from 'lucide-react';
 
@@ -23,8 +23,6 @@ interface Toast {
 }
 
 export const SuperAdminSettings: React.FC = () => {
-  const [settings, setSettings] = useState<SettingRow[]>([]);
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
   const [toast, setToast] = useState<Toast | null>(null);
 
@@ -34,20 +32,8 @@ export const SuperAdminSettings: React.FC = () => {
     { key: 'ask_the_team_enabled', label: 'Ask the Team', description: 'Control visibility of the Ask the Team discussion board', type: 'boolean' as const },
   ];
 
-  const loadSettings = async () => {
-    try {
-      const data = await api.getSystemSettings();
-      setSettings(data);
-    } catch (e) {
-      console.error("Failed to load system settings:", e);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadSettings();
-  }, []);
+  const { data: settings = [], isLoading: loading, refetch: loadSettings } = useSuperAdminSettings();
+  const updateSettingMutation = useUpdateSystemSetting();
 
   const getSetting = (key: string) => {
     return settings.find(s => s.key === key);
@@ -72,8 +58,7 @@ export const SuperAdminSettings: React.FC = () => {
     if (!setting) return;
     setSaving(key);
     try {
-      await api.updateSystemSetting(key, String(newValue));
-      await loadSettings();
+      await updateSettingMutation.mutateAsync({ key, value: String(newValue) });
       showToast(`Setting "${key}" updated successfully`, 'success');
     } catch (e: any) {
       showToast(e.message || `Failed to update "${key}"`, 'error');
@@ -87,8 +72,7 @@ export const SuperAdminSettings: React.FC = () => {
     if (!setting) return;
     setSaving(key);
     try {
-      await api.updateSystemSetting(key, newValue);
-      await loadSettings();
+      await updateSettingMutation.mutateAsync({ key, value: newValue });
       showToast(`Setting "${key}" updated successfully`, 'success');
     } catch (e: any) {
       showToast(e.message || `Failed to update "${key}"`, 'error');
@@ -114,7 +98,7 @@ export const SuperAdminSettings: React.FC = () => {
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Configure platform-wide parameters</p>
         </div>
         <button
-          onClick={loadSettings}
+          onClick={() => loadSettings()}
           className="flex items-center gap-2 px-4 py-2 rounded-xl border border-white/20 dark:border-slate-700/30 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-950 text-slate-600 dark:text-slate-300 text-xs font-semibold transition"
         >
           <RefreshCw className="h-4 w-4" />

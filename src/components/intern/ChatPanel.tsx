@@ -32,11 +32,15 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ currentUser }) => {
   useEffect(() => {
     if (!isOpen || !currentUser) return;
     loadData();
-    setupRealtime();
+    let cleanup: (() => void) | undefined;
+    setupRealtime().then((c) => { cleanup = c; });
+    return () => {
+      cleanup?.();
+    };
   }, [isOpen, currentUser]);
 
   useEffect(() => {
-    if (selectedUser && messages.length > 0 && isOpen) {
+    if (selectedUser && isOpen) {
       const unreadMessages = messages.filter(
         m => m.from_id === selectedUser.id && m.to_id === currentUser.id && !m.read
       );
@@ -46,7 +50,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ currentUser }) => {
         });
       }
     }
-  }, [selectedUser, messages, isOpen]);
+  }, [selectedUser, isOpen, currentUser]);
 
   useEffect(() => {
     if (chatEndRef.current && isOpen) {

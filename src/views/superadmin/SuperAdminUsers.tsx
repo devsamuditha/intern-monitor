@@ -3,9 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { api } from '../../services/api';
+import { useSuperAdminUsers, useUpdateUser, useDeleteUser, useCreateUserBySuperAdmin, useReassignTechLead } from '@/src/hooks/queries/useQueries';
 import { User, UserRole } from '../../types.ts';
 import { scaleIn } from '../../utils/motion';
 import { RefreshCw, Shield, UserPlus, X, CheckCircle2, AlertTriangle, Trash2 } from 'lucide-react';
@@ -21,11 +21,6 @@ interface ConfirmAction {
 }
 
 export const SuperAdminUsers: React.FC<SuperAdminUsersProps> = ({ currentUser }) => {
-  const [users, setUsers] = useState<User[]>([]);
-  const [techLeads, setTechLeads] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [updating, setUpdating] = useState<string | null>(null);
-
   const [showCreateManager, setShowCreateManager] = useState(false);
   const [showCreateTechLead, setShowCreateTechLead] = useState(false);
   const [showCreateIntern, setShowCreateIntern] = useState(false);
@@ -41,35 +36,19 @@ export const SuperAdminUsers: React.FC<SuperAdminUsersProps> = ({ currentUser })
   const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(null);
   const [confirmLoading, setConfirmLoading] = useState(false);
 
-  const loadUsers = async () => {
-    try {
-      const [allUsers, leads] = await Promise.all([
-        api.getUsers(),
-        api.getUsers({ role: 'tech_lead' }),
-      ]);
-      setUsers(allUsers);
-      setTechLeads(leads);
-    } catch (e) {
-      console.error("Failed to load users:", e);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const usersQuery = useSuperAdminUsers();
+  const techLeadsQuery = useSuperAdminUsers({ role: 'tech_lead' });
+  const updateUserMutation = useUpdateUser();
+  const deleteUserMutation = useDeleteUser();
+  const createUserMutation = useCreateUserBySuperAdmin();
+  const reassignTechLeadMutation = useReassignTechLead();
 
-  useEffect(() => {
-    loadUsers();
-  }, []);
-
-  const handleRoleChange = async (userId: string, newRole: UserRole) => {
-    setConfirmAction({ type: 'role', userId, payload: { role: newRole } });
-  };
-
-  const handleReassignTechLead = async (userId: string, newTechLeadId: string | null) => {
-    setConfirmAction({ type: 'reassign', userId, payload: { techLeadId: newTechLeadId } });
-  };
-
-  const handleDeleteUser = (userId: string) => {
-    setConfirmAction({ type: 'delete', userId, payload: {} });
+  const users = usersQuery.data || [];
+  const techLeads = techLeadsQuery.data || [];
+  const loading = usersQuery.isLoading || techLeadsQuery.isLoading;
+  const refetch = () => {
+    usersQuery.refetch();
+    techLeadsQuery.refetch();
   };
 
   const executeConfirmedAction = async () => {
@@ -78,13 +57,12 @@ export const SuperAdminUsers: React.FC<SuperAdminUsersProps> = ({ currentUser })
     try {
       const { type, userId, payload } = confirmAction;
       if (type === 'role') {
-        await api.updateUser(userId, { role: payload.role });
+        await updateUserMutation.mutateAsync({ userId, updates: { role: payload.role } });
       } else if (type === 'reassign') {
-        await api.reassignTechLead(userId, payload.techLeadId);
+        await reassignTechLeadMutation.mutateAsync({ userId, techLeadId: payload.techLeadId });
       } else if (type === 'delete') {
-        await api.deleteUser(userId);
+        await deleteUserMutation.mutateAsync(userId);
       }
-      await loadUsers();
     } catch (e) {
       console.error("Failed to execute action:", e);
     } finally {
@@ -105,7 +83,7 @@ export const SuperAdminUsers: React.FC<SuperAdminUsersProps> = ({ currentUser })
     setCreating(true);
     setCreateError(null);
     try {
-      await api.createUserBySuperAdmin({
+      await createUserMutation.mutateAsync({
         name: newName.trim(),
         email: newEmail.trim().toLowerCase(),
         username: newUsername.trim().toLowerCase(),
@@ -113,7 +91,6 @@ export const SuperAdminUsers: React.FC<SuperAdminUsersProps> = ({ currentUser })
         role: role,
         techLeadId: role === "intern" ? undefined : undefined,
       });
-      // User already knows their credentials, no need to show modal
       setShowCreateManager(false);
       setShowCreateTechLead(false);
       setShowCreateIntern(false);
@@ -121,12 +98,27 @@ export const SuperAdminUsers: React.FC<SuperAdminUsersProps> = ({ currentUser })
       setNewEmail("");
       setNewUsername("");
       setNewPassword("");
-      await loadUsers();
+      const { username, password } = (createUserMutation.data as any) || {};
+      if (username && password) {
+        setCreatedCredentials({ username, password, name: newName.trim() });
+      }
     } catch (err: any) {
       setCreateError(err.message || "Failed to create user.");
     } finally {
       setCreating(false);
     }
+  };
+
+  const handleRoleChange = async (userId: string, newRole: UserRole) => {
+    setConfirmAction({ type: 'role', userId, payload: { role: newRole } });
+  };
+
+  const handleReassignTechLead = async (userId: string, newTechLeadId: string | null) => {
+    setConfirmAction({ type: 'reassign', userId, payload: { techLeadId: newTechLeadId } });
+  };
+
+  const handleDeleteUser = (userId: string) => {
+    setConfirmAction({ type: 'delete', userId, payload: {} });
   };
 
   if (loading) {
@@ -199,7 +191,7 @@ export const SuperAdminUsers: React.FC<SuperAdminUsersProps> = ({ currentUser })
             Create Manager
           </button>
           <button
-            onClick={loadUsers}
+            onClick={refetch}
             className="flex items-center gap-2 px-4 py-2 rounded-xl border border-white/20 dark:border-slate-700/30 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-950 text-slate-600 dark:text-slate-300 text-xs font-semibold transition"
           >
             <RefreshCw className="h-4 w-4" />
@@ -235,7 +227,7 @@ export const SuperAdminUsers: React.FC<SuperAdminUsersProps> = ({ currentUser })
                     <select
                       value={user.role.toLowerCase()}
                       onChange={(e) => handleRoleChange(user.id, e.target.value.toUpperCase() as UserRole)}
-                      disabled={updating === user.id || user.id === currentUser.id}
+                      disabled={confirmLoading || user.id === currentUser.id}
                       className="text-[10px] font-bold uppercase tracking-wider bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-505/20 disabled:opacity-50 cursor-pointer"
                     >
                       <option value="intern">Intern</option>
@@ -257,7 +249,7 @@ export const SuperAdminUsers: React.FC<SuperAdminUsersProps> = ({ currentUser })
                       <select
                         value={user.assigned_tech_lead_id || ''}
                         onChange={(e) => handleReassignTechLead(user.id, e.target.value || null)}
-                        disabled={updating === user.id}
+                        disabled={confirmLoading || creating}
                         className="text-[10px] font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500/20 disabled:opacity-50 cursor-pointer"
                       >
                         <option value="">Unassigned</option>
@@ -270,7 +262,7 @@ export const SuperAdminUsers: React.FC<SuperAdminUsersProps> = ({ currentUser })
                     )}
                   </td>
                   <td className="px-6 py-4 text-right">
-                    {updating === user.id ? (
+                    {confirmLoading ? (
                       <div className="inline-flex items-center gap-2 text-teal-600 dark:text-teal-400">
                         <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-teal-600"></div>
                         Saving...

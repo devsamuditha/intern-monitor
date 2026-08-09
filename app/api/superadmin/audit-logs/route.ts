@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { withAuth, requireSuperAdmin } from "@/app/api/_lib/withAuth";
 import { getPrisma } from "@/src/db/prisma";
 import { mapAuditLog } from "@/app/api/_lib/mappers";
+import { scopeToOrganization } from "@/app/api/_lib/tenant";
 import { logger } from "@/src/lib/logger";
 
 export async function GET(request: NextRequest) {
@@ -32,13 +33,13 @@ export async function GET(request: NextRequest) {
 
     const [logs, total] = await Promise.all([
       prisma.auditLog.findMany({
-        where,
+        where: scopeToOrganization(where, user),
         orderBy: { timestamp: "desc" },
-        include: { user: true },
+        include: { user: { select: { id: true, name: true, email: true } } },
         take: parsedLimit,
         skip: parsedOffset,
       }),
-      prisma.auditLog.count({ where }),
+      prisma.auditLog.count({ where: scopeToOrganization(where, user) }),
     ]);
 
     return NextResponse.json({ logs: logs.map(mapAuditLog), total, limit: parsedLimit, offset: parsedOffset });

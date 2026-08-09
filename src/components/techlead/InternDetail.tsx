@@ -16,6 +16,7 @@ import {
 import { formatDate, getTaskPriorityColor, getTaskStatusColor } from '../../utils/helpers';
 import { scaleIn } from '../../utils/motion';
 import { ThemedIcon } from '../../components/ui/ThemedIcon';
+import { useMarkingScale } from '../../context/SettingsContext';
 
 interface InternDetailProps {
   internId: string;
@@ -59,7 +60,7 @@ export const InternDetail: React.FC<InternDetailProps> = ({ internId, currentUse
   const [flagConfirmContent, setFlagConfirmContent] = useState<{ contentType: string; contentId: string; title?: string } | null>(null);
   const [flagReason, setFlagReason] = useState('');
   const [flagging, setFlagging] = useState(false);
-  const [markingScale, setMarkingScale] = useState<'1-5' | '1-10'>('1-5');
+  const markingScale = useMarkingScale();
 
   const loadAllInternData = async () => {
     try {
@@ -269,20 +270,6 @@ export const InternDetail: React.FC<InternDetailProps> = ({ internId, currentUse
     setFlagConfirmContent(null);
     setFlagReason('');
   };
-
-   useEffect(() => {
-     const fetchScale = async () => {
-       try {
-         const data = await api.getSettings();
-         if (data.marking_scale) {
-           setMarkingScale(data.marking_scale);
-         }
-       } catch (e) {
-         // Default to 1-5
-       }
-     };
-     fetchScale();
-   }, []);
 
    const handleFlagSubmit = async () => {
      if (!flagConfirmContent || !flagReason.trim()) return;

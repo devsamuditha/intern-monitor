@@ -31,6 +31,9 @@ const getHeaders = (): Record<string, string> => ({
 const getAuthHeaders = async (): Promise<Record<string, string>> => getHeaders();
 
 const handleResponse = async (response: Response): Promise<any> => {
+  if (!response || typeof response.headers?.get !== "function") {
+    return response;
+  }
   const status = response.status;
   const contentType = (response.headers.get("content-type") || "").toLowerCase();
 
@@ -69,16 +72,47 @@ const handleResponse = async (response: Response): Promise<any> => {
   }
 };
 
+const pendingRequests = new Map<string, Promise<any>>();
+
+function normalizeBodyKey(body: string | undefined): string {
+  if (!body) return '';
+  try {
+    const parsed = JSON.parse(body);
+    if (typeof parsed !== 'object' || parsed === null) return body;
+    const sorted: Record<string, any> = {};
+    Object.keys(parsed).sort().forEach((key) => {
+      sorted[key] = parsed[key];
+    });
+    return JSON.stringify(sorted);
+  } catch {
+    return body;
+  }
+}
+
+async function fetchWithDedup(url: string, options?: RequestInit): Promise<any> {
+  const key = `${options?.method || 'GET'}-${url}-${normalizeBodyKey(options?.body as string)}`;
+
+  if (pendingRequests.has(key)) {
+    return pendingRequests.get(key)!;
+  }
+
+  const promise = fetch(url, options)
+    .then(handleResponse)
+    .finally(() => pendingRequests.delete(key));
+
+  pendingRequests.set(key, promise);
+  return promise;
+}
+
 export const api = {
-  // Config
   getConfig: async (): Promise<Record<string, any>> => {
-    const res = await fetch("/api/config");
+    const res = await fetchWithDedup("/api/config");
     return handleResponse(res);
   },
 
   // Auth
   login: async (username: string, password: string): Promise<{ user: User }> => {
-    const res = await fetch("/api/auth/login", {
+    const res = await fetchWithDedup("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username, password })
@@ -87,7 +121,7 @@ export const api = {
   },
 
   getSession: async (): Promise<{ user: User | null }> => {
-    const res = await fetch("/api/auth/session", {
+    const res = await fetchWithDedup("/api/auth/session", {
       method: "GET",
       headers: { "Content-Type": "application/json" },
     });
@@ -95,7 +129,7 @@ export const api = {
   },
 
   logout: async (): Promise<{ success: boolean }> => {
-    const res = await fetch("/api/auth/logout", {
+    const res = await fetchWithDedup("/api/auth/logout", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
     });
@@ -103,7 +137,7 @@ export const api = {
   },
 
   checkUsernameExists: async (username: string): Promise<boolean> => {
-    const res = await fetch("/api/auth/check-username", {
+    const res = await fetchWithDedup("/api/auth/check-username", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username })
@@ -118,7 +152,7 @@ export const api = {
     role: string;
     techLeadId?: string | null;
   }): Promise<{ user: User; username: string; password: string }> => {
-    const res = await fetch("/api/auth/register", {
+    const res = await fetchWithDedup("/api/auth/register", {
       method: "POST",
       headers: await getAuthHeaders(),
       body: JSON.stringify(data)
@@ -130,7 +164,7 @@ export const api = {
     currentPassword?: string;
     newPassword: string;
   }): Promise<{ success: boolean; mustChangePassword: boolean }> => {
-    const res = await fetch("/api/auth/change-password", {
+    const res = await fetchWithDedup("/api/auth/change-password", {
       method: "POST",
       headers: await getAuthHeaders(),
       body: JSON.stringify(data)
@@ -139,12 +173,12 @@ export const api = {
   },
 
   getPublicTechLeads: async (): Promise<User[]> => {
-    const res = await fetch("/api/public/tech-leads");
+    const res = await fetchWithDedup("/api/public/tech-leads");
     return handleResponse(res);
   },
 
   getPublicInterns: async (): Promise<User[]> => {
-    const res = await fetch("/api/public/interns");
+    const res = await fetchWithDedup("/api/public/interns");
     return handleResponse(res);
   },
 
@@ -153,14 +187,14 @@ export const api = {
     const params = new URLSearchParams();
     if (filters?.role) params.append("role", filters.role);
     if (filters?.assigned_tech_lead_id) params.append("assigned_tech_lead_id", filters.assigned_tech_lead_id);
-    const res = await fetch(`/api/users?${params.toString()}`, {
+    const res = await fetchWithDedup(`/api/users?${params.toString()}`, {
       headers: await getAuthHeaders()
     });
     return handleResponse(res);
   },
 
   updateUser: async (userId: string, updates: Partial<User>): Promise<User> => {
-    const res = await fetch(`/api/users/${userId}`, {
+    const res = await fetchWithDedup(`/api/users/${userId}`, {
       method: "PATCH",
       headers: await getAuthHeaders(),
       body: JSON.stringify(updates)
@@ -169,7 +203,7 @@ export const api = {
   },
 
   deleteUser: async (userId: string): Promise<{ success: boolean; message: string }> => {
-    const res = await fetch(`/api/users/${userId}`, {
+    const res = await fetchWithDedup(`/api/users/${userId}`, {
       method: "DELETE",
       headers: await getAuthHeaders()
     });
@@ -183,14 +217,14 @@ export const api = {
     if (filters?.assigned_tech_lead_ids && filters.assigned_tech_lead_ids.length > 0) {
       params.append("assigned_tech_lead_id", filters.assigned_tech_lead_ids.join(','));
     }
-    const res = await fetch(`/api/projects?${params.toString()}`, {
+    const res = await fetchWithDedup(`/api/projects?${params.toString()}`, {
       headers: await getAuthHeaders()
     });
     return handleResponse(res);
   },
 
   saveProject: async (project: Partial<Project>): Promise<Project> => {
-    const res = await fetch("/api/projects", {
+    const res = await fetchWithDedup("/api/projects", {
       method: "POST",
       headers: await getAuthHeaders(),
       body: JSON.stringify(project)
@@ -199,7 +233,7 @@ export const api = {
   },
 
   deleteProject: async (projectId: string): Promise<{ success: boolean }> => {
-    const res = await fetch(`/api/projects/${projectId}`, {
+    const res = await fetchWithDedup(`/api/projects/${projectId}`, {
       method: "DELETE",
       headers: await getAuthHeaders()
     });
@@ -211,7 +245,7 @@ export const api = {
     const params = new URLSearchParams();
     if (filters?.intern_id) params.append("intern_id", filters.intern_id);
     if (filters?.project_id) params.append("project_id", filters.project_id);
-    const res = await fetch(`/api/logs?${params.toString()}`, {
+    const res = await fetchWithDedup(`/api/logs?${params.toString()}`, {
       headers: await getAuthHeaders()
     });
     return handleResponse(res);
@@ -226,7 +260,7 @@ export const api = {
     screenshot_url?: string;
     github_url: string;
   }): Promise<DailyLog> => {
-    const res = await fetch("/api/logs", {
+    const res = await fetchWithDedup("/api/logs", {
       method: "POST",
       headers: await getAuthHeaders(),
       body: JSON.stringify(log)
@@ -243,7 +277,7 @@ export const api = {
       mistakesFlagged?: Array<{ note: string; severity: MistakeSeverity }>;
     }
   ): Promise<{ success: boolean; log: DailyLog }> => {
-    const res = await fetch(`/api/logs/${logId}/review`, {
+    const res = await fetchWithDedup(`/api/logs/${logId}/review`, {
       method: "POST",
       headers: await getAuthHeaders(),
       body: JSON.stringify(data)
@@ -256,7 +290,7 @@ export const api = {
     const params = new URLSearchParams();
     if (filters?.assigned_to) params.append("assigned_to", filters.assigned_to);
     if (filters?.assigned_by) params.append("assigned_by", filters.assigned_by);
-    const res = await fetch(`/api/tasks?${params.toString()}`, {
+    const res = await fetchWithDedup(`/api/tasks?${params.toString()}`, {
       headers: await getAuthHeaders()
     });
     return handleResponse(res);
@@ -272,7 +306,7 @@ export const api = {
     blockers?: string;
     pr_link?: string;
   }): Promise<Task> => {
-    const res = await fetch("/api/tasks", {
+    const res = await fetchWithDedup("/api/tasks", {
       method: "POST",
       headers: await getAuthHeaders(),
       body: JSON.stringify(task)
@@ -292,7 +326,7 @@ export const api = {
       pr_link?: string;
     }>
   ): Promise<Task> => {
-    const res = await fetch(`/api/tasks/${taskId}`, {
+    const res = await fetchWithDedup(`/api/tasks/${taskId}`, {
       method: "PUT",
       headers: await getAuthHeaders(),
       body: JSON.stringify(updates)
@@ -305,7 +339,7 @@ export const api = {
     status: TaskStatus,
     extra?: { blockers?: string; pr_link?: string }
   ): Promise<Task> => {
-    const res = await fetch(`/api/tasks/${taskId}/status`, {
+    const res = await fetchWithDedup(`/api/tasks/${taskId}/status`, {
       method: "POST",
       headers: await getAuthHeaders(),
       body: JSON.stringify({ status, ...extra })
@@ -314,7 +348,7 @@ export const api = {
   },
 
   deleteTask: async (taskId: string): Promise<{ success: boolean }> => {
-    const res = await fetch(`/api/tasks/${taskId}`, {
+    const res = await fetchWithDedup(`/api/tasks/${taskId}`, {
       method: "DELETE",
       headers: await getAuthHeaders()
     });
@@ -329,7 +363,7 @@ export const api = {
       comment?: string;
     }
   ): Promise<Task> => {
-    const res = await fetch(`/api/tasks/${taskId}/review`, {
+    const res = await fetchWithDedup(`/api/tasks/${taskId}/review`, {
       method: "POST",
       headers: await getAuthHeaders(),
       body: JSON.stringify(data)
@@ -340,7 +374,7 @@ export const api = {
   // Marks
   getMarks: async (internId?: string): Promise<Mark[]> => {
     const url = internId ? `/api/marks?intern_id=${internId}` : "/api/marks";
-    const res = await fetch(url, {
+    const res = await fetchWithDedup(url, {
       headers: await getAuthHeaders()
     });
     return handleResponse(res);
@@ -351,14 +385,14 @@ export const api = {
     const params = new URLSearchParams();
     if (filters?.intern_id) params.append("intern_id", filters.intern_id);
     if (filters?.resolved !== undefined) params.append("resolved", filters.resolved ? "true" : "false");
-    const res = await fetch(`/api/mistakes?${params.toString()}`, {
+    const res = await fetchWithDedup(`/api/mistakes?${params.toString()}`, {
       headers: await getAuthHeaders()
     });
     return handleResponse(res);
   },
 
   resolveMistake: async (mistakeId: string, resolved: boolean): Promise<Mistake> => {
-    const res = await fetch(`/api/mistakes/${mistakeId}/resolve`, {
+    const res = await fetchWithDedup(`/api/mistakes/${mistakeId}/resolve`, {
       method: "POST",
       headers: await getAuthHeaders(),
       body: JSON.stringify({ resolved })
@@ -368,14 +402,14 @@ export const api = {
 
   // Chat Messages
   getMessages: async (userA: string, userB: string): Promise<Message[]> => {
-    const res = await fetch(`/api/messages?user_a=${userA}&user_b=${userB}`, {
+    const res = await fetchWithDedup(`/api/messages?user_a=${userA}&user_b=${userB}`, {
       headers: await getAuthHeaders()
     });
     return handleResponse(res);
   },
 
   sendMessage: async (message: { from_id: string; to_id: string; content: string }): Promise<Message> => {
-    const res = await fetch("/api/messages", {
+    const res = await fetchWithDedup("/api/messages", {
       method: "POST",
       headers: await getAuthHeaders(),
       body: JSON.stringify(message)
@@ -384,7 +418,7 @@ export const api = {
   },
 
   markMessagesRead: async (userId: string, senderId: string): Promise<{ success: boolean }> => {
-    const res = await fetch("/api/messages", {
+    const res = await fetchWithDedup("/api/messages", {
       method: "PUT",
       headers: await getAuthHeaders(),
       body: JSON.stringify({ user_id: userId, sender_id: senderId })
@@ -394,14 +428,14 @@ export const api = {
 
   // Threaded Questions
   getQuestions: async (): Promise<Question[]> => {
-    const res = await fetch("/api/questions", {
+    const res = await fetchWithDedup("/api/questions", {
       headers: await getAuthHeaders()
     });
     return handleResponse(res);
   },
 
   askQuestion: async (question: { intern_id: string; title: string; content: string }): Promise<Question> => {
-    const res = await fetch("/api/questions", {
+    const res = await fetchWithDedup("/api/questions", {
       method: "POST",
       headers: await getAuthHeaders(),
       body: JSON.stringify(question)
@@ -410,7 +444,7 @@ export const api = {
   },
 
   replyToQuestion: async (questionId: string, reply: { user_id: string; content: string }): Promise<Question> => {
-    const res = await fetch(`/api/questions/${questionId}/replies`, {
+    const res = await fetchWithDedup(`/api/questions/${questionId}/replies`, {
       method: "POST",
       headers: await getAuthHeaders(),
       body: JSON.stringify(reply)
@@ -421,7 +455,7 @@ export const api = {
   // Analytics
   getAnalytics: async (techLeadId?: string): Promise<any> => {
     const url = techLeadId ? `/api/analytics?tech_lead_id=${techLeadId}` : "/api/analytics";
-    const res = await fetch(url, {
+    const res = await fetchWithDedup(url, {
       headers: await getAuthHeaders()
     });
     return handleResponse(res);
@@ -430,7 +464,7 @@ export const api = {
   // Day Sessions (Start / End Day)
   getTodayDaySessions: async (internId?: string): Promise<DaySession[]> => {
     const url = internId ? `/api/day-sessions/today?intern_id=${internId}` : "/api/day-sessions/today";
-    const res = await fetch(url, {
+    const res = await fetchWithDedup(url, {
       headers: await getAuthHeaders()
     });
     return handleResponse(res);
@@ -443,7 +477,7 @@ export const api = {
     questions?: string;
     git_link?: string;
   }): Promise<DaySession> => {
-    const res = await fetch("/api/day-sessions/start", {
+    const res = await fetchWithDedup("/api/day-sessions/start", {
       method: "POST",
       headers: await getAuthHeaders(),
       body: JSON.stringify(data)
@@ -455,7 +489,7 @@ export const api = {
     intern_id: string;
     end_journal?: string;
   }): Promise<DaySession> => {
-    const res = await fetch("/api/day-sessions/end", {
+    const res = await fetchWithDedup("/api/day-sessions/end", {
       method: "POST",
       headers: await getAuthHeaders(),
       body: JSON.stringify(data)
@@ -464,7 +498,7 @@ export const api = {
   },
 
   createUserBySuperAdmin: async (data: { name: string; email: string; username: string; password: string; role: string; techLeadId?: string; organizationId?: string }): Promise<{ user: User; username: string; password: string }> => {
-    const res = await fetch("/api/superadmin/users", {
+    const res = await fetchWithDedup("/api/superadmin/users", {
       method: "POST",
       headers: await getAuthHeaders(),
       body: JSON.stringify(data)
@@ -473,7 +507,7 @@ export const api = {
   },
 
   reassignTechLead: async (userId: string, techLeadId: string | null): Promise<User> => {
-    const res = await fetch(`/api/superadmin/users/${userId}/reassign-tech-lead`, {
+    const res = await fetchWithDedup(`/api/superadmin/users/${userId}/reassign-tech-lead`, {
       method: "PATCH",
       headers: await getAuthHeaders(),
       body: JSON.stringify({ techLeadId })
@@ -483,14 +517,14 @@ export const api = {
 
   // SuperAdmin Organizations
   getOrganizations: async (): Promise<any[]> => {
-    const res = await fetch("/api/superadmin/organizations", {
+    const res = await fetchWithDedup("/api/superadmin/organizations", {
       headers: await getAuthHeaders(),
     });
     return handleResponse(res);
   },
 
   createOrganization: async (data: { name: string; slug: string }): Promise<any> => {
-    const res = await fetch("/api/superadmin/organizations", {
+    const res = await fetchWithDedup("/api/superadmin/organizations", {
       method: "POST",
       headers: await getAuthHeaders(),
       body: JSON.stringify(data),
@@ -499,7 +533,7 @@ export const api = {
   },
 
   updateOrganization: async (id: string, data: { name?: string; slug?: string }): Promise<any> => {
-    const res = await fetch(`/api/superadmin/organizations/${id}`, {
+    const res = await fetchWithDedup(`/api/superadmin/organizations/${id}`, {
       method: "PUT",
       headers: await getAuthHeaders(),
       body: JSON.stringify(data),
@@ -508,9 +542,9 @@ export const api = {
   },
 
   deleteOrganization: async (id: string): Promise<{ success: boolean }> => {
-    const res = await fetch(`/api/superadmin/organizations/${id}`, {
+    const res = await fetchWithDedup(`/api/superadmin/organizations/${id}`, {
       method: "DELETE",
-      headers: await getAuthHeaders(),
+      headers: await getAuthHeaders()
     });
     return handleResponse(res);
   },
@@ -535,21 +569,21 @@ export const api = {
     if (filters?.endDate) params.append("endDate", filters.endDate);
     if (filters?.limit) params.append("limit", String(filters.limit));
     if (filters?.offset) params.append("offset", String(filters.offset));
-    const res = await fetch(`/api/superadmin/audit-logs?${params.toString()}`, {
+    const res = await fetchWithDedup(`/api/superadmin/audit-logs?${params.toString()}`, {
       headers: await getAuthHeaders()
     });
     return handleResponse(res);
   },
 
   getAuditLogsSummary: async (): Promise<{ actorId: string; actorName: string; count: number }[]> => {
-    const res = await fetch("/api/superadmin/audit-logs/summary", {
+    const res = await fetchWithDedup("/api/superadmin/audit-logs/summary", {
       headers: await getAuthHeaders()
     });
     return handleResponse(res);
   },
 
   createContentFlag: async (data: { contentType: string; contentId: string; reason: string }): Promise<any> => {
-    const res = await fetch("/api/content-flags", {
+    const res = await fetchWithDedup("/api/content-flags", {
       method: "POST",
       headers: await getAuthHeaders(),
       body: JSON.stringify(data),
@@ -568,14 +602,14 @@ export const api = {
     if (filters?.contentType) params.append("contentType", filters.contentType);
     if (filters?.limit) params.append("limit", String(filters.limit));
     if (filters?.offset) params.append("offset", String(filters.offset));
-    const res = await fetch(`/api/superadmin/content-flags?${params.toString()}`, {
+    const res = await fetchWithDedup(`/api/superadmin/content-flags?${params.toString()}`, {
       headers: await getAuthHeaders(),
     });
     return handleResponse(res);
   },
 
   updateContentFlag: async (id: string, action: "dismiss" | "resolve"): Promise<any> => {
-    const res = await fetch(`/api/superadmin/content-flags/${id}`, {
+    const res = await fetchWithDedup(`/api/superadmin/content-flags/${id}`, {
       method: "PATCH",
       headers: await getAuthHeaders(),
       body: JSON.stringify({ action }),
@@ -584,7 +618,7 @@ export const api = {
   },
 
   getSystemSettings: async (): Promise<SystemSetting[]> => {
-    const res = await fetch("/api/superadmin/system-settings", {
+    const res = await fetchWithDedup("/api/superadmin/system-settings", {
       headers: await getAuthHeaders(),
     });
     return handleResponse(res);
@@ -592,14 +626,14 @@ export const api = {
 
   // Public lightweight settings read (any authenticated user)
   getSettings: async (): Promise<Record<string, any>> => {
-    const res = await fetch("/api/settings", {
+    const res = await fetchWithDedup("/api/settings", {
       headers: await getAuthHeaders(),
     });
     return handleResponse(res);
   },
 
   updateSystemSetting: async (key: string, value: string): Promise<SystemSetting> => {
-    const res = await fetch(`/api/superadmin/system-settings/${encodeURIComponent(key)}`, {
+    const res = await fetchWithDedup(`/api/superadmin/system-settings/${encodeURIComponent(key)}`, {
       method: "PUT",
       headers: await getAuthHeaders(),
       body: JSON.stringify({ value })
@@ -608,15 +642,15 @@ export const api = {
   },
 
   getOverview: async (): Promise<any> => {
-    const res = await fetch("/api/superadmin/overview", {
+    const res = await fetchWithDedup("/api/superadmin/overview", {
       headers: await getAuthHeaders(),
     });
     return handleResponse(res);
   },
 
   getInternRanking: async (): Promise<{ ranking: any[]; topPerformerThisWeek: any }> => {
-    const res = await fetch("/api/ranking", {
-      headers: await getAuthHeaders(),
+    const res = await fetchWithDedup("/api/ranking", {
+      headers: await getAuthHeaders()
     });
     return handleResponse(res);
   }

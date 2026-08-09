@@ -5,6 +5,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
+import { useRouter } from 'next/navigation';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../services/api';
 import { User, TeamStats, Project } from '../../types.ts';
 import { InternDetail } from '../../components/techlead/InternDetail';
@@ -23,86 +25,59 @@ interface TeamOverviewProps {
 }
 
 export const TeamOverview: React.FC<TeamOverviewProps> = ({ currentUser }) => {
-  const [analytics, setAnalytics] = useState<any | null>(null);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [selectedInternId, setSelectedInternId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'queue' | 'roster' | 'upcoming_projects'>('queue');
 
-  const loadAnalytics = async () => {
-    try {
-      const stats = await api.getAnalytics(currentUser.id);
-      setAnalytics(stats);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
+  const { data: analytics, isLoading: loading } = useQuery({
+    queryKey: ["analytics", currentUser.id],
+    queryFn: () => api.getAnalytics(currentUser.id),
+    staleTime: 2 * 60 * 1000,
+  });
+
+  const invalidateAnalytics = () => {
+    queryClient.invalidateQueries({ queryKey: ["analytics", currentUser.id] });
   };
 
   useEffect(() => {
-    loadAnalytics();
-
     let subscriptionChannel: any = null;
 
     const setupRealtime = async () => {
+      let cleanup: (() => void) | undefined;
       try {
         const supabase = await getSupabaseClient();
         subscriptionChannel = supabase
           .channel('techlead-team-overview')
-          .on(
-            'postgres_changes',
-            { event: '*', schema: 'public', table: 'User' },
-            () => {
-              loadAnalytics();
-            }
-          )
-          .on(
-            'postgres_changes',
-            { event: '*', schema: 'public', table: 'DailyLog' },
-            () => {
-              loadAnalytics();
-            }
-          )
-          .on(
-            'postgres_changes',
-            { event: '*', schema: 'public', table: 'Task' },
-            () => {
-              loadAnalytics();
-            }
-          )
-          .on(
-            'postgres_changes',
-            { event: '*', schema: 'public', table: 'DaySession' },
-            () => {
-              loadAnalytics();
-            }
-          )
-          .on(
-            'postgres_changes',
-            { event: '*', schema: 'public', table: 'Project' },
-            () => {
-              loadAnalytics();
-            }
-          )
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'User' }, () => {
+            invalidateAnalytics();
+          })
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'DailyLog' }, () => {
+            invalidateAnalytics();
+          })
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'Task' }, () => {
+            invalidateAnalytics();
+          })
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'DaySession' }, () => {
+            invalidateAnalytics();
+          })
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'Project' }, () => {
+            invalidateAnalytics();
+          })
           .subscribe();
+        cleanup = () => { if (subscriptionChannel) subscriptionChannel.unsubscribe(); };
       } catch (err) {
         console.warn("Realtime subscriptions are inactive in TeamOverview:", err);
       }
+      return cleanup;
     };
 
-    setupRealtime();
-
-    const pollInterval = setInterval(() => {
-      loadAnalytics();
-    }, 30000);
+    let cleanup: (() => void) | undefined;
+    setupRealtime().then((c) => { cleanup = c; });
 
     return () => {
-      if (subscriptionChannel) {
-        subscriptionChannel.unsubscribe();
-      }
-      clearInterval(pollInterval);
+      cleanup?.();
     };
-  }, [currentUser, selectedInternId]);
+  }, [currentUser]);
 
   if (loading) {
     return (
@@ -556,29 +531,15 @@ export const TeamOverview: React.FC<TeamOverviewProps> = ({ currentUser }) => {
 export default TeamOverview;
 
 const UpcomingProjectsView: React.FC<{ currentUser: User }> = ({ currentUser }) => {
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [techLeads, setTechLeads] = useState<User[]>([]);
-
-  const loadUpcoming = async () => {
-    try {
-      setLoading(true);
-      const [projList, leads] = await Promise.all([
-        api.getProjects({ status: 'upcoming' }),
-        api.getPublicTechLeads(),
-      ]);
-      setProjects(projList);
-      setTechLeads(leads);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadUpcoming();
-  }, []);
+  const router = useRouter();
+  const { data: projects = [], isLoading: loading } = useQuery({
+    queryKey: ["projects", "upcoming"],
+    queryFn: () => api.getProjects({ status: 'upcoming' }),
+  });
+  const { data: techLeads = [] } = useQuery({
+    queryKey: ["public-tech-leads"],
+    queryFn: () => api.getPublicTechLeads(),
+  });
 
   if (loading) {
     return (
@@ -590,13 +551,21 @@ const UpcomingProjectsView: React.FC<{ currentUser: User }> = ({ currentUser }) 
 
   return (
     <div id="upcoming-projects-techlead-root" className="space-y-6">
-      <div className="bg-white/10 dark:bg-slate-900/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 dark:border-slate-700/30 shadow-lg shadow-teal-500/5">
-        <h2 className="text-lg font-bold text-white flex items-center gap-2">
-          Upcoming Projects <Calendar className="h-5 w-5 text-teal-400" />
-        </h2>
-        <p className="text-xs text-slate-300">
-          Projects scheduled by management for the upcoming sprint.
-        </p>
+      <div className="bg-white/10 dark:bg-slate-900/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 dark:border-slate-700/30 shadow-lg shadow-teal-500/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-lg font-bold text-white flex items-center gap-2">
+            Upcoming Projects <Calendar className="h-5 w-5 text-teal-400" />
+          </h2>
+          <p className="text-xs text-slate-300">
+            Projects scheduled by management for the upcoming sprint.
+          </p>
+        </div>
+        <button
+          onClick={() => router.push('/projects')}
+          className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold rounded-xl flex items-center gap-1.5 transition active:scale-95 shadow-sm"
+        >
+          <PlusCircle className="h-4 w-4" /> Create Project
+        </button>
       </div>
 
       {projects.length === 0 ? (

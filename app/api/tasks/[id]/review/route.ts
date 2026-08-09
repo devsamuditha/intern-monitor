@@ -5,6 +5,7 @@ import { mapTask } from "@/app/api/_lib/mappers";
 import { validateBody } from "@/app/api/_lib/validation";
 import { ScoreTaskSchema } from "@/app/api/_lib/validation";
 import { getRelativeDateStr } from "@/app/api/_lib/mappers";
+import { scopeToOrganization } from "@/app/api/_lib/tenant";
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   let user: any;
@@ -30,7 +31,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const todayStr = getRelativeDateStr(0);
 
     const updatedTask = await prisma.task.update({
-      where: { id },
+      where: { id, ...scopeToOrganization({}, user) },
       data: {
         score: Number(score),
         comment: comment || null,

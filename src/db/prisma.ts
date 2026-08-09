@@ -1,33 +1,27 @@
 import { PrismaClient, Role, TaskStatus, TaskPriority, MistakeSeverity } from '@prisma/client';
 
-let prisma: PrismaClient | null = null;
+declare global {
+  var prisma: PrismaClient | undefined;
+}
 
 export function getPrisma(): PrismaClient {
-  const dbUrl = process.env.DATABASE_URL;
+  const isProduction = process.env.NODE_ENV === 'production';
+  const dbUrl = isProduction ? process.env.DATABASE_URL : process.env.DIRECT_URL;
 
   if (!dbUrl) {
-    throw new Error("DATABASE_URL is missing from environment variables.");
+    throw new Error(
+      `Missing ${isProduction ? 'DATABASE_URL' : 'DIRECT_URL'} environment variable.`
+    );
   }
 
-  // Prevent multiple instances of Prisma Client in development
-  if (process.env.NODE_ENV === "development") {
-    const globalForPrisma = global as unknown as { prisma: PrismaClient };
-    if (!globalForPrisma.prisma) {
-      globalForPrisma.prisma = new PrismaClient({
-        datasources: { db: { url: dbUrl } },
-      });
-    }
-    return globalForPrisma.prisma;
-  }
-
-  // In production, always return a new instance or manage via connection pooling
-  if (!prisma) {
-    prisma = new PrismaClient({
+  if (!global.prisma) {
+    global.prisma = new PrismaClient({
       datasources: { db: { url: dbUrl } },
+      log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
     });
   }
-  
-  return prisma;
+
+  return global.prisma;
 }
 
 export function getTenantPrisma(organizationId: string) {

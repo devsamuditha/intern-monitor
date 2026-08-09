@@ -3,24 +3,26 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { motion } from 'motion/react';
+import { useSuperAdminOverview } from '@/src/hooks/queries/useQueries';
 import { api } from '../../services/api';
 import { User } from '../../types.ts';
 import { scaleIn } from '../../utils/motion';
 import { TrendingUp, Users, Flag, Activity, RefreshCw, Server, Shield, AlertTriangle, ArrowRight, BarChart3, Award, Clock, Target, Zap, Globe, Code, Terminal, Rocket, Layers, ChevronRight } from 'lucide-react';
 import { getSupabaseClient } from '../../lib/supabaseClient';
+import { useQueryClient } from '@tanstack/react-query';
 import { QUICK_LINK_COLORS } from '../../components/ui/theme/ThemeTokens';
+import { useEffect } from 'react';
 
 interface SuperAdminOverviewProps {
   currentUser: User;
 }
 
 export const SuperAdminOverview: React.FC<SuperAdminOverviewProps> = ({ currentUser }) => {
-  const [overview, setOverview] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [isFetching, setIsFetching] = useState(false);
+  const queryClient = useQueryClient();
+  const { data: overview, isLoading: loading, isError, error, refetch } = useSuperAdminOverview();
+  const errorMessage = isError ? (error as any)?.message || "Failed to load overview data" : null;
 
   const handleNavigate = (path: string) => {
     const tab = path.split('/').pop();
@@ -30,63 +32,27 @@ export const SuperAdminOverview: React.FC<SuperAdminOverviewProps> = ({ currentU
     }
   };
 
-  const loadData = async () => {
-    if (isFetching) return;
-    setIsFetching(true);
-    setErrorMessage(null);
-    try {
-      const data = await api.getOverview();
-      setOverview(data);
-    } catch (e: any) {
-      console.error("Failed to load overview data:", e);
-      setErrorMessage(e?.message || "Failed to load overview data");
-    } finally {
-      setIsFetching(false);
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    loadData();
-
     let subscriptionChannel: any = null;
 
     const setupRealtime = async () => {
       try {
         const supabase = await getSupabaseClient();
-        // Create a uniquely-named channel per component instance to avoid reusing
-        // a channel that may already be subscribed elsewhere in the app.
         const channelName = `superadmin-overview-${Date.now()}`;
         subscriptionChannel = supabase
           .channel(channelName)
-          .on(
-            'postgres_changes',
-            { event: '*', schema: 'public', table: 'User' },
-            () => {
-              loadData();
-            }
-          )
-          .on(
-            'postgres_changes',
-            { event: '*', schema: 'public', table: 'DailyLog' },
-            () => {
-              loadData();
-            }
-          )
-          .on(
-            'postgres_changes',
-            { event: '*', schema: 'public', table: 'Task' },
-            () => {
-              loadData();
-            }
-          )
-          .on(
-            'postgres_changes',
-            { event: '*', schema: 'public', table: 'DaySession' },
-            () => {
-              loadData();
-            }
-          )
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'User' }, () => {
+            queryClient.invalidateQueries({ queryKey: ["superadmin", "overview"] });
+          })
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'DailyLog' }, () => {
+            queryClient.invalidateQueries({ queryKey: ["superadmin", "overview"] });
+          })
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'Task' }, () => {
+            queryClient.invalidateQueries({ queryKey: ["superadmin", "overview"] });
+          })
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'DaySession' }, () => {
+            queryClient.invalidateQueries({ queryKey: ["superadmin", "overview"] });
+          })
           .subscribe();
       } catch (err) {
         console.warn("Realtime subscriptions are inactive in SuperAdminOverview:", err);
@@ -95,15 +61,10 @@ export const SuperAdminOverview: React.FC<SuperAdminOverviewProps> = ({ currentU
 
     setupRealtime();
 
-    const pollInterval = setInterval(() => {
-      loadData();
-    }, 30000);
-
     return () => {
       if (subscriptionChannel) {
         subscriptionChannel.unsubscribe();
       }
-      clearInterval(pollInterval);
     };
   }, []);
 
@@ -137,7 +98,7 @@ export const SuperAdminOverview: React.FC<SuperAdminOverviewProps> = ({ currentU
         <div className="bg-rose-50 dark:bg-rose-900/30 p-3 rounded-md border border-rose-200/40 flex items-center justify-between">
           <div className="text-sm text-rose-700 dark:text-rose-200">Failed to load overview: {errorMessage}</div>
           <div className="flex items-center gap-2">
-            <button onClick={loadData} className="text-xs px-3 py-1 bg-white/80 dark:bg-slate-800 rounded-md border">Retry</button>
+            <button onClick={() => refetch()} className="text-xs px-3 py-1 bg-white/80 dark:bg-slate-800 rounded-md border">Retry</button>
           </div>
         </div>
       )}
@@ -147,7 +108,7 @@ export const SuperAdminOverview: React.FC<SuperAdminOverviewProps> = ({ currentU
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Aggregated analytics from live database records</p>
         </div>
         <button
-          onClick={loadData}
+          onClick={() => refetch()}
           className="flex items-center gap-2 px-4 py-2 rounded-xl border border-white/20 dark:border-slate-700/30 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-950 text-slate-600 dark:text-slate-300 text-xs font-semibold transition"
         >
           <RefreshCw className="h-4 w-4" />

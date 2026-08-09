@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { withAuth, requireSuperAdmin } from "@/app/api/_lib/withAuth";
 import { getPrisma } from "@/src/db/prisma";
 import { mapSystemSetting, logAudit } from "@/app/api/_lib/mappers";
+import { scopeToOrganization } from "@/app/api/_lib/tenant";
 
 const KNOWN_KEYS = new Set([
   "ask_the_team_enabled",
@@ -26,7 +27,12 @@ export async function GET(request: NextRequest) {
   try {
     const prisma = getPrisma();
     const settings = await prisma.systemSetting.findMany({
-      include: { updater: true },
+      where: scopeToOrganization({}, user),
+      select: {
+        id: true, organizationId: true, key: true, value: true,
+        updatedBy: true, updatedAt: true,
+        updater: { select: { id: true, name: true } },
+      },
       orderBy: { key: "asc" },
     });
     return NextResponse.json(settings.map(mapSystemSetting));

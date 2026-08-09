@@ -31,6 +31,11 @@ export async function GET(request: NextRequest) {
 
     const dbLogs = await prisma.dailyLog.findMany({
       where: { ...whereClause, isHidden: false },
+      select: {
+        id: true, internId: true, projectId: true, summary: true,
+        technologies: true, changes: true, screenshotUrl: true, githubUrl: true,
+        date: true, status: true, organizationId: true,
+      },
       orderBy: { date: "desc" },
     });
 

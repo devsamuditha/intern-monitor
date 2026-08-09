@@ -6,10 +6,12 @@ import { validateBody } from "@/app/api/_lib/validation";
 import { TaskStatusSchema } from "@/app/api/_lib/validation";
 import { getRelativeDateStr } from "@/app/api/_lib/mappers";
 import { isValidGithubUrl } from "@/app/api/_lib/mappers";
+import { scopeToOrganization } from "@/app/api/_lib/tenant";
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  let user;
   try {
-    await withAuth(request);
+    user = await withAuth(request);
   } catch (err: any) {
     const status = err.message.includes("Forbidden") ? 403 : err.message.includes("Unauthorized") ? 401 : 500;
     return NextResponse.json({ error: err.message }, { status });
@@ -36,7 +38,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
   try {
     const prisma = getPrisma();
-    const existing = await prisma.task.findUnique({ where: { id } });
+    const existing = await prisma.task.findFirst({
+      where: { id, ...scopeToOrganization({}, user) },
+      select: { id: true, prLink: true },
+    });
     if (!existing) return NextResponse.json({ error: "Task not found" }, { status: 404 });
 
     const todayStr = getRelativeDateStr(0);
@@ -56,7 +61,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     if (pr_link !== undefined) updateData.prLink = pr_link;
 
     const updated = await prisma.task.update({
-      where: { id },
+      where: { id, ...scopeToOrganization({}, user) },
       data: updateData,
     });
 

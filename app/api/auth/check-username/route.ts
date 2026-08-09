@@ -17,6 +17,7 @@ export async function POST(request: NextRequest) {
     const prisma = getPrisma();
     const user = await prisma.user.findUnique({
       where: { username: username.toLowerCase() },
+      select: { id: true },
     });
     return NextResponse.json({ exists: !!user });
   } catch (error: any) {

@@ -375,28 +375,32 @@ export const MyProjects: React.FC<MyProjectsProps> = ({ currentUser, readOnly = 
                 />
               </div>
 
-              {!isIntern && interns.length > 0 && (
+              {!isIntern && canCreate && (
                 <div className="md:col-span-2">
                   <label className="block text-[10px] font-bold text-teal-100 uppercase mb-1">Assigned Interns (optional)</label>
-                  <div className="flex flex-wrap gap-3">
-                    {interns.map(intern => (
-                      <label key={intern.id} className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={assignedInternIds.includes(intern.id)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setAssignedInternIds([...assignedInternIds, intern.id]);
-                            } else {
-                              setAssignedInternIds(assignedInternIds.filter(id => id !== intern.id));
-                            }
-                          }}
-                          className="h-3.5 w-3.5 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
-                        />
-                        <span className="text-xs text-slate-200">{intern.name}</span>
-                      </label>
-                    ))}
-                  </div>
+                  {interns.length > 0 ? (
+                    <div className="flex flex-wrap gap-3">
+                      {interns.map(intern => (
+                        <label key={intern.id} className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={assignedInternIds.includes(intern.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setAssignedInternIds([...assignedInternIds, intern.id]);
+                              } else {
+                                setAssignedInternIds(assignedInternIds.filter(id => id !== intern.id));
+                              }
+                            }}
+                            className="h-3.5 w-3.5 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+                          />
+                          <span className="text-xs text-slate-200">{intern.name}</span>
+                        </label>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-slate-400 italic">No active interns available to assign.</p>
+                  )}
                 </div>
               )}
 

@@ -14,11 +14,11 @@ interface DailyLogFormProps {
   user: User;
   onSuccess: () => void;
   todaySession?: DaySession | null;
+  projects?: Project[];
 }
 
-export const DailyLogForm: React.FC<DailyLogFormProps> = ({ user, onSuccess, todaySession }) => {
+export const DailyLogForm: React.FC<DailyLogFormProps> = ({ user, onSuccess, todaySession, projects = [] }) => {
   const [showReviewModal, setShowReviewModal] = useState(false);
-  const [projects, setProjects] = useState<Project[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState('');
   const [summary, setSummary] = useState('');
   const [changes, setChanges] = useState('');
@@ -35,48 +35,38 @@ export const DailyLogForm: React.FC<DailyLogFormProps> = ({ user, onSuccess, tod
   const draftKey = `interntrack_log_draft_${user.id}`;
   const isInitialLoad = useRef(true);
 
-  // Fetch projects & restore draft
+  // Restore draft and select default project from passed projects
   useEffect(() => {
-    const fetchProjects = async () => {
+    const savedDraftRaw = localStorage.getItem(draftKey);
+    if (savedDraftRaw) {
       try {
-        const pList = await api.getProjects();
-        setProjects(pList);
-
-        const savedDraftRaw = localStorage.getItem(draftKey);
-        if (savedDraftRaw) {
-          try {
-            const draft = JSON.parse(savedDraftRaw);
-            if (draft.summary || draft.changes) {
-              setSummary(draft.summary || '');
-              setChanges(draft.changes || '');
-              setGithubUrl(draft.githubUrl || '');
-              setSelectedTechs(draft.selectedTechs || []);
-              if (draft.selectedProjectId) setSelectedProjectId(draft.selectedProjectId);
-              if (draft.screenshotUrl) setScreenshotUrl(draft.screenshotUrl);
-              setSaveStatus('has_draft');
-              setLastSavedTime(draft.savedAt || 'Previous session');
-            }
-          } catch (e) {
-            // Ignore parse error
-          }
+        const draft = JSON.parse(savedDraftRaw);
+        if (draft.summary || draft.changes) {
+          setSummary(draft.summary || '');
+          setChanges(draft.changes || '');
+          setGithubUrl(draft.githubUrl || '');
+          setSelectedTechs(draft.selectedTechs || []);
+          if (draft.selectedProjectId) setSelectedProjectId(draft.selectedProjectId);
+          if (draft.screenshotUrl) setScreenshotUrl(draft.screenshotUrl);
+          setSaveStatus('has_draft');
+          setLastSavedTime(draft.savedAt || 'Previous session');
         }
-
-        if (pList.length > 0 && !selectedProjectId) {
-          const relevant = pList.filter(p => p.owner_id === user.id || p.assigned_intern_ids?.includes(user.id));
-          const own = relevant.find(p => p.owner_id === user.id);
-          setSelectedProjectId(own ? own.id : (relevant[0]?.id || pList[0].id));
-          if (!githubUrl) setGithubUrl(own ? own.github_url : (relevant[0]?.github_url || pList[0].github_url));
-        }
-      } catch (err) {
-        console.error("Error loading projects", err);
-      } finally {
-        setTimeout(() => {
-          isInitialLoad.current = false;
-        }, 500);
+      } catch (e) {
+        // Ignore parse error
       }
-    };
-    fetchProjects();
-  }, [user]);
+    }
+
+    if (projects.length > 0 && !selectedProjectId) {
+      const relevant = projects.filter(p => p.owner_id === user.id || p.assigned_intern_ids?.includes(user.id));
+      const own = relevant.find(p => p.owner_id === user.id);
+      setSelectedProjectId(own ? own.id : (relevant[0]?.id || projects[0].id));
+      if (!githubUrl) setGithubUrl(own ? own.github_url : (relevant[0]?.github_url || projects[0].github_url));
+    }
+
+    setTimeout(() => {
+      isInitialLoad.current = false;
+    }, 500);
+  }, [user, projects]);
 
   // Debounced auto-save effect
   useEffect(() => {
@@ -114,6 +104,7 @@ export const DailyLogForm: React.FC<DailyLogFormProps> = ({ user, onSuccess, tod
   };
 
   const submitLog = async () => {
+    if (loading) return;
     if (!selectedProjectId) {
       setError('Please select a project.');
       return false;
@@ -377,6 +368,7 @@ export const DailyLogForm: React.FC<DailyLogFormProps> = ({ user, onSuccess, tod
           screenshotUrl,
         }}
         onFieldChange={handleModalFieldChange}
+        submitting={loading}
       />
     </div>
   );

@@ -14,9 +14,10 @@ import { ThemedIcon } from '../../components/ui/ThemedIcon';
 interface TasksBoardProps {
   tasks: Task[];
   onTaskStatusToggle: (task: Task) => void;
+  taskStatusLoading?: boolean;
 }
 
-export const TasksBoard: React.FC<TasksBoardProps> = ({ tasks, onTaskStatusToggle }) => {
+export const TasksBoard: React.FC<TasksBoardProps> = ({ tasks, onTaskStatusToggle, taskStatusLoading }) => {
   return (
     <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 space-y-4">
       <div className="flex items-center justify-between gap-2">
@@ -104,7 +105,8 @@ export const TasksBoard: React.FC<TasksBoardProps> = ({ tasks, onTaskStatusToggl
                 {task.status === 'todo' && (
                   <button
                     onClick={() => onTaskStatusToggle(task)}
-                    className="px-3 py-1.5 rounded-xl text-[10px] font-bold transition flex items-center gap-1 shrink-0 bg-teal-500 text-white hover:bg-teal-600 dark:bg-teal-600 dark:hover:bg-teal-700"
+                    disabled={taskStatusLoading}
+                    className="px-3 py-1.5 rounded-xl text-[10px] font-bold transition flex items-center gap-1 shrink-0 bg-teal-500 text-white hover:bg-teal-600 dark:bg-teal-600 dark:hover:bg-teal-700 disabled:opacity-50"
                   >
                     <ThemedIcon icon={Play} color="white" size={12} /> Start
                   </button>
@@ -112,7 +114,8 @@ export const TasksBoard: React.FC<TasksBoardProps> = ({ tasks, onTaskStatusToggl
                 {task.status === 'in_progress' && (
                   <button
                     onClick={() => onTaskStatusToggle(task)}
-                    className="px-3 py-1.5 rounded-xl text-[10px] font-bold transition flex items-center gap-1 shrink-0 bg-emerald-500 text-white hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-700"
+                    disabled={taskStatusLoading}
+                    className="px-3 py-1.5 rounded-xl text-[10px] font-bold transition flex items-center gap-1 shrink-0 bg-emerald-500 text-white hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-700 disabled:opacity-50"
                   >
                     <ThemedIcon icon={Check} color="white" size={12} fill /> Complete
                   </button>

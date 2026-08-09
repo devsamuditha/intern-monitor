@@ -24,7 +24,11 @@ export const InternMessages: React.FC<InternMessagesProps> = ({ user }) => {
 
   useEffect(() => {
     loadData();
-    setupRealtime();
+    let cleanup: (() => void) | undefined;
+    setupRealtime().then((c) => { cleanup = c; });
+    return () => {
+      cleanup?.();
+    };
   }, [user.id]);
 
   useEffect(() => {

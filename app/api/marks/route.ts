@@ -23,6 +23,7 @@ export async function GET(request: NextRequest) {
     }
     const dbMarks = await prisma.mark.findMany({
       where: whereClause,
+      select: { id: true, internId: true, givenById: true, score: true, comment: true, date: true, organizationId: true, relatedLogId: true, relatedTaskId: true },
       orderBy: { createdAt: "desc" },
     });
     return NextResponse.json(dbMarks.map(mapMark));

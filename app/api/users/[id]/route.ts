@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth, requireSuperAdmin } from "@/app/api/_lib/withAuth";
 import { getPrisma } from "@/src/db/prisma";
-import { mapUser } from "@/app/api/_lib/mappers";
+import { mapUser, SAFE_USER_SELECT } from "@/app/api/_lib/mappers";
 import { validateBody } from "@/app/api/_lib/validation";
 import { UpdateUserSchema } from "@/app/api/_lib/validation";
 import { Role } from "@prisma/client";
 import { logAudit } from "@/app/api/_lib/mappers";
+import { scopeToOrganization } from "@/app/api/_lib/tenant";
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   let user;
@@ -29,7 +30,10 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
   try {
     const prisma = getPrisma();
-    const oldUser = await prisma.user.findUnique({ where: { id } });
+    const oldUser = await prisma.user.findUnique({
+      where: { id, ...scopeToOrganization({}, user) },
+      select: SAFE_USER_SELECT,
+    });
     if (!oldUser) return NextResponse.json({ error: "User not found" }, { status: 404 });
     const updateData: any = {};
     if (name !== undefined) updateData.name = name;
@@ -38,7 +42,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     if (active !== undefined) updateData.isActive = !!active;
 
     const updated = await prisma.user.update({
-      where: { id },
+      where: { id, ...scopeToOrganization({}, user) },
       data: updateData,
     });
     const detailUpdates: any = {};
@@ -73,11 +77,14 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
   try {
     const prisma = getPrisma();
-    const userToDelete = await prisma.user.findUnique({ where: { id } });
+     const userToDelete = await prisma.user.findFirst({
+      where: { id, ...scopeToOrganization({}, user) },
+      select: { name: true, email: true, role: true },
+    });
     if (!userToDelete) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
     await prisma.user.delete({ where: { id } });
-    await logAudit(prisma, user.id, "USER_DELETED", "USER", id, { name: userToDelete.name, email: userToDelete.email, role: userToDelete.role });
+    await logAudit(prisma, user.id, "USER_DELETED", "USER", id, { name: userToDelete.name, email: userToDelete.email, role: userToDelete.role }, undefined, user.organizationId as string);
     
     return NextResponse.json({ success: true, message: "User deleted successfully" });
   } catch (error: any) {

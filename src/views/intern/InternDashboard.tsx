@@ -3,10 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Preloader } from '@/src/components/ui/Preloader';
-import { api } from '../../services/api';
 import { User, DailyLog, Task, Mistake, Mark, DaySession, TaskStatus } from '../../types';
 import { getSupabaseClient } from '../../lib/supabaseClient';
 import { DailyLogForm } from '../../components/intern/DailyLogForm';
@@ -21,6 +20,7 @@ import {
   FlaggedMistakesBanner
 } from '../../components/intern';
 import { formatDate } from '../../utils/helpers';
+import { useInternDashboard, useSubmitLog, useStartDaySession, useEndDaySession, useUpdateTaskStatus } from '@/src/hooks/queries/useDashboardQueries';
 
 interface InternDashboardProps {
   user: User;
@@ -28,238 +28,119 @@ interface InternDashboardProps {
 }
 
 export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefreshStats }) => {
-  const [logs, setLogs] = useState<DailyLog[]>([]);
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [mistakes, setMistakes] = useState<Mistake[]>([]);
-  const [marks, setMarks] = useState<Mark[]>([]);
-  const [todaySession, setTodaySession] = useState<DaySession | null>(null);
-  const [sessionLoading, setSessionLoading] = useState(false);
-  const [loading, setLoading] = useState(true);
-
-  // Start Day Modal & Inputs State
   const [showStartDayModal, setShowStartDayModal] = useState(false);
   const [startProject, setStartProject] = useState('');
   const [startPlan, setStartPlan] = useState('');
   const [startQuestions, setStartQuestions] = useState('');
   const [startGitLink, setStartGitLink] = useState('');
-  const [projectsList, setProjectsList] = useState<{ id: string; name: string; github_url: string }[]>([]);
-
-  // End Day Modal / Alert State
   const [showEndDayPromptModal, setShowEndDayPromptModal] = useState(false);
-
-  // Stats
-  const [streak, setStreak] = useState(0);
-  const [avgMark, setAvgMark] = useState<number | null>(null);
-
-  // Filters
   const [searchTerm, setSearchTerm] = useState('');
   const [dateFilter, setDateFilter] = useState('');
 
-  const loadAllDashboardData = async () => {
-    try {
-      const [allLogs, allTasks, allMistakes, allMarks, todaySessions, allProjects] = await Promise.all([
-        api.getLogs({ intern_id: user.id }),
-        api.getTasks({ assigned_to: user.id }),
-        api.getMistakes({ intern_id: user.id }),
-        api.getMarks(user.id),
-        api.getTodayDaySessions(user.id),
-        api.getProjects()
-      ]);
+  const { data, isLoading, refetch } = useInternDashboard(user.id);
+  const submitLogMutation = useSubmitLog();
+  const startDayMutation = useStartDaySession();
+  const endDayMutation = useEndDaySession();
+  const updateTaskStatusMutation = useUpdateTaskStatus();
 
-      setLogs(allLogs);
-      setTasks(allTasks);
-      setMistakes(allMistakes);
-      setMarks(allMarks);
-      setProjectsList(allProjects || []);
+  const logs = data?.logs ?? [];
+  const tasks = data?.tasks ?? [];
+  const mistakes = data?.mistakes ?? [];
+  const marks = data?.marks ?? [];
+  const todaySessions = data?.todaySessions ?? [];
+  const projects = data?.projects ?? [];
 
-      if (allProjects && allProjects.length > 0) {
-        const relevant = allProjects.filter(p => p.owner_id === user.id || p.assigned_intern_ids?.includes(user.id));
-        const own = relevant.find(p => p.owner_id === user.id) || relevant[0];
-        if (own) {
-          setStartProject(own.name);
-          setStartGitLink(own.github_url);
+  const todaySession = todaySessions.length > 0 ? todaySessions[0] : null;
+
+  const sessionLoading = startDayMutation.isPending || endDayMutation.isPending;
+  const isDev = process.env.NODE_ENV === 'development';
+
+  const streak = useMemo(() => {
+    const myLogs = logs.filter((l: any) => l.intern_id === user.id);
+    const logDates = Array.from(new Set(myLogs.map((l: any) => l.date))).sort().reverse();
+    const todayStr = getISTDateString();
+    const yesterdayDate = new Date();
+    yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+    const utcYesterday = yesterdayDate.getTime() + yesterdayDate.getTimezoneOffset() * 60000;
+    const istYesterday = new Date(utcYesterday + 5.5 * 3600000);
+    const yesterdayStr = istYesterday.toISOString().split('T')[0];
+
+    let realStreak = 0;
+    if (logDates.includes(todayStr) || logDates.includes(yesterdayStr)) {
+      let checkDate = new Date(logDates.includes(todayStr) ? todayStr : yesterdayStr);
+      while (true) {
+        const ds = checkDate.toISOString().split('T')[0];
+        if (logDates.includes(ds)) {
+          realStreak++;
+          checkDate.setDate(checkDate.getDate() - 1);
+        } else {
+          break;
         }
       }
-
-      if (todaySessions && todaySessions.length > 0) {
-        setTodaySession(todaySessions[0]);
-      } else {
-        setTodaySession(null);
-      }
-
-      // Calculate real streak from submitted daily logs
-      const myLogs = allLogs.filter((l: any) => l.intern_id === user.id);
-      const logDates = Array.from(new Set(myLogs.map((l: any) => l.date))).sort().reverse();
-      const todayStr = getISTDateString();
-      const yesterdayDate = new Date();
-      yesterdayDate.setDate(yesterdayDate.getDate() - 1);
-      const utcYesterday = yesterdayDate.getTime() + yesterdayDate.getTimezoneOffset() * 60000;
-      const istYesterday = new Date(utcYesterday + 5.5 * 3600000);
-      const yesterdayStr = istYesterday.toISOString().split('T')[0];
-
-      let realStreak = 0;
-      if (logDates.includes(todayStr) || logDates.includes(yesterdayStr)) {
-        let checkDate = new Date(logDates.includes(todayStr) ? todayStr : yesterdayStr);
-        while (true) {
-          const ds = checkDate.toISOString().split('T')[0];
-          if (logDates.includes(ds)) {
-            realStreak++;
-            checkDate.setDate(checkDate.getDate() - 1);
-          } else {
-            break;
-          }
-        }
-      }
-      setStreak(realStreak);
-
-      // Calculate real average mark from actual marks
-      const myMarks = allMarks.filter((m: any) => m.intern_id === user.id);
-      if (myMarks.length > 0) {
-        const totalMarks = myMarks.reduce((sum: number, m: any) => sum + (m.score || 0), 0);
-        setAvgMark(totalMarks / myMarks.length);
-      } else {
-        setAvgMark(null);
-      }
-    } catch (err) {
-      console.error("Error loading intern dashboard data", err);
-    } finally {
-      setLoading(false);
     }
-  };
+    return realStreak;
+  }, [logs, user.id]);
 
-  const handleStartDayClick = () => {
-    setShowStartDayModal(true);
-  };
+  const avgMark = useMemo(() => {
+    const myMarks = marks.filter((m: any) => m.intern_id === user.id);
+    if (myMarks.length > 0) {
+      const totalMarks = myMarks.reduce((sum: number, m: any) => sum + (m.score || 0), 0);
+      return totalMarks / myMarks.length;
+    }
+    return null;
+  }, [marks, user.id]);
 
-  useEffect(() => {
-    loadAllDashboardData();
-
-    let subscriptionChannel: any = null;
-
-    const setupRealtime = async () => {
-      try {
-        const supabase = await getSupabaseClient();
-        subscriptionChannel = supabase
-          .channel(`intern-dashboard-${user.id}`)
-          .on(
-            'postgres_changes',
-            { event: '*', schema: 'public', table: 'DailyLog' },
-            () => {
-              loadAllDashboardData();
-            }
-          )
-          .on(
-            'postgres_changes',
-            { event: '*', schema: 'public', table: 'Task' },
-            () => {
-              loadAllDashboardData();
-            }
-          )
-          .on(
-            'postgres_changes',
-            { event: '*', schema: 'public', table: 'Mark' },
-            () => {
-              loadAllDashboardData();
-            }
-          )
-          .on(
-            'postgres_changes',
-            { event: '*', schema: 'public', table: 'Mistake' },
-            () => {
-              loadAllDashboardData();
-            }
-          )
-          .on(
-            'postgres_changes',
-            { event: '*', schema: 'public', table: 'User' },
-            () => {
-              loadAllDashboardData();
-            }
-          )
-          .on(
-            'postgres_changes',
-            { event: '*', schema: 'public', table: 'DaySession' },
-            () => {
-              loadAllDashboardData();
-            }
-          )
-          .subscribe();
-      } catch (err) {
-        console.warn("Realtime subscriptions are inactive in InternDashboard:", err);
-      }
-    };
-
-    setupRealtime();
-
-    const pollInterval = setInterval(() => {
-      loadAllDashboardData();
-    }, 30000);
-
-    return () => {
-      if (subscriptionChannel) {
-        subscriptionChannel.unsubscribe();
-      }
-      clearInterval(pollInterval);
-    };
-  }, [user]);
+  if (isLoading) {
+    return <Preloader key="preloader" visible={true} />;
+  }
 
   const confirmStartDaySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSessionLoading(true);
+    if (startDayMutation.isPending) return;
     try {
-      const sess = await api.startDaySession({
+      await startDayMutation.mutateAsync({
         intern_id: user.id,
         today_project: startProject.trim() || undefined,
         today_plan: startPlan.trim() || undefined,
         questions: startQuestions.trim() || undefined,
-        git_link: startGitLink.trim() || undefined
+        git_link: startGitLink.trim() || undefined,
       });
-      setTodaySession(sess);
       setShowStartDayModal(false);
       if (onRefreshStats) onRefreshStats();
     } catch (err) {
       console.error("Start day failed", err);
-    } finally {
-      setSessionLoading(false);
     }
   };
 
   const handleEndDayClick = async () => {
-    // Check if daily journal submitted today
+    if (endDayMutation.isPending) return;
     const todayStr = getISTDateString();
-    const hasLogToday = logs.some(l => l.date === todayStr);
+    const hasLogToday = logs.some((l: any) => l.date === todayStr);
 
     if (!hasLogToday) {
       setShowEndDayPromptModal(true);
       return;
     }
 
-    setSessionLoading(true);
     try {
-      const sess = await api.endDaySession({ intern_id: user.id });
-      setTodaySession(sess);
+      await endDayMutation.mutateAsync({ intern_id: user.id });
       if (onRefreshStats) onRefreshStats();
     } catch (err) {
       console.error("End day failed", err);
-    } finally {
-      setSessionLoading(false);
     }
   };
 
   const handleTaskStatusToggle = async (task: Task) => {
-    // Only allow: todo → in_progress, in_progress → done
-    // Don't allow going back from done
+    if (updateTaskStatusMutation.isPending) return;
     let nextStatus: TaskStatus;
     if (task.status === 'todo') {
       nextStatus = 'in_progress';
     } else if (task.status === 'in_progress') {
       nextStatus = 'done';
     } else {
-      // Already done, no action
       return;
     }
 
-    // If moving to DONE, validate PR link or prompt for it
     if (nextStatus === 'done' && (!task.pr_link || !task.pr_link.trim())) {
       const prUrl = prompt('Enter your GitHub PR URL for this task (https://github.com/...):');
       if (prUrl !== null) {
@@ -270,14 +151,14 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
             alert('Invalid PR URL. Please enter a valid GitHub URL (https://github.com/...)');
             return;
           }
-        } catch (e) {
-          alert('Invalid URL format. Please enter a valid GitHub PR URL (https://github.com/...)');
+        } catch (err) {
+          alert('Invalid URL format. Please enter a valid GitHub URL (https://github.com/...)');
           return;
         }
 
         try {
-          await api.updateTaskStatus(task.id, 'done', { pr_link: clean });
-          await loadAllDashboardData();
+          await updateTaskStatusMutation.mutateAsync({ taskId: task.id, status: 'done', extra: { pr_link: clean } });
+          refetch();
           if (onRefreshStats) onRefreshStats();
           return;
         } catch (err: any) {
@@ -285,13 +166,13 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
           return;
         }
       } else {
-        return; // User cancelled prompt
+        return;
       }
     }
 
     try {
-      await api.updateTaskStatus(task.id, nextStatus);
-      await loadAllDashboardData();
+      await updateTaskStatusMutation.mutateAsync({ taskId: task.id, status: nextStatus });
+      refetch();
       if (onRefreshStats) onRefreshStats();
     } catch (e: any) {
       alert(e.message || 'Failed to update task status');
@@ -299,7 +180,7 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
   };
 
   const handleLogSubmitSuccess = () => {
-    loadAllDashboardData();
+    refetch();
     if (onRefreshStats) onRefreshStats();
   };
 
@@ -315,93 +196,93 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
 
   const completedTasksCount = tasks.filter(t => t.status === 'done').length;
 
+  if (projects.length > 0 && !startProject) {
+    const relevant = projects.filter(p => p.owner_id === user.id || p.assigned_intern_ids?.includes(user.id));
+    const own = relevant.find(p => p.owner_id === user.id) || relevant[0];
+    if (own) {
+      setStartProject(own.name);
+      setStartGitLink(own.github_url);
+    }
+  }
+
   return (
-    <AnimatePresence mode="wait">
-      {loading ? (
-        <Preloader key="preloader" visible={loading} />
-      ) : (
-        <motion.div
-          key="dashboard"
-          id="intern-workspace-root"
-          className="min-h-[calc(100vh-5rem)] bg-gradient-to-br from-teal-950 via-cyan-950 to-emerald-950"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.3, delay: 0.1 }}
-        >
-          <div className="relative z-10 space-y-6">
-            <StartDayHero
-              todaySession={todaySession}
-              sessionLoading={sessionLoading}
-              onStartDay={handleStartDayClick}
-              onEndDay={handleEndDayClick}
-            />
+    <AnimatePresence mode={isDev ? "sync" : "wait"}>
+      <motion.div
+        key="dashboard"
+        id="intern-workspace-root"
+        className="min-h-[calc(100vh-5rem)] bg-gradient-to-br from-teal-950 via-cyan-950 to-emerald-950"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3, delay: 0.1 }}
+      >
+        <div className="relative z-10 space-y-6">
+          <StartDayHero
+            todaySession={todaySession}
+            sessionLoading={sessionLoading}
+            onStartDay={() => setShowStartDayModal(true)}
+            onEndDay={handleEndDayClick}
+          />
 
-            <StartDayModal
-              show={showStartDayModal}
-              onClose={() => setShowStartDayModal(false)}
-              sessionLoading={sessionLoading}
-              startProject={startProject}
-              setStartProject={setStartProject}
-              startPlan={startPlan}
-              setStartPlan={setStartPlan}
-              startQuestions={startQuestions}
-              setStartQuestions={setStartQuestions}
-              startGitLink={startGitLink}
-              setStartGitLink={setStartGitLink}
-              onSubmit={confirmStartDaySubmit}
-            />
+          <StartDayModal
+            show={showStartDayModal}
+            onClose={() => setShowStartDayModal(false)}
+            sessionLoading={sessionLoading}
+            startProject={startProject}
+            setStartProject={setStartProject}
+            startPlan={startPlan}
+            setStartPlan={setStartPlan}
+            startQuestions={startQuestions}
+            setStartQuestions={setStartQuestions}
+            startGitLink={startGitLink}
+            setStartGitLink={setStartGitLink}
+            onSubmit={confirmStartDaySubmit}
+          />
 
-            <EndDayPromptModal
-              show={showEndDayPromptModal}
-              onClose={() => setShowEndDayPromptModal(false)}
-              onGoToJournal={handleGoToJournal}
-            />
+          <EndDayPromptModal
+            show={showEndDayPromptModal}
+            onClose={() => setShowEndDayPromptModal(false)}
+            onGoToJournal={handleGoToJournal}
+          />
 
-            <StatsHeader
-              streak={streak}
-              avgMark={avgMark}
-              completedTasksCount={completedTasksCount}
-              totalTasks={tasks.length}
-              totalLogs={logs.length}
-            />
+          <StatsHeader
+            streak={streak}
+            avgMark={avgMark}
+            completedTasksCount={completedTasksCount}
+            totalTasks={tasks.length}
+            totalLogs={logs.length}
+          />
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-              {/* Left Column: Log Form & Flagged Mistakes */}
-              <div className="lg:col-span-5 space-y-6 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-4">
-                <DailyLogForm user={user} onSuccess={handleLogSubmitSuccess} todaySession={todaySession} />
+            {/* Left Column: Log Form & Flagged Mistakes */}
+            <div className="lg:col-span-5 space-y-6 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-4">
+              <DailyLogForm user={user} onSuccess={handleLogSubmitSuccess} todaySession={todaySession} projects={projects} />
 
-                <FlaggedMistakesBanner mistakes={mistakes} />
-              </div>
+              <FlaggedMistakesBanner mistakes={mistakes} />
+            </div>
 
-              {/* Right Column: Timelines, Tasks, Feedback */}
-              <div className="lg:col-span-7 space-y-6 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-4">
+            {/* Right Column: Timelines, Tasks, Feedback */}
+            <div className="lg:col-span-7 space-y-6 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-4">
 
-                <TasksBoard
-                  tasks={tasks}
-                  onTaskStatusToggle={handleTaskStatusToggle}
-                />
+              <TasksBoard
+                tasks={tasks}
+                onTaskStatusToggle={handleTaskStatusToggle}
+                taskStatusLoading={updateTaskStatusMutation.isPending}
+              />
 
-                <DailyLogTimeline
-                  logs={logs}
-                  marks={marks}
-                  searchTerm={searchTerm}
-                  setSearchTerm={setSearchTerm}
-                  dateFilter={dateFilter}
-                  setDateFilter={setDateFilter}
-                />
-              </div>
+              <DailyLogTimeline
+                logs={logs}
+                marks={marks}
+                searchTerm={searchTerm}
+                setSearchTerm={setSearchTerm}
+                dateFilter={dateFilter}
+                setDateFilter={setDateFilter}
+              />
             </div>
           </div>
-        </motion.div>
-      )}
+        </div>
+      </motion.div>
     </AnimatePresence>
   );
- };
-
-
-
-
-
-export default InternDashboard;
+};
 

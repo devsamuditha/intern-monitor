@@ -13,12 +13,11 @@ import { SuperAdminAudit } from "@/src/views/superadmin/SuperAdminAudit";
 import { SuperAdminModeration } from "@/src/views/superadmin/SuperAdminModeration";
 import { SuperAdminSettings } from "@/src/views/superadmin/SuperAdminSettings";
 import { useAuth } from "@/src/context/AuthContext";
-import { api } from "@/src/services/api";
+import { useSettings } from "@/src/context/SettingsContext";
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  const [refreshKey, setRefreshKey] = useState(0);
-  const [settings, setSettings] = useState<Record<string, any>>({});
+  const { settings } = useSettings();
   const [activeTab, setActiveTab] = useState(
     user?.role === "tech_lead"
       ? "team_overview"
@@ -30,16 +29,6 @@ export default function DashboardPage() {
   );
 
   useEffect(() => {
-    if (user && user?.role !== "intern") {
-      setRefreshKey((prev) => prev + 1);
-    }
-  }, [user]);
-
-  // Ensure the active tab matches the user's default panel when the user
-  // data first arrives. This fixes a case where the overview panel renders
-  // for a `super_admin` but the tab selection remains on the generic
-  // `dashboard` tab because the initial state was created before `user`.
-  useEffect(() => {
     if (!user) return;
 
     const defaultTab =
@@ -47,35 +36,14 @@ export default function DashboardPage() {
         ? "team_overview"
         : user.role === "manager"
         ? "analytics"
-        : user.role === "super_admin"
+        : user?.role === "super_admin"
         ? "overview"
         : "dashboard";
 
-    // Only set if it differs to avoid clobbering a user's manual choice.
     if (activeTab !== defaultTab) {
       setActiveTab(defaultTab);
     }
   }, [user]);
-
-  useEffect(() => {
-    const fetchSettings = async () => {
-      try {
-        const data = await api.getSettings();
-        setSettings(data);
-      } catch (e) {
-        setSettings({ ask_the_team_enabled: true, allow_new_registrations: true, marking_scale: "1-5" });
-      }
-    };
-    fetchSettings();
-  }, []);
-
-  const handleRefresh = () => {
-    setRefreshKey((prev) => prev + 1);
-  };
-
-  // Always render the DashboardShell so the root DOM structure is consistent
-  // between server and client. When `user` is not available yet render a
-  // lightweight loading placeholder to avoid hydration mismatches.
 
   const renderPanel = () => {
     switch (user?.role) {
@@ -86,7 +54,7 @@ export default function DashboardPage() {
           case "projects":
             return <MyProjects currentUser={user} />;
           default:
-            return <InternDashboard user={user} onRefreshStats={handleRefresh} />;
+            return <InternDashboard user={user} />;
         }
       case "tech_lead":
         return <TeamOverview currentUser={user} />;
@@ -116,9 +84,7 @@ export default function DashboardPage() {
   return (
     <DashboardShell settings={settings} activeTab={activeTab} setActiveTab={setActiveTab}>
       {user ? (
-        <div key={`${user.id}-${refreshKey}`}>
-          {renderPanel()}
-        </div>
+        renderPanel()
       ) : (
         <div className="text-center py-12">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600 mx-auto mb-4" />

@@ -43,6 +43,7 @@ export async function GET(request: NextRequest) {
         ...scopeToOrganization({}, user),
         internId: { in: internIds },
       },
+      select: { internId: true, score: true, date: true },
     });
 
     const thisWeekMarks = allMarks.filter((m: any) => m.date >= mondayStr && m.date <= sundayStr);

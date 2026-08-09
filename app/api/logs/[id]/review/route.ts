@@ -5,6 +5,7 @@ import { mapDailyLog } from "@/app/api/_lib/mappers";
 import { validateBody } from "@/app/api/_lib/validation";
 import { ReviewLogSchema } from "@/app/api/_lib/validation";
 import { getRelativeDateStr } from "@/app/api/_lib/mappers";
+import { scopeToOrganization } from "@/app/api/_lib/tenant";
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   let user: any;
@@ -27,11 +28,14 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
   try {
     const prisma = getPrisma();
-    const log = await prisma.dailyLog.findUnique({ where: { id } });
+    const log = await prisma.dailyLog.findFirst({
+      where: { id: id as string, ...scopeToOrganization({}, user) },
+      select: { id: true, internId: true, date: true, organizationId: true },
+    });
     if (!log) return NextResponse.json({ error: "Daily log not found" }, { status: 404 });
 
     const updatedLog = await prisma.dailyLog.update({
-      where: { id },
+      where: { id, ...scopeToOrganization({}, user) },
       data: { status: "reviewed" },
     });
 
@@ -52,20 +56,22 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     }
 
     if (mistakesFlagged && Array.isArray(mistakesFlagged)) {
-      for (const m of mistakesFlagged) {
-        await prisma.mistake.create({
-          data: {
-            internId: log.internId,
-            flaggedById: reviewer_id,
-            relatedLogId: log.id,
-            note: m.note,
-            severity: String(m.severity).toUpperCase() as any,
-            date: new Date().toISOString(),
-            resolved: false,
-            organizationId: user.organizationId as string,
-          },
-        });
-      }
+      await Promise.all(
+        mistakesFlagged.map((m: any) =>
+          prisma.mistake.create({
+            data: {
+              internId: log.internId,
+              flaggedById: reviewer_id,
+              relatedLogId: log.id,
+              note: m.note,
+              severity: String(m.severity).toUpperCase() as any,
+              date: new Date().toISOString(),
+              resolved: false,
+              organizationId: user.organizationId as string,
+            },
+          })
+        )
+      );
     }
 
     return NextResponse.json({ success: true, log: mapDailyLog(updatedLog) });

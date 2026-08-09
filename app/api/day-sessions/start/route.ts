@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
 
     try {
       await prisma.user.update({
-        where: { id: intern_id },
+        where: { id: intern_id, ...scopeToOrganization({}, user) },
         data: { isActive: true },
       });
     } catch (_) {}

@@ -31,6 +31,10 @@ export async function GET(request: NextRequest) {
         isHidden: false,
         ...scopeToOrganization({}, user),
       },
+      select: {
+        id: true, fromId: true, toId: true, content: true,
+        read: true, createdAt: true, organizationId: true,
+      },
       orderBy: { createdAt: "asc" },
     });
     return NextResponse.json(dbMsgs.map(mapMessage));
