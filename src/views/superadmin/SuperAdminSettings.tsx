@@ -29,7 +29,7 @@ export const SuperAdminSettings: React.FC = () => {
   const knownSettings = [
     { key: 'allow_new_registrations', label: 'New Registrations', description: 'Allow students and tech leads to self-register', type: 'boolean' as const },
     { key: 'marking_scale', label: 'Marking Scale', description: 'Maximum score for task and log reviews', type: 'select' as const },
-    { key: 'ask_the_team_enabled', label: 'Ask the Team', description: 'Control visibility of the Ask the Team discussion board', type: 'boolean' as const },
+    { key: 'auto_end_day_enabled', label: 'Auto End Day At 5PM', description: 'Automatically end the day session for interns at 5:00 PM IST', type: 'boolean' as const },
   ];
 
   const { data: settings = [], isLoading: loading, refetch: loadSettings } = useSuperAdminSettings();

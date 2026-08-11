@@ -9,10 +9,10 @@ import { useSuperAdminContentFlags, useUpdateContentFlag } from '@/src/hooks/que
 import { api } from '../../services/api';
 import { ContentFlag } from '../../types.ts';
 import { scaleIn } from '../../utils/motion';
-import { RefreshCw, CheckCircle2, XCircle, AlertTriangle, Filter, ChevronDown, ChevronUp, MessageSquare, HelpCircle, ArrowUpCircle, FileText } from 'lucide-react';
+import { RefreshCw, CheckCircle2, XCircle, AlertTriangle, Filter, ChevronDown, ChevronUp, FileText } from 'lucide-react';
 
 type StatusFilter = 'pending' | 'dismissed' | 'resolved' | 'all';
-type ContentTypeFilter = 'all' | 'message' | 'question' | 'reply' | 'daily_log';
+type ContentTypeFilter = 'all' | 'daily_log';
 
 export const SuperAdminModeration: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('pending');
@@ -66,20 +66,14 @@ export const SuperAdminModeration: React.FC = () => {
 
   const getContentTypeIcon = (contentType: string) => {
     switch (contentType) {
-      case 'message': return <MessageSquare className="h-4 w-4 text-teal-600" />;
-      case 'question': return <HelpCircle className="h-4 w-4 text-amber-600" />;
-      case 'reply': return <ArrowUpCircle className="h-4 w-4 text-emerald-600" />;
-      case 'daily_log': return <FileText className="h-4 w-4 text-purple-600" />;
+       case 'daily_log': return <FileText className="h-4 w-4 text-purple-600" />;
       default: return null;
     }
   };
 
   const getContentTypeLabel = (contentType: string) => {
     switch (contentType) {
-      case 'message': return 'Message';
-      case 'question': return 'Question';
-      case 'reply': return 'Reply';
-      case 'daily_log': return 'Daily Log';
+       case 'daily_log': return 'Daily Log';
       default: return contentType;
     }
   };
@@ -130,7 +124,7 @@ export const SuperAdminModeration: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-1 bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl rounded-xl border border-white/20 dark:border-slate-700/30 p-1">
-          {(['all', 'message', 'question', 'reply', 'daily_log'] as ContentTypeFilter[]).map(ct => (
+          {(['all', 'daily_log'] as ContentTypeFilter[]).map(ct => (
             <button
               key={ct}
               onClick={() => { setContentTypeFilter(ct); setOffset(0); }}

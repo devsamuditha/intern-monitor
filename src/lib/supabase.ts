@@ -39,7 +39,21 @@ export async function uploadBase64Image(base64Data: string): Promise<string> {
 
   const contentType = matches[1];
   const base64Content = matches[2];
-  const buffer = Buffer.from(base64Content, 'base64');
+
+  function base64ToUint8Array(base64: string): Uint8Array {
+    if (typeof Buffer !== "undefined" && typeof Buffer.from === "function") {
+      return Buffer.from(base64, "base64");
+    }
+    const binary = atob(base64);
+    const len = binary.length;
+    const arr = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+      arr[i] = binary.charCodeAt(i);
+    }
+    return arr;
+  }
+
+  const buffer = base64ToUint8Array(base64Content);
   
   const fileName = `screenshot-${Date.now()}-${Math.random().toString(36).substring(2, 7)}.png`;
 

@@ -3,13 +3,10 @@
 import React from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/src/context/AuthContext";
-import { useTheme } from "@/src/context/ThemeContext";
 import {
-  LayoutDashboard, FolderKanban, MessageSquare, Sun, Moon,
+  LayoutDashboard, FolderKanban,
   Users, TrendingUp, LogOut, Shield, Target, Settings, AlertTriangle, Trophy
 } from "lucide-react";
-import { api } from "@/src/services/api";
-import type { User } from "@/src/types";
 
 interface DashboardShellProps {
   children: React.ReactNode;
@@ -22,32 +19,27 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
 }) => {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, logout, refreshCurrentUser } = useAuth();
-  const { isDarkMode, toggleDarkMode } = useTheme();
-
-  const askTheTeamEnabled = settings?.ask_the_team_enabled !== false;
+  const { user, logout } = useAuth();
 
   if (!user) return <>{children}</>;
 
   const getNavItems = () => {
-    const baseItems = (base: Array<{ id: string; label: string; icon: any }>) =>
-      askTheTeamEnabled ? [...base, { id: "discussions", label: "Ask the Team", icon: MessageSquare }] : base;
     switch (user.role) {
       case "intern":
-        return baseItems([
+        return [
           { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
           { id: "projects", label: "My Projects", icon: FolderKanban },
           { id: "ranking", label: "Rankings", icon: Trophy },
-        ]);
+        ];
       case "tech_lead":
-        return baseItems([
+        return [
           { id: "team_overview", label: "Team Overview", icon: Users },
-        ]);
+        ];
       case "manager":
-        return baseItems([
+        return [
           { id: "analytics", label: "Org Analytics", icon: TrendingUp },
           { id: "all_projects", label: "Projects Registry", icon: FolderKanban },
-        ]);
+        ];
       case "super_admin":
         return [
           { id: "overview", label: "Overview", icon: TrendingUp },
@@ -160,11 +152,11 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
               </button>
             )}
             <button
-              onClick={toggleDarkMode}
+              onClick={logout}
               className="p-2 border border-white/20 dark:border-slate-700/30 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-950 transition"
-              title="Toggle Theme"
+              title="Logout"
             >
-              {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              <LogOut className="h-4 w-4" />
             </button>
 
             <img

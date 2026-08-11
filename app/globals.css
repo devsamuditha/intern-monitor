@@ -33,7 +33,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 * {
-  transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  scroll-behavior: smooth;
 }
 
 ::-webkit-scrollbar {

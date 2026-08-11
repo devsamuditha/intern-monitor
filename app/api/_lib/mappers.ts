@@ -114,35 +114,6 @@ export function mapMistake(dbMistake: any) {
   };
 }
 
-export function mapMessage(dbMsg: any) {
-  if (!dbMsg) return null;
-  return {
-    id: dbMsg.id,
-    from_id: dbMsg.fromId,
-    to_id: dbMsg.toId,
-    content: dbMsg.content,
-    timestamp: dbMsg.createdAt.toISOString(),
-    read: dbMsg.read,
-  };
-}
-
-export function mapQuestion(dbQ: any) {
-  if (!dbQ) return null;
-  return {
-    id: dbQ.id,
-    intern_id: dbQ.internId,
-    title: dbQ.title,
-    content: dbQ.content,
-    timestamp: dbQ.createdAt.toISOString(),
-    replies: dbQ.replies ? dbQ.replies.map((r: any) => ({
-      id: r.id,
-      user_id: r.authorId,
-      content: r.content,
-      timestamp: r.createdAt.toISOString(),
-    })) : [],
-  };
-}
-
 const LATE_THRESHOLD_MINUTES = 9 * 60 + 30;
 
 export function parseTimeToMinutes(timeStr: string): number {
@@ -241,43 +212,7 @@ export async function buildContentPreview(prisma: any, contentType: string, cont
   return (async () => {
     try {
       const orgFilter = organizationId ? { organizationId } : {};
-      if (contentType === "message") {
-        const msg = await prisma.message.findUnique({
-          where: { id: contentId, ...orgFilter },
-          include: { from: { select: { name: true } }, to: { select: { name: true } } },
-        });
-        if (!msg) return null;
-        return {
-          title: `Message from ${msg.from?.name || "Unknown"} to ${msg.to?.name || "Unknown"}`,
-          content: msg.content,
-          authorName: msg.from?.name,
-          extra: `Conversation between ${msg.from?.name} and ${msg.to?.name}`,
-        };
-            } else if (contentType === "question") {
-        const q = await prisma.question.findUnique({
-          where: { id: contentId, ...orgFilter },
-          select: { title: true, content: true, intern: { select: { name: true } }, _count: { select: { replies: true } } },
-        });
-        if (!q) return null;
-        return {
-          title: q.title,
-          content: q.content,
-          authorName: q.intern?.name,
-          extra: `${q._count?.replies || 0} replies`,
-        };
-      } else if (contentType === "reply") {
-        const r = await prisma.reply.findUnique({
-          where: { id: contentId, ...orgFilter },
-          include: { author: { select: { name: true } }, question: { select: { title: true } } },
-        });
-        if (!r) return null;
-        return {
-          title: `Reply to: ${r.question?.title || "Unknown question"}`,
-          content: r.content,
-          authorName: r.author?.name,
-          extra: "Reply",
-        };
-      } else if (contentType === "daily_log") {
+      if (contentType === "daily_log") {
         const log = await prisma.dailyLog.findUnique({
           where: { id: contentId, ...orgFilter },
           select: { summary: true, changes: true, technologies: true, intern: { select: { name: true } } },
@@ -299,13 +234,7 @@ export async function buildContentPreview(prisma: any, contentType: string, cont
 
 export async function hideContent(prisma: any, contentType: string, contentId: string, organizationId?: string) {
   const orgFilter = organizationId ? { organizationId } : {};
-  if (contentType === "message") {
-    await prisma.message.update({ where: { id: contentId, ...orgFilter }, data: { isHidden: true } });
-  } else if (contentType === "question") {
-    await prisma.question.update({ where: { id: contentId, ...orgFilter }, data: { isHidden: true } });
-  } else if (contentType === "reply") {
-    await prisma.reply.update({ where: { id: contentId, ...orgFilter }, data: { isHidden: true } });
-  } else if (contentType === "daily_log") {
+  if (contentType === "daily_log") {
     await prisma.dailyLog.update({ where: { id: contentId, ...orgFilter }, data: { isHidden: true } });
   }
 }

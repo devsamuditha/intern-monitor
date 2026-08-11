@@ -258,7 +258,7 @@ export const DailyLogForm: React.FC<DailyLogFormProps> = ({ user, onSuccess, tod
         const istHour = istDate.getHours();
         const istMinute = istDate.getMinutes();
         const istTimeMinutes = istHour * 60 + istMinute;
-        const onePMMinutes = 13 * 60;
+        const onePMMinutes = 14 * 60 + 30; // 14:30 IST = 1:30 PM
 
         if (istTimeMinutes < onePMMinutes) {
           const totalMinutes = onePMMinutes - istTimeMinutes;
@@ -270,7 +270,7 @@ export const DailyLogForm: React.FC<DailyLogFormProps> = ({ user, onSuccess, tod
             <div className="mb-4 p-3 rounded-xl bg-amber-950/40 border border-amber-500/30 text-amber-200 text-xs space-y-2">
               <div className="flex items-center gap-2 font-bold">
                 <AlertTriangle className="h-4 w-4 shrink-0" />
-                ⏰ You must submit your daily journal before 1:00 PM IST
+                ⏰ You must submit your daily journal before 1:30 PM IST
               </div>
               <div className="flex items-center gap-2">
                 <div className="flex-1 h-1.5 rounded-full bg-amber-900/50 overflow-hidden">
@@ -296,7 +296,7 @@ export const DailyLogForm: React.FC<DailyLogFormProps> = ({ user, onSuccess, tod
         const istHour = istDate.getHours();
         const istMinute = istDate.getMinutes();
         const istTimeMinutes = istHour * 60 + istMinute;
-        const onePMMinutes = 13 * 60;
+        const onePMMinutes = 14 * 60 + 30; // 14:30 IST = 1:30 PM
         const fivePMMinutes = 17 * 60;
 
         let progressLabel: string;
@@ -308,7 +308,7 @@ export const DailyLogForm: React.FC<DailyLogFormProps> = ({ user, onSuccess, tod
           const totalSpan = onePMMinutes - 9 * 60;
           const elapsed = istTimeMinutes - 9 * 60;
           progressPercent = Math.min(100, Math.max(0, (elapsed / totalSpan) * 100));
-          progressLabel = `Time remaining until 1:00 PM`;
+          progressLabel = `Time remaining until 1:30 PM`;
           gradientFrom = 'from-teal-500';
           gradientTo = 'to-emerald-400';
         } else {

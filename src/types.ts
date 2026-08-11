@@ -14,6 +14,7 @@ export interface User {
   username?: string;
   role: UserRole;
   avatar: string;
+  isActive: boolean;
   assigned_tech_lead_id?: string;
   mustChangePassword?: boolean;
   organizationId?: string;
@@ -90,34 +91,6 @@ export interface Mistake {
   severity: MistakeSeverity;
   date: string;
   resolved: boolean;
-}
-
-export interface Message {
-  id: string;
-  from_id: string;
-  to_id: string;
-  content: string;
-  timestamp: string;
-  read: boolean;
-  isHidden?: boolean;
-}
-
-export interface Reply {
-  id: string;
-  user_id: string;
-  content: string;
-  timestamp: string;
-  isHidden?: boolean;
-}
-
-export interface Question {
-  id: string;
-  intern_id: string;
-  title: string;
-  content: string;
-  timestamp: string;
-  isHidden?: boolean;
-  replies: Reply[];
 }
 
 export interface DaySession {

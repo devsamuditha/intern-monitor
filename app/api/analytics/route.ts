@@ -3,6 +3,7 @@ import { withAuth } from "@/app/api/_lib/withAuth";
 import { getPrisma } from "@/src/db/prisma";
 import { Role, TaskStatus } from "@prisma/client";
 import { getRelativeDateStr, mapDaySession } from "@/app/api/_lib/mappers";
+import { getISTDate } from "@/src/utils/time";
 import { scopeToOrganization } from "@/app/api/_lib/tenant";
 
 export const dynamic = 'force-dynamic';
@@ -73,6 +74,11 @@ export async function GET(request: NextRequest) {
     const totalTasks = allTasks.length;
     const completedTasks = allTasks.filter((t: any) => t.status === TaskStatus.DONE).length;
 
+    const istNow = getISTDate();
+    const istMinutes = istNow.getHours() * 60 + istNow.getMinutes();
+    const deadline130Passed = istMinutes >= 14 * 60 + 30;
+    const deadline500Passed = istMinutes >= 17 * 60;
+
     const rosterData = targetInterns.map((intern: any) => {
       const iLogs = allLogs.filter((l: any) => l.internId === intern.id);
       const iMarks = allMarks.filter((m: any) => m.internId === intern.id);
@@ -81,6 +87,8 @@ export async function GET(request: NextRequest) {
       const iTodaySession = todaySessions.find((s: any) => s.internId === intern.id);
 
       const lastSub = iLogs.length > 0 ? iLogs.sort((a: any, b: any) => b.date.localeCompare(a.date))[0].date : "Never";
+      const todayStr = getRelativeDateStr(0);
+      const submittedLogToday = iLogs.some((l: any) => l.date === todayStr);
       const iAvgMark = iMarks.length > 0 ? parseFloat((iMarks.reduce((acc: number, curr: any) => acc + curr.score, 0) / iMarks.length).toFixed(1)) : 0;
       const iWeekSessions = allWeekSessions.filter((s: any) => s.internId === intern.id && s.endedAt);
       const totalWeekMinutes = iWeekSessions.reduce((acc: number, s: any) => {
@@ -92,7 +100,6 @@ export async function GET(request: NextRequest) {
         ? parseFloat((totalWeekMinutes / 60 / iWeekSessions.length).toFixed(1))
         : 0;
       const logDates = Array.from(new Set(iLogs.map((l: any) => l.date))).sort().reverse();
-      const todayStr = getRelativeDateStr(0);
       const yesterdayObj = new Date(); yesterdayObj.setDate(yesterdayObj.getDate() - 1);
       const yesterdayStr = yesterdayObj.toISOString().split('T')[0];
       let realStreak = 0;
@@ -115,6 +122,8 @@ export async function GET(request: NextRequest) {
           assigned_tech_lead_id: intern.techLeadId || undefined,
         },
         lastSubmission: lastSub,
+        missingLog130: deadline130Passed && !submittedLogToday,
+        missingLog500: deadline500Passed && !submittedLogToday,
         streak: realStreak,
         avgMark: iAvgMark,
         avgWorkingHours,

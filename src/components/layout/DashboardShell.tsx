@@ -8,13 +8,11 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../context/AuthContext";
-import { useTheme } from "../../context/ThemeContext";
 import { 
-  LayoutDashboard, FolderKanban, MessageSquare, Sun, Moon, 
+  LayoutDashboard, FolderKanban,
   Users, TrendingUp, LogOut, Shield, Target, Settings, AlertTriangle, Building2, Trophy
 } from "lucide-react";
-import { api } from "../../services/api";
-import { ChatPanel } from "../intern/ChatPanel";
+import { ProfileImageModal } from "../ui/ProfileImageModal";
 
 interface DashboardShellProps {
   children: React.ReactNode;
@@ -33,10 +31,9 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
 }) => {
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
-  const askTheTeamEnabled = settings?.ask_the_team_enabled !== false;
   const { user, logout, refreshCurrentUser } = useAuth();
   const role = user?.role;
-  const { isDarkMode, toggleDarkMode } = useTheme();
+  const [showProfileModal, setShowProfileModal] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -48,25 +45,23 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
   };
 
   const getNavItems = () => {
-    const baseItems = (base: Array<{ id: string; label: string; icon: any }>) =>
-      askTheTeamEnabled ? [...base, { id: 'discussions', label: 'Ask the Team', icon: MessageSquare }] : base;
     switch (role) {
       case 'intern':
-        return baseItems([
+        return [
           { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
           { id: 'projects', label: 'My Projects', icon: FolderKanban },
           { id: 'ranking', label: 'Rankings', icon: Trophy },
-        ]);
+        ];
       case 'tech_lead':
-        return baseItems([
+        return [
           { id: 'team_overview', label: 'Team Overview', icon: Users },
           { id: 'projects', label: 'Projects', icon: FolderKanban },
-        ]);
+        ];
       case 'manager':
-        return baseItems([
+        return [
           { id: 'analytics', label: 'Org Analytics', icon: TrendingUp },
           { id: 'all_projects', label: 'Projects Registry', icon: FolderKanban },
-        ]);
+        ];
       case 'super_admin':
         return [
           { id: 'overview', label: 'Overview', icon: TrendingUp },
@@ -135,8 +130,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
                   } else if (role === 'intern') {
                     if (item.id === 'dashboard') router.push(`/dashboard`);
                     else if (item.id === 'projects') router.push(`/projects`);
-                    else if (item.id === 'ranking') router.push(`/dashboard/ranking`);
-                    else if (item.id === 'discussions') router.push(`/discussions`);
+                     else if (item.id === 'ranking') router.push(`/dashboard/ranking`);
                     else router.push(`/${item.id}`);
                   }
                 }}
@@ -155,29 +149,28 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
 
         {/* Bottom Profile Row */}
         <div className="p-4 border-t border-white/20 dark:border-slate-700/30 space-y-2">
-          <div className="flex items-center gap-3 p-2.5 bg-white/10 dark:bg-slate-900/10 border border-white/20 dark:border-slate-700/30 rounded-xl">
-            <img src={user?.avatar ?? '/favicon.ico'} alt={user?.name ?? 'Avatar'} className="h-9 w-9 rounded-full object-cover border border-white/20 dark:border-slate-700/30" referrerPolicy="no-referrer" />
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-bold truncate text-white">{user?.name ?? 'User'}</p>
-              <p className="text-[9px] text-slate-400 capitalize truncate">{user?.role ?? ''}</p>
-            </div>
-            {user && (
-              <button 
-                onClick={handleLogout}
-                type="button"
-                className="p-1.5 hover:bg-white/10 text-slate-400 hover:text-rose-400 rounded-lg transition"
-                title="Logout"
-              >
-                <LogOut className="h-4 w-4" />
-              </button>
-            )}
-          </div>
-        </div>
-      </aside>
+         <div className="flex items-center gap-3 p-2.5 bg-white/10 dark:bg-slate-900/10 border border-white/20 dark:border-slate-700/30 rounded-xl cursor-pointer" onClick={() => setShowProfileModal(true)}>
+             <img src={user?.avatar ?? '/favicon.ico'} alt={user?.name ?? 'Avatar'} className="h-9 w-9 rounded-full object-cover border border-white/20 dark:border-slate-700/30" referrerPolicy="no-referrer" />
+             <div className="flex-1 min-w-0">
+               <p className="text-xs font-bold truncate text-white">{user?.name ?? 'User'}</p>
+               <p className="text-[9px] text-slate-400 capitalize truncate">{user?.role ?? ''}</p>
+             </div>
+             {user && (
+               <button 
+                 onClick={handleLogout}
+                 type="button"
+                 className="p-1.5 hover:bg-white/10 text-slate-400 hover:text-rose-400 rounded-lg transition"
+                 title="Logout"
+               >
+                 <LogOut className="h-4 w-4" />
+               </button>
+             )}
+           </div>
+         </div>
+       </aside>
 
       {/* Main Container (offset for fixed sidebar) */}
       <div className="flex-1 flex flex-col min-w-0 md:ml-64">
-        
         {/* Topbar */}
         <header className="h-20 bg-white/10 dark:bg-slate-900/10 backdrop-blur-xl border-b border-white/20 dark:border-slate-700/30 flex items-center justify-between px-8 z-10">
           
@@ -197,36 +190,26 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
           {/* Right Controls */}
           <div className="flex items-center gap-3">
             
-            {role === 'intern' && (
-              <button
-                onClick={() => router.push('/dashboard/ranking')}
-                type="button"
-                className="p-2 border border-white/20 dark:border-slate-700/30 rounded-xl text-slate-300 hover:text-white transition"
-                title="Rankings"
-              >
-                <Trophy className="h-4 w-4" />
-              </button>
-            )}
+              {role === 'intern' && (
+                <button
+                  onClick={() => router.push('/dashboard/ranking')}
+                  type="button"
+                  className="p-2 border border-white/20 dark:border-slate-700/30 rounded-xl text-slate-300 hover:text-white transition"
+                  title="Rankings"
+                >
+                  <Trophy className="h-4 w-4" />
+                </button>
+              )}
 
-            {/* Dark Mode toggle */}
-            <button
-              onClick={toggleDarkMode}
-              type="button"
-              className="p-2 border border-white/20 dark:border-slate-700/30 rounded-xl text-slate-300 hover:text-white transition"
-              title="Toggle Theme"
-            >
-              {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            </button>
-
-            {/* Profile Avatar Mobile */}
-            <img 
-              src={user?.avatar ?? '/favicon.ico'} 
-              alt={user?.name ?? 'Avatar'} 
-              className="h-8 w-8 rounded-full object-cover border border-white/20 md:hidden" 
-              onClick={handleLogout}
-              title="Logout"
-              referrerPolicy="no-referrer"
-            />
+              {/* Profile Avatar Mobile */}
+              <img 
+                src={user?.avatar ?? '/favicon.ico'} 
+                alt={user?.name ?? 'Avatar'} 
+                className="h-8 w-8 rounded-full object-cover border border-white/20 md:hidden cursor-pointer" 
+                onClick={() => setShowProfileModal(true)}
+                title="Profile"
+                referrerPolicy="no-referrer"
+              />
           </div>
         </header>
 
@@ -254,8 +237,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
                   } else if (role === 'intern') {
                     if (item.id === 'dashboard') router.push(`/dashboard`);
                     else if (item.id === 'projects') router.push(`/projects`);
-                    else if (item.id === 'ranking') router.push(`/dashboard/ranking`);
-                    else if (item.id === 'discussions') router.push(`/discussions`);
+                     else if (item.id === 'ranking') router.push(`/dashboard/ranking`);
                     else router.push(`/${item.id}`);
                   }
                 }}
@@ -280,8 +262,20 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
         </main>
       </div>
 
-      {/* Floating Chat Panel (fixed to screen) - shown for all authenticated users */}
-      {user && <ChatPanel currentUser={user} />}
+       {user && showProfileModal && (
+        <ProfileImageModal
+          userId={user.id}
+          currentAvatarUrl={user.avatar ?? '/favicon.ico'}
+          onClose={() => setShowProfileModal(false)}
+          onUploaded={(newUrl) => {
+            if (user) {
+              user.avatar = newUrl;
+              refreshCurrentUser();
+            }
+            setShowProfileModal(false);
+          }}
+        />
+      )}
     </div>
   );
 };

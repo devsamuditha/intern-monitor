@@ -17,23 +17,29 @@ interface StartDayHeroProps {
   sessionLoading: boolean;
   onStartDay: () => void;
   onEndDay: () => void;
+  hasLogToday: boolean;
 }
 
 export const StartDayHero: React.FC<StartDayHeroProps> = ({
   todaySession,
   sessionLoading,
   onStartDay,
-  onEndDay
+  onEndDay,
+  hasLogToday,
 }) => {
   const [istTime, setIstTime] = useState(formatISTTimeHHMMSS());
   const [isLateNow, setIsLateNow] = useState(false);
+  const [istMinutes, setIstMinutes] = useState(0);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setIstTime(formatISTTimeHHMMSS());
       const now = new Date();
       const utc = now.getTime() + now.getTimezoneOffset() * 60000;
       const istDate = new Date(utc + 5.5 * 3600000);
+      const istHour = istDate.getHours();
+      const istMinute = istDate.getMinutes();
+      setIstTime(formatISTTimeHHMMSS());
+      setIstMinutes(istHour * 60 + istMinute);
       const istTimeStr = istDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
       setIsLateNow(parseTimeToMinutes(istTimeStr) > 9 * 60 + 30);
     }, 1000);
@@ -144,6 +150,22 @@ export const StartDayHero: React.FC<StartDayHeroProps> = ({
           <span>
             You started late today at {todaySession.started_at}. The deadline was 9:30 AM IST.
           </span>
+        </div>
+      )}
+
+      {/* 4:30 PM Journal Reminder (amber) */}
+      {todaySession?.status === 'active' && !hasLogToday && istMinutes >= 16 * 60 + 30 && istMinutes < 16 * 60 + 45 && (
+        <div className="mt-4 p-3 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-200 flex items-center gap-2.5 text-xs">
+          <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0 animate-pulse" />
+          <span className="font-semibold">Submit your daily journal before 5:00 PM.</span>
+        </div>
+      )}
+
+      {/* 4:45 PM Urgent Journal Reminder (red) */}
+      {todaySession?.status === 'active' && !hasLogToday && istMinutes >= 16 * 60 + 45 && (
+        <div className="mt-4 p-3 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-100 flex items-center gap-2.5 text-xs animate-pulse">
+          <AlertTriangle className="h-4 w-4 text-rose-400 shrink-0" />
+          <span className="font-bold">Last chance: Submit your daily journal now!</span>
         </div>
       )}
 

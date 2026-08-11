@@ -12,8 +12,6 @@ import {
   Task, 
   Mark, 
   Mistake, 
-  Message, 
-  Question,
   DaySession,
   TaskPriority,
   TaskStatus,
@@ -106,8 +104,7 @@ async function fetchWithDedup(url: string, options?: RequestInit): Promise<any> 
 
 export const api = {
   getConfig: async (): Promise<Record<string, any>> => {
-    const res = await fetchWithDedup("/api/config");
-    return handleResponse(res);
+    return fetchWithDedup("/api/config");
   },
 
   // Auth
@@ -206,6 +203,15 @@ export const api = {
     const res = await fetchWithDedup(`/api/users/${userId}`, {
       method: "DELETE",
       headers: await getAuthHeaders()
+    });
+    return handleResponse(res);
+  },
+
+  updateInternStatus: async (internId: string, isActive: boolean): Promise<User> => {
+    const res = await fetchWithDedup(`/api/interns/${internId}/status`, {
+      method: "PATCH",
+      headers: await getAuthHeaders(),
+      body: JSON.stringify({ active: isActive })
     });
     return handleResponse(res);
   },
@@ -396,58 +402,6 @@ export const api = {
       method: "POST",
       headers: await getAuthHeaders(),
       body: JSON.stringify({ resolved })
-    });
-    return handleResponse(res);
-  },
-
-  // Chat Messages
-  getMessages: async (userA: string, userB: string): Promise<Message[]> => {
-    const res = await fetchWithDedup(`/api/messages?user_a=${userA}&user_b=${userB}`, {
-      headers: await getAuthHeaders()
-    });
-    return handleResponse(res);
-  },
-
-  sendMessage: async (message: { from_id: string; to_id: string; content: string }): Promise<Message> => {
-    const res = await fetchWithDedup("/api/messages", {
-      method: "POST",
-      headers: await getAuthHeaders(),
-      body: JSON.stringify(message)
-    });
-    return handleResponse(res);
-  },
-
-  markMessagesRead: async (userId: string, senderId: string): Promise<{ success: boolean }> => {
-    const res = await fetchWithDedup("/api/messages", {
-      method: "PUT",
-      headers: await getAuthHeaders(),
-      body: JSON.stringify({ user_id: userId, sender_id: senderId })
-    });
-    return handleResponse(res);
-  },
-
-  // Threaded Questions
-  getQuestions: async (): Promise<Question[]> => {
-    const res = await fetchWithDedup("/api/questions", {
-      headers: await getAuthHeaders()
-    });
-    return handleResponse(res);
-  },
-
-  askQuestion: async (question: { intern_id: string; title: string; content: string }): Promise<Question> => {
-    const res = await fetchWithDedup("/api/questions", {
-      method: "POST",
-      headers: await getAuthHeaders(),
-      body: JSON.stringify(question)
-    });
-    return handleResponse(res);
-  },
-
-  replyToQuestion: async (questionId: string, reply: { user_id: string; content: string }): Promise<Question> => {
-    const res = await fetchWithDedup(`/api/questions/${questionId}/replies`, {
-      method: "POST",
-      headers: await getAuthHeaders(),
-      body: JSON.stringify(reply)
     });
     return handleResponse(res);
   },

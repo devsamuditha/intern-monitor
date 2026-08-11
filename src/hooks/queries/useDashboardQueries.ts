@@ -64,12 +64,16 @@ export function useTodayDaySessions(internId?: string) {
   });
 }
 
-export function useSubmitLog() {
+export function useSubmitLog(userId?: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: api.submitLog,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      if (userId) {
+        queryClient.invalidateQueries({ queryKey: ["dashboard", userId] });
+      } else {
+        queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      }
       queryClient.invalidateQueries({ queryKey: ["logs"] });
       queryClient.invalidateQueries({ queryKey: ["marks"] });
       queryClient.invalidateQueries({ queryKey: ["mistakes"] });
@@ -78,35 +82,41 @@ export function useSubmitLog() {
   });
 }
 
-export function useStartDaySession() {
+export function useStartDaySession(userId?: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: api.startDaySession,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      if (userId) {
+        queryClient.invalidateQueries({ queryKey: ["dashboard", userId] });
+      }
       queryClient.invalidateQueries({ queryKey: ["day-sessions"] });
     },
   });
 }
 
-export function useEndDaySession() {
+export function useEndDaySession(userId?: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: api.endDaySession,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      if (userId) {
+        queryClient.invalidateQueries({ queryKey: ["dashboard", userId] });
+      }
       queryClient.invalidateQueries({ queryKey: ["day-sessions"] });
     },
   });
 }
 
-export function useUpdateTaskStatus() {
+export function useUpdateTaskStatus(userId?: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ taskId, status, extra }: { taskId: string; status: string; extra?: any }) =>
       api.updateTaskStatus(taskId, status as any, extra),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      if (userId) {
+        queryClient.invalidateQueries({ queryKey: ["dashboard", userId] });
+      }
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
     },
   });

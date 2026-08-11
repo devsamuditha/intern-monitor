@@ -3,13 +3,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { useRouter } from 'next/navigation';
 import { Preloader } from '@/src/components/ui/Preloader';
 import { User, DailyLog, Task, Mistake, Mark, DaySession, TaskStatus } from '../../types';
-import { getSupabaseClient } from '../../lib/supabaseClient';
+import { api } from '../../services/api';
+import { getISTDate, getISTDateString } from '../../utils/time';
 import { DailyLogForm } from '../../components/intern/DailyLogForm';
-import { getISTDateString } from '../../utils/time';
 import {
   StatsHeader,
   StartDayHero,
@@ -38,10 +39,12 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
   const [dateFilter, setDateFilter] = useState('');
 
   const { data, isLoading, refetch } = useInternDashboard(user.id);
-  const submitLogMutation = useSubmitLog();
-  const startDayMutation = useStartDaySession();
-  const endDayMutation = useEndDaySession();
-  const updateTaskStatusMutation = useUpdateTaskStatus();
+  const submitLogMutation = useSubmitLog(user.id);
+  const startDayMutation = useStartDaySession(user.id);
+  const endDayMutation = useEndDaySession(user.id);
+  const updateTaskStatusMutation = useUpdateTaskStatus(user.id);
+  const router = useRouter();
+  const [showAutoLogout, setShowAutoLogout] = useState(false);
 
   const logs = data?.logs ?? [];
   const tasks = data?.tasks ?? [];
@@ -51,6 +54,56 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
   const projects = data?.projects ?? [];
 
   const todaySession = todaySessions.length > 0 ? todaySessions[0] : null;
+  const todayStr = getISTDateString();
+  const hasLogToday = logs.some((l: any) => l.date === todayStr);
+
+  useEffect(() => {
+    if (user?.role !== 'intern') return;
+
+    const checkAutoLogout = () => {
+      const ist = getISTDate();
+      const istMinutes = ist.getHours() * 60 + ist.getMinutes();
+
+      if (istMinutes >= 17 * 60) {
+        const sessionActive = todaySession && todaySession.status === 'active';
+
+        if (sessionActive && !hasLogToday) {
+          setShowAutoLogout(true);
+        }
+      }
+    };
+
+    checkAutoLogout();
+    const interval = setInterval(checkAutoLogout, 60000);
+
+    return () => clearInterval(interval);
+  }, [user, logs, todaySession, hasLogToday]);
+
+  const performAutoLogout = async () => {
+    try {
+      if (todaySession?.status === 'active') {
+        await api.endDaySession({ intern_id: user.id });
+      }
+      await api.updateInternStatus(user.id, false);
+    } catch (err) {
+      console.error("Auto-logout error:", err);
+    }
+    try {
+      await api.logout();
+    } catch (err) {
+      console.warn("Logout request failed:", err);
+    }
+    localStorage.removeItem("interntrack_user");
+    localStorage.removeItem(`interntrack_log_draft_${user.id}`);
+  };
+
+  useEffect(() => {
+    if (showAutoLogout) {
+      performAutoLogout().finally(() => {
+        router.push('/login');
+      });
+    }
+  }, [showAutoLogout]);
 
   const sessionLoading = startDayMutation.isPending || endDayMutation.isPending;
   const isDev = process.env.NODE_ENV === 'development';
@@ -206,7 +259,9 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
   }
 
   return (
-    <AnimatePresence mode={isDev ? "sync" : "wait"}>
+    <>
+      <Preloader visible={showAutoLogout} />
+      <AnimatePresence mode={isDev ? "sync" : "wait"}>
       <motion.div
         key="dashboard"
         id="intern-workspace-root"
@@ -221,6 +276,7 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
             sessionLoading={sessionLoading}
             onStartDay={() => setShowStartDayModal(true)}
             onEndDay={handleEndDayClick}
+            hasLogToday={hasLogToday}
           />
 
           <StartDayModal
@@ -282,7 +338,8 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
           </div>
         </div>
       </motion.div>
-    </AnimatePresence>
+      </AnimatePresence>
+    </>
   );
 };
 

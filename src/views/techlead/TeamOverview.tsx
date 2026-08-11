@@ -293,13 +293,29 @@ export const TeamOverview: React.FC<TeamOverviewProps> = ({ currentUser }) => {
                       )}
                     </div>
 
-                    <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${
-                      hasSubmittedToday
-                        ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300'
-                        : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
-                    }`}>
-                      {hasSubmittedToday ? 'Log Submitted 📝' : 'Pending Log ⏳'}
-                    </span>
+                     <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold flex items-center gap-0.5 ${
+                       row.missingLog500
+                         ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30 animate-pulse'
+                         : row.missingLog130
+                         ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                         : hasSubmittedToday
+                         ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300'
+                         : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
+                     }`}>
+                       {row.missingLog500 ? (
+                         <>
+                           <AlertTriangle className="h-3 w-3" /> Missing Log
+                         </>
+                       ) : row.missingLog130 ? (
+                         <>
+                           <AlertTriangle className="h-3 w-3" /> Missing Log (1:30 PM)
+                         </>
+                       ) : hasSubmittedToday ? (
+                         <>Log Submitted 📝</>
+                       ) : (
+                         <>Pending Log ⏳</>
+                       )}
+                     </span>
                   </div>
 
                   {sess && (sess.today_project || sess.today_plan || sess.git_link) && (

@@ -115,7 +115,7 @@ export const ManagerOverview: React.FC<ManagerOverviewProps> = ({ currentUser })
       <InternDetail
         internId={drilldownInternId}
         currentUser={currentUser}
-        readOnly={true} // Read-only for Managers (oversight mode)
+        readOnly={false}
         onBack={() => setDrilldownInternId(null)}
       />
     );
@@ -337,7 +337,7 @@ export const ManagerOverview: React.FC<ManagerOverviewProps> = ({ currentUser })
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {techLeads.map(lead => {
-                const assignedInterns = rosterData.filter((r: any) => r.intern.assigned_tech_lead_id === lead.id || (!r.intern.assigned_tech_lead_id && lead.id === 'tl-alex'));
+                 const assignedInterns = rosterData.filter((r: any) => r.intern.assigned_tech_lead_id === lead.id);
                 const teamCount = assignedInterns.length;
                 const teamAvgScore = teamCount > 0
                   ? (assignedInterns.reduce((acc: number, curr: any) => acc + curr.avgMark, 0) / teamCount).toFixed(1)
@@ -417,7 +417,7 @@ export const ManagerOverview: React.FC<ManagerOverviewProps> = ({ currentUser })
                     </tr>
                   ) : (
                     rosterData.map((row: any) => {
-                      const findLead = techLeads.find(tl => tl.id === (row.intern.assigned_tech_lead_id || 'tl-alex'));
+                      const findLead = techLeads.find(tl => tl.id === row.intern.assigned_tech_lead_id);
                       return (
                         <tr
                           key={row.intern.id}
@@ -435,20 +435,26 @@ export const ManagerOverview: React.FC<ManagerOverviewProps> = ({ currentUser })
                             </div>
                           </td>
 
-                          {/* Status check mark */}
-                          <td className="py-3 px-2">
-                            <div className="flex items-center gap-1.5">
-                              <span className={`h-2.5 w-2.5 rounded-full ${row.intern.active ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300 dark:bg-slate-700'}`} />
-                              <span className="text-[11px] text-slate-500 dark:text-slate-400">
-                                {row.intern.active ? 'Active Now' : 'Offline'}
-                              </span>
-                            </div>
-                          </td>
+                           {/* Status check mark */}
+                           <td className="py-3 px-2">
+                             <div className="flex items-center gap-1.5">
+                               <span className={`h-2.5 w-2.5 rounded-full ${row.intern.active ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300 dark:bg-slate-700'}`} />
+                               <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                                 {row.intern.active ? 'Active Now' : 'Offline'}
+                               </span>
+                              {row.missingLog500 && (
+                                <AlertTriangle className="h-3 w-3 text-rose-500 animate-pulse" aria-label="Missing daily log (past 5 PM deadline)" />
+                              )}
+                              {row.missingLog130 && !row.missingLog500 && (
+                                <AlertTriangle className="h-3 w-3 text-amber-500" aria-label="Missing daily log (past 1:30 PM deadline)" />
+                              )}
+                             </div>
+                           </td>
 
                           {/* Assigned Tech Lead */}
                           <td className="py-3 px-2">
                             <p className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                              {findLead ? findLead.name : 'Alex Rivera'}
+                               {findLead ? findLead.name : 'Unassigned'}
                             </p>
                             <p className="text-[10px] text-slate-400">Engineering Lead</p>
                           </td>
@@ -518,12 +524,12 @@ export const ManagerOverview: React.FC<ManagerOverviewProps> = ({ currentUser })
               {/* Assigned Interns Breakdown */}
               <div className="space-y-3">
                 <h4 className="text-xs font-bold uppercase tracking-wide text-slate-500">
-                  Assigned Team Interns ({rosterData.filter((r: any) => r.intern.assigned_tech_lead_id === drilldownTechLead.id || (!r.intern.assigned_tech_lead_id && drilldownTechLead.id === 'tl-alex')).length})
+                   Assigned Team Interns ({rosterData.filter((r: any) => r.intern.assigned_tech_lead_id === drilldownTechLead.id).length})
                 </h4>
 
                 <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-60 overflow-y-auto">
                   {rosterData
-                    .filter((r: any) => r.intern.assigned_tech_lead_id === drilldownTechLead.id || (!r.intern.assigned_tech_lead_id && drilldownTechLead.id === 'tl-alex'))
+                     .filter((r: any) => r.intern.assigned_tech_lead_id === drilldownTechLead.id)
                     .map((row: any) => (
                       <div
                         key={row.intern.id}

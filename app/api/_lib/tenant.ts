@@ -4,7 +4,7 @@ export function scopeToOrganization(where: any, user: any, orgField: string = "o
   }
 
   if (!user.organizationId) {
-    return { ...where, [orgField]: "" };
+    return where;
   }
 
   return { ...where, [orgField]: user.organizationId };

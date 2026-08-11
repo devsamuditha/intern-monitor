@@ -98,28 +98,6 @@ export const ResolveMistakeSchema = z.object({
   resolved: z.boolean({ message: "Resolved status must be a boolean" }),
 });
 
-export const SendMessageSchema = z.object({
-  from_id: z.string().min(1, { message: "Sender ID is required" }),
-  to_id: z.string().min(1, { message: "Recipient ID is required" }),
-  content: z.string().min(1, { message: "Message content cannot be empty" }),
-});
-
-export const ReadMessagesSchema = z.object({
-  user_id: z.string().min(1, { message: "User ID is required" }),
-  sender_id: z.string().min(1, { message: "Sender ID is required" }),
-});
-
-export const AskQuestionSchema = z.object({
-  intern_id: z.string().min(1, { message: "Intern ID is required" }),
-  title: z.string().min(1, { message: "Question title is required" }),
-  content: z.string().min(1, { message: "Question content is required" }),
-});
-
-export const ReplyQuestionSchema = z.object({
-  user_id: z.string().min(1, { message: "Author ID is required" }),
-  content: z.string().min(1, { message: "Reply content cannot be empty" }),
-});
-
 export const StartDaySchema = z.object({
   intern_id: z.string().min(1, { message: "Intern ID is required" }),
   today_project: z.string().optional().nullable(),
@@ -147,7 +125,7 @@ export const EndDaySchema = z.object({
 });
 
 export const CreateContentFlagSchema = z.object({
-  contentType: z.enum(['message', 'question', 'reply', 'daily_log']),
+  contentType: z.enum(['daily_log']),
   contentId: z.string().min(1),
   reason: z.string().min(1, { message: "Reason is required" }).max(500),
 });

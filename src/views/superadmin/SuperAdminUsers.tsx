@@ -46,9 +46,21 @@ export const SuperAdminUsers: React.FC<SuperAdminUsersProps> = ({ currentUser })
   const users = usersQuery.data || [];
   const techLeads = techLeadsQuery.data || [];
   const loading = usersQuery.isLoading || techLeadsQuery.isLoading;
-  const refetch = () => {
+   const refetch = () => {
     usersQuery.refetch();
     techLeadsQuery.refetch();
+  };
+
+  const openCreateModal = (setter: React.Dispatch<React.SetStateAction<boolean>>) => {
+    setShowCreateManager(false);
+    setShowCreateTechLead(false);
+    setShowCreateIntern(false);
+    setNewName("");
+    setNewEmail("");
+    setNewUsername("");
+    setNewPassword("");
+    setCreateError(null);
+    setter(true);
   };
 
   const executeConfirmedAction = async () => {
@@ -170,21 +182,21 @@ export const SuperAdminUsers: React.FC<SuperAdminUsersProps> = ({ currentUser })
         </div>
         <div className="flex items-center gap-2">
           <button
-            onClick={() => setShowCreateIntern(true)}
+            onClick={() => openCreateModal(setShowCreateIntern)}
             className="flex items-center gap-2 px-4 py-2 rounded-xl border border-white/20 dark:border-slate-700/30 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-950 text-slate-600 dark:text-slate-300 text-xs font-semibold transition"
           >
             <UserPlus className="h-4 w-4" />
             Create Intern
           </button>
           <button
-            onClick={() => setShowCreateTechLead(true)}
+            onClick={() => openCreateModal(setShowCreateTechLead)}
             className="flex items-center gap-2 px-4 py-2 rounded-xl border border-white/20 dark:border-slate-700/30 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-950 text-slate-600 dark:text-slate-300 text-xs font-semibold transition"
           >
             <UserPlus className="h-4 w-4" />
             Create Tech Lead
           </button>
           <button
-            onClick={() => setShowCreateManager(true)}
+            onClick={() => openCreateModal(setShowCreateManager)}
             className="flex items-center gap-2 px-4 py-2 rounded-xl border border-white/20 dark:border-slate-700/30 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-950 text-slate-600 dark:text-slate-300 text-xs font-semibold transition"
           >
             <UserPlus className="h-4 w-4" />

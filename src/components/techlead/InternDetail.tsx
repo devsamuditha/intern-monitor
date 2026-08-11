@@ -3,15 +3,16 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useRef } from 'react';
-import { motion } from 'motion/react';
+import React, { useState, useEffect } from 'react';
+import { motion } from "motion/react";
+import { useQueryClient } from '@tanstack/react-query';
 import { api } from '../../services/api';
-import { User, DailyLog, Task, Mark, Mistake, Message, DaySession } from '../../types.ts';
+import { User, DailyLog, Task, Mark, Mistake, DaySession } from '../../types.ts';
 import { getSupabaseClient } from '../../lib/supabaseClient';
 import { 
-  ArrowLeft, Star, AlertTriangle, Send, CheckCircle, Plus, Calendar, 
-  MessageSquare, FileText, CheckSquare, ShieldAlert, Sparkles, ExternalLink, Zap, Sun, CheckCircle2,
-  Github, FolderGit2, HelpCircle, CheckCheck, Check, X
+  ArrowLeft, Star, AlertTriangle, Plus, Calendar, 
+  FileText, CheckSquare, Sparkles, ExternalLink, Zap,
+  Github, FolderGit2, HelpCircle, Check, X, PauseCircle, PlayCircle
 } from 'lucide-react';
 import { formatDate, getTaskPriorityColor, getTaskStatusColor } from '../../utils/helpers';
 import { scaleIn } from '../../utils/motion';
@@ -30,10 +31,9 @@ export const InternDetail: React.FC<InternDetailProps> = ({ internId, currentUse
   const [logs, setLogs] = useState<DailyLog[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [mistakes, setMistakes] = useState<Mistake[]>([]);
-  const [messages, setMessages] = useState<Message[]>([]);
   const [todaySession, setTodaySession] = useState<DaySession | null>(null);
   const [marks, setMarks] = useState<Mark[]>([]);
-  const [activeTab, setActiveTab] = useState<'logs' | 'tasks' | 'mistakes' | 'chat'>('logs');
+  const [activeTab, setActiveTab] = useState<'logs' | 'tasks' | 'mistakes'>('logs');
   const [loading, setLoading] = useState(true);
 
   // Form states
@@ -50,26 +50,23 @@ export const InternDetail: React.FC<InternDetailProps> = ({ internId, currentUse
   const [taskPriority, setTaskPriority] = useState<'low' | 'medium' | 'high'>('medium');
   const [showTaskForm, setShowTaskForm] = useState(false);
 
-  // Chat message state
-  const [chatInput, setChatInput] = useState('');
-  const chatEndRef = useRef<HTMLDivElement>(null);
-
   // Flag state
   const [flaggedItems, setFlaggedItems] = useState<Set<string>>(new Set());
   const [flagConfirmOpen, setFlagConfirmOpen] = useState(false);
   const [flagConfirmContent, setFlagConfirmContent] = useState<{ contentType: string; contentId: string; title?: string } | null>(null);
   const [flagReason, setFlagReason] = useState('');
   const [flagging, setFlagging] = useState(false);
+  const [toggleActiveLoading, setToggleActiveLoading] = useState(false);
   const markingScale = useMarkingScale();
+  const queryClient = useQueryClient();
 
   const loadAllInternData = async () => {
     try {
-      const [usersList, allLogs, allTasks, allMistakes, chatMsgs, todaySessions, allMarks] = await Promise.all([
+      const [usersList, allLogs, allTasks, allMistakes, todaySessions, allMarks] = await Promise.all([
         api.getUsers(),
         api.getLogs({ intern_id: internId }),
         api.getTasks({ assigned_to: internId }),
         api.getMistakes({ intern_id: internId }),
-        api.getMessages(currentUser.id, internId),
         api.getTodayDaySessions(internId),
         api.getMarks(internId),
       ]);
@@ -81,7 +78,6 @@ export const InternDetail: React.FC<InternDetailProps> = ({ internId, currentUse
       setLogs(allLogs);
       setTasks(allTasks);
       setMistakes(allMistakes);
-      setMessages(chatMsgs);
       setMarks(allMarks);
 
       if (todaySessions && todaySessions.length > 0) {
@@ -106,21 +102,6 @@ export const InternDetail: React.FC<InternDetailProps> = ({ internId, currentUse
         const supabase = await getSupabaseClient();
         subscriptionChannel = supabase
           .channel(`intern-detail-${internId}`)
-          .on(
-            'postgres_changes',
-            { event: '*', schema: 'public', table: 'Message' },
-            async (payload: any) => {
-              const newMsg = payload.new;
-              if (
-                newMsg &&
-                ((newMsg.fromId === currentUser.id && newMsg.toId === internId) ||
-                 (newMsg.fromId === internId && newMsg.toId === currentUser.id))
-              ) {
-                const msgs = await api.getMessages(currentUser.id, internId);
-                setMessages(msgs);
-              }
-            }
-          )
           .on(
             'postgres_changes',
             { event: '*', schema: 'public', table: 'DailyLog' },
@@ -156,18 +137,6 @@ export const InternDetail: React.FC<InternDetailProps> = ({ internId, currentUse
       }
     };
   }, [internId, currentUser]);
-
-  useEffect(() => {
-    if (activeTab === 'chat' && internId) {
-      api.markMessagesRead(currentUser.id, internId).catch(console.error);
-    }
-  }, [activeTab, internId, currentUser]);
-
-  useEffect(() => {
-    if (activeTab === 'chat') {
-      chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [activeTab, messages]);
 
   const handleReviewLogSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -231,31 +200,30 @@ export const InternDetail: React.FC<InternDetailProps> = ({ internId, currentUse
     }
   };
 
-  const handleSendChatMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const text = chatInput.trim();
-    if (!text) return;
-
-    try {
-      const newMsg = await api.sendMessage({
-        from_id: currentUser.id,
-        to_id: internId,
-        content: text
-      });
-      setMessages(prev => [...prev, newMsg]);
-      setChatInput('');
-      setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
-    } catch (err) {
-      alert("Failed to send message");
-    }
-  };
-
   const handleResolveMistake = async (mistakeId: string, currentResolved: boolean) => {
     try {
       await api.resolveMistake(mistakeId, !currentResolved);
       await loadAllInternData();
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handleToggleActive = async () => {
+    if (!intern || toggleActiveLoading) return;
+    const confirmMsg = intern.isActive
+      ? `Deactivate ${intern.name}? They will not be able to log in until reactivated.`
+      : `Activate ${intern.name}? They will be able to log in again.`;
+    if (!confirm(confirmMsg)) return;
+    setToggleActiveLoading(true);
+    try {
+      await api.updateInternStatus(internId, !intern.isActive);
+      await loadAllInternData();
+      queryClient.invalidateQueries({ queryKey: ["analytics"] });
+    } catch (err: any) {
+      alert(err.message || 'Failed to update intern status');
+    } finally {
+      setToggleActiveLoading(false);
     }
   };
 
@@ -371,6 +339,37 @@ export const InternDetail: React.FC<InternDetailProps> = ({ internId, currentUse
         </div>
       </div>
 
+      {/* Activate / Deactivate Toggle (Tech Lead & Manager) */}
+      {(!readOnly || currentUser.role === 'manager') && intern && (
+        <div className="flex items-center justify-end gap-2">
+          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${
+            intern.isActive
+              ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+              : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+          }`}>
+            {intern.isActive ? 'Active' : 'Inactive'}
+          </span>
+          <button
+            onClick={handleToggleActive}
+            disabled={toggleActiveLoading}
+            className={`px-4 py-2 rounded-xl font-bold text-xs transition flex items-center gap-1.5 ${
+              intern.isActive
+                ? 'bg-rose-600 hover:bg-rose-700 text-white'
+                : 'bg-emerald-600 hover:bg-emerald-500 text-white'
+            }`}
+          >
+            {toggleActiveLoading ? (
+              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white" />
+            ) : intern.isActive ? (
+              <PauseCircle className="h-4 w-4" />
+            ) : (
+              <PlayCircle className="h-4 w-4" />
+            )}
+            {intern.isActive ? 'Deactivate' : 'Activate'}
+          </button>
+        </div>
+      )}
+
       {/* TODAY SESSION DETAILS CARD */}
       {todaySession && (
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 text-white shadow-sm space-y-3">
@@ -436,7 +435,7 @@ export const InternDetail: React.FC<InternDetailProps> = ({ internId, currentUse
 
       {/* Tabs */}
       <div className="flex border-b border-white/20 dark:border-slate-700/30 gap-2 overflow-x-auto">
-        {(['logs', 'tasks', 'mistakes', 'chat'] as const).map(tab => (
+        {(['logs', 'tasks', 'mistakes'] as const).map(tab => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -446,7 +445,7 @@ export const InternDetail: React.FC<InternDetailProps> = ({ internId, currentUse
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            {tab === 'logs' ? 'Daily Logs' : tab === 'tasks' ? 'Tasks Assigned' : tab === 'mistakes' ? 'Mistakes Log' : 'Direct Message'}
+            {tab === 'logs' ? 'Daily Logs' : tab === 'tasks' ? 'Tasks Assigned' : 'Mistakes Log'}
           </button>
         ))}
       </div>
@@ -873,89 +872,8 @@ export const InternDetail: React.FC<InternDetailProps> = ({ internId, currentUse
                   ))
                 )}
               </div>
-            </div>
-          )}
-
-        {activeTab === 'chat' && (
-          <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-lg shadow-teal-500/5 flex flex-col h-[420px]">
-            {/* Chat header */}
-            <div className="px-5 py-3 border-b border-white/20 flex items-center gap-2">
-              <ThemedIcon icon={MessageSquare} color="teal" size={16} />
-              <span className="text-xs font-bold text-white">Chat with {intern.name}</span>
-              <span className="text-[9px] text-slate-400 uppercase italic">Auto-refresh active</span>
-            </div>
-
-            {/* Chat list */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-3.5">
-              {messages.length === 0 ? (
-                <div className="text-center py-10">
-                  <p className="text-xs text-slate-400 italic">No chat history. Start the conversation!</p>
-                </div>
-              ) : (
-                messages.map(msg => {
-                  const isMe = msg.from_id === currentUser.id;
-                  const isFlagged = flaggedItems.has(msg.id);
-                  return (
-                    <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-                      <div className={`max-w-xs md:max-w-md p-3 rounded-2xl text-xs space-y-1 shadow-sm ${
-                        isMe 
-                          ? 'bg-gradient-to-br from-teal-500 to-cyan-500 text-white rounded-tr-none' 
-                          : 'bg-white/10 text-white rounded-tl-none'
-                      }`}>
-                        <p className="leading-relaxed whitespace-pre-wrap">{msg.content}</p>
-                        <div className={`text-[8px] flex items-center justify-end gap-1 ${isMe ? 'text-white/70' : 'text-slate-300'}`}>
-                          <span>{formatDate(msg.timestamp.split('T')[0])} {msg.timestamp.includes('T') ? msg.timestamp.split('T')[1].substring(0, 5) : ''}</span>
-                          {isMe && (
-                            msg.read ? (
-                              <span title="Read by recipient" className="inline-flex items-center text-emerald-300">
-                                <CheckCheck className="h-3 w-3 stroke-[2.5]" />
-                              </span>
-                            ) : (
-                              <span title="Delivered to recipient" className="inline-flex items-center text-indigo-200">
-                                <Check className="h-3 w-3 stroke-[2.5]" />
-                              </span>
-                            )
-                          )}
-                        </div>
-                        {!isMe && !readOnly && (
-                          <button
-                            onClick={() => openFlagConfirm('message', msg.id, `Msg from ${intern.name}`)}
-                            disabled={isFlagged}
-                            className={`inline-flex items-center gap-1 mt-1 text-[9px] hover:text-rose-400 transition ${
-                              isFlagged ? 'text-slate-300 cursor-default' : 'text-slate-400 hover:text-rose-500'
-                            }`}
-                          >
-                            <AlertTriangle className="h-3 w-3" />
-                            {isFlagged ? 'Flagged' : 'Flag'}
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-              <div ref={chatEndRef} />
-            </div>
-
-            {/* Chat typing block */}
-            <form onSubmit={handleSendChatMessage} className="p-3 border-t border-white/20 flex gap-2">
-              <input
-                type="text"
-                placeholder="Type your message..."
-                value={chatInput}
-                onChange={(e) => setChatInput(e.target.value)}
-                className="flex-1 text-xs rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-white placeholder:text-[10px] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
-              />
-              <button
-                type="submit"
-                className="p-2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl shadow transition"
-              >
-                <Send className="h-4 w-4" />
-              </button>
-            </form>
           </div>
-         )}
-       </div>
+        )}
 
         {/* Flag Confirmation Modal */}
         {flagConfirmOpen && (
@@ -1027,8 +945,9 @@ export const InternDetail: React.FC<InternDetailProps> = ({ internId, currentUse
           </div>
         )}
       </div>
-    );
-  };
+    </div>
+  );
+};
 
 
 

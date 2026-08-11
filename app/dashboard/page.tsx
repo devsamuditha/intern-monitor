@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import { DashboardShell } from "@/src/components/layout/DashboardShell";
 import { InternDashboard } from "@/src/views/intern/InternDashboard";
 import { MyProjects } from "@/src/views/intern/MyProjects";
-import { AskTeamThread } from "@/src/components/intern/AskTeamThread";
 import { TeamOverview } from "@/src/views/techlead/TeamOverview";
 import { ManagerOverview } from "@/src/views/manager/ManagerOverview";
 import { SuperAdminOverview } from "@/src/views/superadmin/SuperAdminOverview";
@@ -49,8 +48,6 @@ export default function DashboardPage() {
     switch (user?.role) {
       case "intern":
         switch (activeTab) {
-          case "discussions":
-            return <AskTeamThread currentUser={user} />;
           case "projects":
             return <MyProjects currentUser={user} />;
           default:

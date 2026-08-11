@@ -2,7 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient, useQueries } from "@tanstack/react-query";
 import { api } from "@/src/services/api";
-import { User, Project, DailyLog, Task, Mark, Mistake, Message, Question, DaySession } from "@/src/types";
+import { User, Project, DailyLog, Task, Mark, Mistake, DaySession } from "@/src/types";
 
 // ─── Settings ───────────────────────────────────────────
 
@@ -168,9 +168,10 @@ export function useUpdateUser() {
   return useMutation({
     mutationFn: ({ userId, updates }: { userId: string; updates: Partial<User> }) =>
       api.updateUser(userId, updates),
-    onSuccess: () => {
+    onSuccess: (_data: any, variables: { userId: string; updates: Partial<User> }) => {
       qc.invalidateQueries({ queryKey: ["users"] });
       qc.invalidateQueries({ queryKey: ["superadmin", "users"] });
+      qc.invalidateQueries({ queryKey: ["dashboard", variables.userId] });
     },
   });
 }
@@ -179,9 +180,10 @@ export function useDeleteUser() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (userId: string) => api.deleteUser(userId),
-    onSuccess: () => {
+    onSuccess: (_data: any, userId: string) => {
       qc.invalidateQueries({ queryKey: ["users"] });
       qc.invalidateQueries({ queryKey: ["superadmin", "users"] });
+      qc.invalidateQueries({ queryKey: ["dashboard", userId] });
     },
   });
 }
@@ -202,9 +204,10 @@ export function useReassignTechLead() {
   return useMutation({
     mutationFn: ({ userId, techLeadId }: { userId: string; techLeadId: string | null }) =>
       api.reassignTechLead(userId, techLeadId),
-    onSuccess: () => {
+    onSuccess: (_data: any, variables: { userId: string; techLeadId: string | null }) => {
       qc.invalidateQueries({ queryKey: ["users"] });
       qc.invalidateQueries({ queryKey: ["superadmin", "users"] });
+      qc.invalidateQueries({ queryKey: ["dashboard", variables.userId] });
     },
   });
 }
@@ -255,9 +258,9 @@ export function useReviewTask() {
   return useMutation({
     mutationFn: ({ taskId, data }: { taskId: string; data: { reviewer_id: string; score: number; comment?: string } }) =>
       api.reviewTask(taskId, data),
-    onSuccess: () => {
+    onSuccess: (_data: any, variables: { taskId: string; data: any }) => {
       qc.invalidateQueries({ queryKey: ["tasks"] });
-      qc.invalidateQueries({ queryKey: ["dashboard"] });
+      qc.invalidateQueries({ queryKey: ["dashboard", variables.data.reviewer_id] });
     },
   });
 }
@@ -269,39 +272,6 @@ export function useResolveMistake() {
       api.resolveMistake(mistakeId, resolved),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["mistakes"] });
-    },
-  });
-}
-
-export function useSendMessage() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (message: { from_id: string; to_id: string; content: string }) =>
-      api.sendMessage(message),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["messages"] });
-    },
-  });
-}
-
-export function useAskQuestion() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (question: { intern_id: string; title: string; content: string }) =>
-      api.askQuestion(question),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["questions"] });
-    },
-  });
-}
-
-export function useReplyToQuestion() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: ({ questionId, reply }: { questionId: string; reply: { user_id: string; content: string } }) =>
-      api.replyToQuestion(questionId, reply),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["questions"] });
     },
   });
 }
