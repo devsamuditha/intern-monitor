@@ -34,21 +34,21 @@ export function mapUser(dbUser: any) {
 
 export function mapProject(dbProj: any) {
   if (!dbProj) return null;
-return {
-     id: dbProj.id,
-     name: dbProj.name,
-     description: dbProj.description,
-     github_url: dbProj.githubUrl,
-     tech_stack: dbProj.techStack,
-     owner_id: dbProj.ownerId,
-     owner_name: dbProj.owner?.name || undefined,
-     screenshots: dbProj.screenshots || [],
-     status: dbProj.status ? dbProj.status.toLowerCase() : 'active',
-     start_date: dbProj.startDate ? dbProj.startDate.toISOString() : undefined,
-     end_date: dbProj.endDate ? dbProj.endDate.toISOString() : undefined,
-     assigned_tech_lead_ids: dbProj.assignedTechLeadIds || [],
-     assigned_intern_ids: dbProj.assignedInternIds || [],
-   };
+  return {
+    id: dbProj.id,
+    name: dbProj.name,
+    description: dbProj.description,
+    github_url: dbProj.githubUrl,
+    tech_stack: dbProj.techStack,
+    owner_id: dbProj.ownerId,
+    owner_name: dbProj.owner?.name || undefined,
+    screenshots: dbProj.screenshots || [],
+    status: dbProj.status ? dbProj.status.toLowerCase() : 'active',
+    start_date: dbProj.startDate ? dbProj.startDate.toISOString() : undefined,
+    end_date: dbProj.endDate ? dbProj.endDate.toISOString() : undefined,
+    assigned_tech_lead_ids: dbProj.assignedTechLeadIds || [],
+    assigned_intern_ids: dbProj.assignedInternIds || [],
+  };
 }
 
 export function mapDailyLog(dbLog: any) {
@@ -209,27 +209,25 @@ export function isValidGithubUrl(url?: string): boolean {
 }
 
 export async function buildContentPreview(prisma: any, contentType: string, contentId: string, organizationId?: string) {
-  return (async () => {
-    try {
-      const orgFilter = organizationId ? { organizationId } : {};
-      if (contentType === "daily_log") {
-        const log = await prisma.dailyLog.findUnique({
-          where: { id: contentId, ...orgFilter },
-          select: { summary: true, changes: true, technologies: true, intern: { select: { name: true } } },
-        });
-        if (!log) return null;
-        return {
-          title: log.summary,
-          content: log.changes,
-          authorName: log.intern?.name,
-          extra: `Technologies: ${(log.technologies || []).join(", ")}`,
-        };
-      }
-      return null;
-    } catch {
-      return null;
+  try {
+    const orgFilter = organizationId ? { organizationId } : {};
+    if (contentType === "daily_log") {
+      const log = await prisma.dailyLog.findUnique({
+        where: { id: contentId, ...orgFilter },
+        select: { summary: true, changes: true, technologies: true, intern: { select: { name: true } } },
+      });
+      if (!log) return null;
+      return {
+        title: log.summary,
+        content: log.changes,
+        authorName: log.intern?.name,
+        extra: `Technologies: ${(log.technologies || []).join(", ")}`,
+      };
     }
-  })();
+    return null;
+  } catch {
+    return null;
+  }
 }
 
 export async function hideContent(prisma: any, contentType: string, contentId: string, organizationId?: string) {
@@ -240,13 +238,26 @@ export async function hideContent(prisma: any, contentType: string, contentId: s
 }
 
 export async function logAudit(prisma: any, actorId: string, action: string, targetType: string, targetId: string, oldValue?: any, newValue?: any, organizationId?: string) {
+  let orgId = organizationId;
+  if (!orgId && actorId) {
+    try {
+      const actor = await prisma.user.findUnique({
+        where: { id: actorId },
+        select: { organizationId: true },
+      });
+      orgId = actor?.organizationId || undefined;
+    } catch {
+      // ignore lookup error
+    }
+  }
+
   await prisma.auditLog.create({
     data: {
       userId: actorId,
       action,
       targetType,
       details: JSON.stringify({ targetType, targetId, oldValue, newValue }),
-      organizationId: organizationId || null,
+      organizationId: orgId || null,
     },
   });
 }

@@ -344,14 +344,14 @@ model DaySession {
 
 model AuditLog {
   id        String    @id @default(uuid())
-  organizationId String
+  organizationId String?
   userId    String
   action    String
   targetType String?
   details   String?
   timestamp DateTime @default(now())
 
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])

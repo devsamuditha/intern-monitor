@@ -86,7 +86,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       data: { avatarUrl },
     });
 
-    await logAudit(prisma, user.id, "AVATAR_UPDATED", "USER", id, undefined, { avatarUrl });
+    await logAudit(prisma, user.id, "AVATAR_UPDATED", "USER", id, undefined, { avatarUrl }, user.organizationId || undefined);
 
     return NextResponse.json({ avatarUrl }, { status: 200 });
   } catch (error: any) {
