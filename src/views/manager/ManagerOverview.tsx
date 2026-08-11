@@ -442,6 +442,9 @@ export const ManagerOverview: React.FC<ManagerOverviewProps> = ({ currentUser })
                                <span className="text-[11px] text-slate-500 dark:text-slate-400">
                                  {row.intern.active ? 'Active Now' : 'Offline'}
                                </span>
+                              {row.todaySession?.missedFinalJournal && (
+                                <AlertTriangle className="h-3 w-3 text-rose-500 animate-pulse" aria-label="Missed Final Journal" />
+                              )}
                               {row.missingLog500 && (
                                 <AlertTriangle className="h-3 w-3 text-rose-500 animate-pulse" aria-label="Missing daily log (past 5 PM deadline)" />
                               )}

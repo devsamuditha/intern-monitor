@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
     });
     const todaySessions = await (prisma as any).daySession.findMany({
       where: scopeToOrganization({ date: todayStr }, user),
-      select: { id: true, internId: true, status: true, startedAt: true, endedAt: true, organizationId: true },
+      select: { id: true, internId: true, status: true, startedAt: true, endedAt: true, earlyExitRequested: true, earlyExitReason: true, earlyExitApproved: true, missedFinalJournal: true, organizationId: true },
     });
     const last7Days = Array.from({ length: 7 }, (_, idx) => getRelativeDateStr(-idx)).reverse();
     const allWeekSessions = await (prisma as any).daySession.findMany({

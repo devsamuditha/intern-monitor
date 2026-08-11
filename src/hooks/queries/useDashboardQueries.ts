@@ -121,3 +121,27 @@ export function useUpdateTaskStatus(userId?: string) {
     },
   });
 }
+
+export function useRequestEarlyExit(userId?: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: api.requestEarlyExit,
+    onSuccess: () => {
+      if (userId) {
+        queryClient.invalidateQueries({ queryKey: ["dashboard", userId] });
+      }
+      queryClient.invalidateQueries({ queryKey: ["day-sessions"] });
+    },
+  });
+}
+
+export function useApproveEarlyExit() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: api.approveEarlyExit,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["day-sessions"] });
+    },
+  });
+}

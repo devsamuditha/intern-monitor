@@ -15,10 +15,11 @@ import { getSupabaseClient } from '../../lib/supabaseClient';
 import {
   Users, CheckCircle, Clock, Star, Flame, AlertTriangle,
   TrendingUp, Sparkles, ChevronRight, Check, X, ShieldCheck,
-  Zap, Sun, CheckCircle2, MessageSquare, PlusCircle, Github, ExternalLink, CheckSquare, Calendar
+  Zap, Sun, CheckCircle2, MessageSquare, PlusCircle, Github, ExternalLink, CheckSquare, Calendar, LogOut
 } from 'lucide-react';
 import { formatDate } from '../../utils/helpers';
 import { scaleIn } from '../../utils/motion';
+import { useApproveEarlyExit } from '../../hooks/queries/useDashboardQueries';
 
 interface TeamOverviewProps {
   currentUser: User;
@@ -34,6 +35,19 @@ export const TeamOverview: React.FC<TeamOverviewProps> = ({ currentUser }) => {
     queryFn: () => api.getAnalytics(currentUser.id),
     staleTime: 2 * 60 * 1000,
   });
+
+  const approveEarlyExitMutation = useApproveEarlyExit();
+
+  const handleApproveEarlyExit = async (sessionId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      await approveEarlyExitMutation.mutateAsync({ session_id: sessionId });
+      invalidateAnalytics();
+    } catch (err) {
+      console.error(err);
+      alert('Failed to approve early exit.');
+    }
+  };
 
   const invalidateAnalytics = () => {
     queryClient.invalidateQueries({ queryKey: ["analytics", currentUser.id] });
@@ -294,7 +308,9 @@ export const TeamOverview: React.FC<TeamOverviewProps> = ({ currentUser }) => {
                     </div>
 
                      <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold flex items-center gap-0.5 ${
-                       row.missingLog500
+                       sess?.missedFinalJournal
+                         ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30 animate-pulse'
+                         : row.missingLog500
                          ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30 animate-pulse'
                          : row.missingLog130
                          ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
@@ -302,7 +318,11 @@ export const TeamOverview: React.FC<TeamOverviewProps> = ({ currentUser }) => {
                          ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300'
                          : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
                      }`}>
-                       {row.missingLog500 ? (
+                       {sess?.missedFinalJournal ? (
+                         <>
+                           <AlertTriangle className="h-3 w-3" /> Missed Final Journal
+                         </>
+                       ) : row.missingLog500 ? (
                          <>
                            <AlertTriangle className="h-3 w-3" /> Missing Log
                          </>
@@ -341,6 +361,27 @@ export const TeamOverview: React.FC<TeamOverviewProps> = ({ currentUser }) => {
                           <Github className="h-3 w-3 inline" /> Git Repo <ExternalLink className="h-2.5 w-2.5 inline" />
                         </a>
                       )}
+                    </div>
+                  )}
+
+                  {sess && sess.earlyExitRequested && !sess.earlyExitApproved && (
+                    <div className="pt-2 border-t border-rose-200/60 dark:border-rose-900/60 flex flex-col gap-2">
+                      <div className="flex items-center gap-1.5 text-rose-600 dark:text-rose-400">
+                        <LogOut className="h-3.5 w-3.5" />
+                        <span className="text-[10px] font-bold">Early Exit Requested</span>
+                      </div>
+                      {sess.earlyExitReason && (
+                        <p className="text-[9px] text-slate-500 dark:text-slate-400 italic bg-slate-50 dark:bg-slate-900 p-1.5 rounded">
+                          "{sess.earlyExitReason}"
+                        </p>
+                      )}
+                      <button
+                        onClick={(e) => handleApproveEarlyExit(sess.id, e)}
+                        disabled={approveEarlyExitMutation.isPending}
+                        className="w-full py-1.5 bg-rose-100 hover:bg-rose-200 dark:bg-rose-900/40 dark:hover:bg-rose-900/60 text-rose-700 dark:text-rose-300 text-[10px] font-bold rounded-lg transition"
+                      >
+                        {approveEarlyExitMutation.isPending ? 'Approving...' : 'Approve Early Exit'}
+                      </button>
                     </div>
                   )}
                 </div>

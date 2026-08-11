@@ -16,12 +16,13 @@ import {
   StartDayHero,
   StartDayModal,
   EndDayPromptModal,
+  EarlyExitRequestModal,
   TasksBoard,
   DailyLogTimeline,
   FlaggedMistakesBanner
 } from '../../components/intern';
 import { formatDate } from '../../utils/helpers';
-import { useInternDashboard, useSubmitLog, useStartDaySession, useEndDaySession, useUpdateTaskStatus } from '@/src/hooks/queries/useDashboardQueries';
+import { useInternDashboard, useSubmitLog, useStartDaySession, useEndDaySession, useUpdateTaskStatus, useRequestEarlyExit } from '@/src/hooks/queries/useDashboardQueries';
 
 interface InternDashboardProps {
   user: User;
@@ -35,6 +36,7 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
   const [startQuestions, setStartQuestions] = useState('');
   const [startGitLink, setStartGitLink] = useState('');
   const [showEndDayPromptModal, setShowEndDayPromptModal] = useState(false);
+  const [showEarlyExitModal, setShowEarlyExitModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [dateFilter, setDateFilter] = useState('');
 
@@ -42,9 +44,12 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
   const submitLogMutation = useSubmitLog(user.id);
   const startDayMutation = useStartDaySession(user.id);
   const endDayMutation = useEndDaySession(user.id);
+  const requestEarlyExitMutation = useRequestEarlyExit(user.id);
   const updateTaskStatusMutation = useUpdateTaskStatus(user.id);
   const router = useRouter();
   const [showAutoLogout, setShowAutoLogout] = useState(false);
+  const [hasNotified430, setHasNotified430] = useState(false);
+  const [hasNotified445, setHasNotified445] = useState(false);
 
   const logs = data?.logs ?? [];
   const tasks = data?.tasks ?? [];
@@ -63,13 +68,25 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
     const checkAutoLogout = () => {
       const ist = getISTDate();
       const istMinutes = ist.getHours() * 60 + ist.getMinutes();
+      const sessionActive = todaySession && todaySession.status === 'active';
 
-      if (istMinutes >= 17 * 60) {
-        const sessionActive = todaySession && todaySession.status === 'active';
+      if (!sessionActive) return;
 
-        if (sessionActive && !hasLogToday) {
-          setShowAutoLogout(true);
-        }
+      // 4:30 PM Notification
+      if (istMinutes >= 16 * 60 + 30 && istMinutes < 16 * 60 + 45 && !hasNotified430) {
+        alert("Reminder: It's 4:30 PM. Please submit your final daily journal soon.");
+        setHasNotified430(true);
+      }
+
+      // 4:45 PM Final Warning Notification
+      if (istMinutes >= 16 * 60 + 45 && istMinutes < 17 * 60 + 15 && !hasNotified445) {
+        alert("FINAL WARNING: It's 4:45 PM. You must submit your final daily journal before 5:00 PM.");
+        setHasNotified445(true);
+      }
+
+      // 5:15 PM Auto Logout
+      if (istMinutes >= 17 * 60 + 15) {
+        setShowAutoLogout(true);
       }
     };
 
@@ -77,7 +94,7 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
     const interval = setInterval(checkAutoLogout, 60000);
 
     return () => clearInterval(interval);
-  }, [user, logs, todaySession, hasLogToday]);
+  }, [user, logs, todaySession, hasLogToday, hasNotified430, hasNotified445]);
 
   const performAutoLogout = async () => {
     try {
@@ -167,6 +184,20 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
 
   const handleEndDayClick = async () => {
     if (endDayMutation.isPending) return;
+    
+    const ist = getISTDate();
+    const istMinutes = ist.getHours() * 60 + ist.getMinutes();
+    
+    // Check for early exit (before 5:00 PM)
+    if (istMinutes < 17 * 60 && !todaySession?.earlyExitApproved) {
+      if (todaySession?.earlyExitRequested) {
+        alert("Your early exit request is pending approval from your Tech Lead.");
+      } else {
+        setShowEarlyExitModal(true);
+      }
+      return;
+    }
+
     const todayStr = getISTDateString();
     const hasLogToday = logs.some((l: any) => l.date === todayStr);
 
@@ -178,8 +209,18 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
     try {
       await endDayMutation.mutateAsync({ intern_id: user.id });
       if (onRefreshStats) onRefreshStats();
-    } catch (err) {
-      console.error("End day failed", err);
+    } catch (err: any) {
+      alert(err.message || "End day failed");
+    }
+  };
+
+  const handleEarlyExitSubmit = async (reason: string) => {
+    try {
+      await requestEarlyExitMutation.mutateAsync({ intern_id: user.id, reason });
+      setShowEarlyExitModal(false);
+      alert("Early exit request submitted. Please wait for Tech Lead approval.");
+    } catch (err: any) {
+      alert(err.message || "Failed to request early exit");
     }
   };
 
@@ -298,6 +339,13 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
             show={showEndDayPromptModal}
             onClose={() => setShowEndDayPromptModal(false)}
             onGoToJournal={handleGoToJournal}
+          />
+
+          <EarlyExitRequestModal
+            show={showEarlyExitModal}
+            onClose={() => setShowEarlyExitModal(false)}
+            onSubmit={handleEarlyExitSubmit}
+            isLoading={requestEarlyExitMutation.isPending}
           />
 
           <StatsHeader

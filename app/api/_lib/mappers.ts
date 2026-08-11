@@ -145,6 +145,10 @@ export function mapDaySession(dbSession: any) {
     questions: dbSession.questions || undefined,
     git_link: dbSession.gitLink || undefined,
     end_journal: dbSession.endJournal || undefined,
+    earlyExitRequested: dbSession.earlyExitRequested || undefined,
+    earlyExitReason: dbSession.earlyExitReason || undefined,
+    earlyExitApproved: dbSession.earlyExitApproved || undefined,
+    missedFinalJournal: dbSession.missedFinalJournal || undefined,
   };
 }
 

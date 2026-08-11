@@ -331,6 +331,11 @@ model DaySession {
   gitLink      String?
   endJournal   String?
   createdAt    DateTime @default(now())
+  
+  earlyExitRequested Boolean @default(false)
+  earlyExitReason    String?
+  earlyExitApproved  Boolean @default(false)
+  missedFinalJournal Boolean @default(false)
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   intern       User       @relation(fields: [internId], references: [id], onDelete: Cascade)

@@ -106,6 +106,10 @@ export interface DaySession {
   questions?: string;
   git_link?: string;
   end_journal?: string;
+  earlyExitRequested?: boolean;
+  earlyExitReason?: string;
+  earlyExitApproved?: boolean;
+  missedFinalJournal?: boolean;
 }
 
 export interface TeamStats {

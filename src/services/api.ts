@@ -451,6 +451,29 @@ export const api = {
     return handleResponse(res);
   },
 
+  requestEarlyExit: async (data: {
+    intern_id: string;
+    reason: string;
+  }): Promise<DaySession> => {
+    const res = await fetchWithDedup("/api/day-sessions/early-exit/request", {
+      method: "POST",
+      headers: await getAuthHeaders(),
+      body: JSON.stringify(data)
+    });
+    return handleResponse(res);
+  },
+
+  approveEarlyExit: async (data: {
+    session_id: string;
+  }): Promise<DaySession> => {
+    const res = await fetchWithDedup("/api/day-sessions/early-exit/approve", {
+      method: "POST",
+      headers: await getAuthHeaders(),
+      body: JSON.stringify(data)
+    });
+    return handleResponse(res);
+  },
+
   createUserBySuperAdmin: async (data: { name: string; email: string; username: string; password: string; role: string; techLeadId?: string; organizationId?: string }): Promise<{ user: User; username: string; password: string }> => {
     const res = await fetchWithDedup("/api/superadmin/users", {
       method: "POST",
