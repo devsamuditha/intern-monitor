@@ -29,6 +29,7 @@ export const TeamOverview: React.FC<TeamOverviewProps> = ({ currentUser }) => {
   const queryClient = useQueryClient();
   const [selectedInternId, setSelectedInternId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'queue' | 'roster' | 'upcoming_projects'>('queue');
+  const [isApprovingAll, setIsApprovingAll] = useState(false);
 
   const { data: analytics, isLoading: loading } = useQuery({
     queryKey: ["analytics", currentUser.id],
@@ -52,6 +53,27 @@ export const TeamOverview: React.FC<TeamOverviewProps> = ({ currentUser }) => {
 
   const invalidateAnalytics = () => {
     queryClient.invalidateQueries({ queryKey: ["analytics", currentUser.id] });
+  };
+
+  const handleApproveAllEarlyExits = async () => {
+    if (isApprovingAll) return;
+    const pendingSessions = rosterData
+      .filter((r: any) => r.todaySession?.earlyExitRequested && !r.todaySession?.earlyExitApproved)
+      .map((r: any) => r.todaySession.id);
+
+    if (pendingSessions.length === 0) return;
+
+    setIsApprovingAll(true);
+    try {
+      await Promise.all(pendingSessions.map((id: string) => approveEarlyExitMutation.mutateAsync({ session_id: id })));
+      invalidateAnalytics();
+      alert(`Approved ${pendingSessions.length} early exit request(s) successfully.`);
+    } catch (err) {
+      console.error(err);
+      alert('Failed to approve one or more early exit requests.');
+    } finally {
+      setIsApprovingAll(false);
+    }
   };
 
   useEffect(() => {
@@ -235,6 +257,19 @@ export const TeamOverview: React.FC<TeamOverviewProps> = ({ currentUser }) => {
             </div>
           </div>
         </div>
+
+        {(() => {
+          const pendingCount = rosterData.filter((r: any) => r.todaySession?.earlyExitRequested && !r.todaySession?.earlyExitApproved).length;
+          return pendingCount > 0 ? (
+            <button
+              onClick={handleApproveAllEarlyExits}
+              disabled={isApprovingAll || approveEarlyExitMutation.isPending}
+              className="px-4 py-2 bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 text-white text-xs font-bold rounded-xl transition flex items-center gap-2 self-start"
+            >
+              {isApprovingAll ? 'Approving All...' : `Approve All Pending Early Exits (${pendingCount})`}
+            </button>
+          ) : null;
+        })()}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
           {rosterData.length === 0 ? (

@@ -142,6 +142,7 @@ export function useApproveEarlyExit() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
       queryClient.invalidateQueries({ queryKey: ["day-sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["analytics"] });
     },
   });
 }

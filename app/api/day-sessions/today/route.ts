@@ -31,6 +31,8 @@ export async function GET(request: NextRequest) {
         id: true, internId: true, date: true, startedAt: true, endedAt: true,
         status: true, todayProject: true, todayPlan: true, questions: true,
         gitLink: true, endJournal: true, organizationId: true,
+        earlyExitRequested: true, earlyExitReason: true, earlyExitApproved: true,
+        missedFinalJournal: true,
       },
     });
     return NextResponse.json(dbSessions.map(mapDaySession));

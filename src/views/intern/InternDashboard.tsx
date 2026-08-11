@@ -11,6 +11,7 @@ import { User, DailyLog, Task, Mistake, Mark, DaySession, TaskStatus } from '../
 import { api } from '../../services/api';
 import { getISTDate, getISTDateString } from '../../utils/time';
 import { DailyLogForm } from '../../components/intern/DailyLogForm';
+import { getSupabaseClient } from '../../lib/supabaseClient';
 import {
   StatsHeader,
   StartDayHero,
@@ -121,6 +122,38 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
       });
     }
   }, [showAutoLogout]);
+
+  useEffect(() => {
+    if (!user?.id) return;
+
+    let cleanup: (() => void) | undefined;
+
+    const setupRealtime = async () => {
+      try {
+        const supabase = await getSupabaseClient();
+        const channel = supabase
+          .channel('intern-dashboard')
+          .on('postgres_changes', {
+            event: '*',
+            schema: 'public',
+            table: 'DaySession',
+            filter: `intern_id=eq.${user.id}`,
+          }, () => {
+            refetch();
+          })
+          .subscribe();
+        cleanup = () => { channel.unsubscribe(); };
+      } catch (err) {
+        console.warn("Realtime subscriptions are inactive in InternDashboard:", err);
+      }
+    };
+
+    setupRealtime();
+
+    return () => {
+      cleanup?.();
+    };
+  }, [user.id, refetch]);
 
   const sessionLoading = startDayMutation.isPending || endDayMutation.isPending;
   const isDev = process.env.NODE_ENV === 'development';
