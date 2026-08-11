@@ -126,10 +126,22 @@ export const StartDayHero: React.FC<StartDayHeroProps> = ({
              </button>
            </>
          ) : todaySession.status === 'active' ? (
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col items-end gap-2">
+              {todaySession.earlyExitRequested && !todaySession.earlyExitApproved && (
+                <div className="px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[10px] font-bold animate-pulse flex items-center gap-1.5">
+                  <AlertTriangle className="h-3 w-3" />
+                  Early Exit Pending Approval
+                </div>
+              )}
+              {todaySession.earlyExitApproved && (
+                <div className="px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold flex items-center gap-1.5">
+                  <CheckCircle2 className="h-3 w-3" />
+                  Early Exit Approved. You can end the day.
+                </div>
+              )}
               <button
                 onClick={onEndDay}
-                disabled={sessionLoading}
+                disabled={sessionLoading || (todaySession.earlyExitRequested && !todaySession.earlyExitApproved)}
                 className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-rose-300 border border-rose-500/30 font-bold text-xs active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
               >
                 {sessionLoading ? 'Ending Day...' : '🏁 Finish / End Day'}

@@ -43,6 +43,7 @@ export const TeamOverview: React.FC<TeamOverviewProps> = ({ currentUser }) => {
     try {
       await approveEarlyExitMutation.mutateAsync({ session_id: sessionId });
       invalidateAnalytics();
+      alert('Early exit request approved successfully.');
     } catch (err) {
       console.error(err);
       alert('Failed to approve early exit.');
