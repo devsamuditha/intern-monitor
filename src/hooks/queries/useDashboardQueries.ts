@@ -117,7 +117,6 @@ export function useUpdateTaskStatus(userId?: string) {
       if (userId) {
         queryClient.invalidateQueries({ queryKey: ["dashboard", userId] });
       }
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
     },
   });
 }

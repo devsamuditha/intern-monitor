@@ -290,7 +290,6 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
     if (updateTaskStatusMutation.isPending) return;
     if (task.status === 'todo') {
       await updateTaskStatusMutation.mutateAsync({ taskId: task.id, status: 'in_progress' });
-      refetch();
       if (onRefreshStats) onRefreshStats();
     } else if (task.status === 'in_progress') {
       setTaskToComplete(task);

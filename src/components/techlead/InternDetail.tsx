@@ -12,9 +12,9 @@ import { getSupabaseClient } from '../../lib/supabaseClient';
 import { 
   ArrowLeft, Star, AlertTriangle, Plus, Calendar, 
   FileText, CheckSquare, Sparkles, ExternalLink, Zap,
-  Github, FolderGit2, HelpCircle, Check, X, PauseCircle, PlayCircle
+  Github, FolderGit2, HelpCircle, Check, X, PauseCircle, PlayCircle, Play
 } from 'lucide-react';
-import { formatDate, getTaskPriorityColor, getTaskStatusColor } from '../../utils/helpers';
+import { formatDate, formatRelativeTime, getTaskPriorityColor, getTaskStatusColor } from '../../utils/helpers';
 import { scaleIn } from '../../utils/motion';
 import { ThemedIcon } from '../../components/ui/ThemedIcon';
 import { useMarkingScale } from '../../context/SettingsContext';
@@ -803,6 +803,11 @@ export const InternDetail: React.FC<InternDetailProps> = ({ internId, currentUse
                       <p className="text-[10px] text-slate-400 flex items-center gap-1">
                         <Calendar className="h-3 w-3" /> Due: {formatDate(task.due_date)}
                       </p>
+                      {task.status === 'in_progress' && task.started_at && (
+                        <p className="text-[10px] text-amber-400 flex items-center gap-1">
+                          <Play className="h-3 w-3" /> Started: {formatRelativeTime(task.started_at)}
+                        </p>
+                      )}
                     </div>
 
                     {/* Task details or grades */}

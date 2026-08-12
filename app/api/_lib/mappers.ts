@@ -78,6 +78,7 @@ export function mapTask(dbTask: any) {
     due_date: dbTask.dueDate,
     priority: String(dbTask.priority).toLowerCase(),
     status: String(dbTask.status).toLowerCase(),
+    started_at: dbTask.startedAt || undefined,
     completed_at: dbTask.completedAt || undefined,
     score: dbTask.score || undefined,
     comment: dbTask.comment || undefined,

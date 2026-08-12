@@ -181,6 +181,7 @@ model Task {
   dueDate      String       // YYYY-MM-DD
   priority     TaskPriority
   status       TaskStatus   @default(TODO)
+  startedAt    String?      // ISO datetime when intern started the task
   completedAt  String?      // YYYY-MM-DD
   score        Int?
   comment      String?

@@ -54,6 +54,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     const updateData: any = {
       status: normalizedStatus as any,
+      startedAt: normalizedStatus === "IN_PROGRESS" ? new Date().toISOString() : undefined,
       completedAt: normalizedStatus === "DONE" ? todayStr : null,
     };
 

@@ -62,6 +62,7 @@ export interface Task {
   due_date: string;
   priority: TaskPriority;
   status: TaskStatus;
+  started_at?: string;
   completed_at?: string;
   score?: number; // given by Tech Lead
   comment?: string; // Tech Lead review comment

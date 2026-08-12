@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { motion } from 'motion/react';
-import { CheckSquare, AlertTriangle, Github, ExternalLink, Check, Play } from 'lucide-react';
+import { CheckSquare, AlertTriangle, Github, ExternalLink, Check, Play, Loader2 } from 'lucide-react';
 import { Task } from '../../types.ts';
 import { formatDate } from '../../utils/helpers';
 import { staggerContainer, fadeInUp } from '../../utils/motion';
@@ -18,6 +18,9 @@ interface TasksBoardProps {
 }
 
 export const TasksBoard: React.FC<TasksBoardProps> = ({ tasks, onTaskStatusToggle, taskStatusLoading }) => {
+  const statusOrder = { todo: 0, in_progress: 1, done: 2 };
+  const sortedTasks = [...tasks].sort((a, b) => statusOrder[a.status] - statusOrder[b.status]);
+
   return (
     <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 space-y-4">
       <div className="flex items-center justify-between gap-2">
@@ -46,19 +49,25 @@ export const TasksBoard: React.FC<TasksBoardProps> = ({ tasks, onTaskStatusToggl
             </div>
           </div>
         ) : (
-          tasks.map(task => (
+          sortedTasks.map(task => (
             <motion.div
               key={task.id}
               variants={fadeInUp}
-              className="p-4 rounded-xl bg-black/15 border border-white/10 border-l-4 border-l-transparent flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition hover:shadow-sm hover:border-l-teal-500 hover:pl-3"
+              className={`p-4 rounded-xl border border-white/10 border-l-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition hover:shadow-sm ${
+                task.status === 'todo'
+                  ? 'bg-amber-500/5 border-l-amber-400 hover:border-l-amber-300'
+                  : task.status === 'in_progress'
+                  ? 'bg-black/15 border-l-amber-400 hover:border-l-amber-300'
+                  : 'bg-black/15 border-l-emerald-500/50 hover:border-l-emerald-400'
+              } hover:pl-3`}
             >
               <div className="space-y-1.5 flex-1">
                 <div className="flex items-center gap-1.5 flex-wrap">
                   <h4 className="text-xs font-bold text-white leading-tight">{task.title}</h4>
                   <span className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider ${
                     task.priority === 'high'
-                      ? ' text-rose-300  '
-                      : ' text-teal-300  '
+                      ? 'text-rose-300'
+                      : 'text-teal-300'
                   }`}>
                     {task.priority} priority
                   </span>
@@ -66,8 +75,8 @@ export const TasksBoard: React.FC<TasksBoardProps> = ({ tasks, onTaskStatusToggl
                     task.status === 'done'
                       ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
                       : task.status === 'in_progress'
-                      ? 'jjj text-amber-300 border border-amber-500/30'
-                      : 'bg-white/10 text-white/70 border border-white/20'
+                      ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                      : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
                   }`}>
                     {task.status === 'in_progress' ? 'In Progress' : task.status === 'done' ? 'Completed' : 'To Do'}
                   </span>
@@ -108,7 +117,12 @@ export const TasksBoard: React.FC<TasksBoardProps> = ({ tasks, onTaskStatusToggl
                     disabled={taskStatusLoading}
                     className="px-3 py-1.5 rounded-xl text-[10px] font-bold transition flex items-center gap-1 shrink-0 bg-teal-500 text-white hover:bg-teal-600 dark:bg-teal-600 dark:hover:bg-teal-700 disabled:opacity-50"
                   >
-                    <ThemedIcon icon={Play} color="white" size={12} /> Start
+                    {taskStatusLoading ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                      <Play className="h-3 w-3" />
+                    )}
+                    Start
                   </button>
                 )}
                 {task.status === 'in_progress' && (
@@ -117,12 +131,17 @@ export const TasksBoard: React.FC<TasksBoardProps> = ({ tasks, onTaskStatusToggl
                     disabled={taskStatusLoading}
                     className="px-3 py-1.5 rounded-xl text-[10px] font-bold transition flex items-center gap-1 shrink-0 bg-emerald-500 text-white hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-700 disabled:opacity-50"
                   >
-                    <ThemedIcon icon={Check} color="white" size={12} fill /> Complete
+                    {taskStatusLoading ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                      <Check className="h-3 w-3 fill-current" />
+                    )}
+                    Complete
                   </button>
                 )}
                 {task.status === 'done' && (
                   <div className="px-3 py-1.5 rounded-xl text-[10px] font-bold flex items-center gap-1 shrink-0 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
-                    <ThemedIcon icon={Check} color="emerald" size={12} fill /> Completed
+                    <Check className="h-3 w-3 fill-current" /> Completed
                   </div>
                 )}
               </div>
