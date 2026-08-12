@@ -21,7 +21,8 @@ import {
   TasksBoard,
   DailyLogTimeline,
   FlaggedMistakesBanner,
-  CompleteTaskModal
+  CompleteTaskModal,
+  JournalReminderModal
 } from '../../components/intern';
 import { formatDate } from '../../utils/helpers';
 import { useInternDashboard, useSubmitLog, useStartDaySession, useEndDaySession, useUpdateTaskStatus, useRequestEarlyExit } from '@/src/hooks/queries/useDashboardQueries';
@@ -41,6 +42,7 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
   const [showEarlyExitModal, setShowEarlyExitModal] = useState(false);
   const [showCompleteTaskModal, setShowCompleteTaskModal] = useState(false);
   const [taskToComplete, setTaskToComplete] = useState<Task | null>(null);
+  const [showJournalReminderModal, setShowJournalReminderModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [dateFilter, setDateFilter] = useState('');
 
@@ -101,6 +103,28 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
 
     return () => clearInterval(interval);
   }, [user, logs, todaySession, hasLogToday, hasNotified430, hasNotified445]);
+
+  useEffect(() => {
+    if (user?.role !== 'intern') return;
+
+    const checkJournalReminder = () => {
+      const ist = getISTDate();
+      const istMinutes = ist.getHours() * 60 + ist.getMinutes();
+      const sessionActive = todaySession && todaySession.status === 'active';
+
+      if (!sessionActive) return;
+      if (hasLogToday) return;
+
+      if (istMinutes >= 13 * 60 && istMinutes < 14 * 60 + 30) {
+        setShowJournalReminderModal(true);
+      }
+    };
+
+    checkJournalReminder();
+    const interval = setInterval(checkJournalReminder, 60000);
+
+    return () => clearInterval(interval);
+  }, [user, todaySession, hasLogToday]);
 
   const performAutoLogout = async () => {
     try {
@@ -316,6 +340,16 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
     }
   };
 
+  const handleGoToJournalFromReminder = () => {
+    setShowJournalReminderModal(false);
+    const el = document.getElementById('daily-log-form-container');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+      el.classList.add('ring-2', 'ring-teal-500');
+      setTimeout(() => el.classList.remove('ring-2', 'ring-teal-500'), 2000);
+    }
+  };
+
   const completedTasksCount = tasks.filter(t => t.status === 'done').length;
 
   if (projects.length > 0 && !startProject) {
@@ -369,6 +403,12 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
             show={showEndDayPromptModal}
             onClose={() => setShowEndDayPromptModal(false)}
             onGoToJournal={handleGoToJournal}
+          />
+
+          <JournalReminderModal
+            show={showJournalReminderModal}
+            onClose={() => setShowJournalReminderModal(false)}
+            onGoToJournal={handleGoToJournalFromReminder}
           />
 
           <EarlyExitRequestModal
