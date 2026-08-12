@@ -12,3 +12,4 @@ export { TasksBoard } from './TasksBoard';
 export { DailyLogTimeline } from './DailyLogTimeline';
 export { FlaggedMistakesBanner } from './FlaggedMistakesBanner';
 export { RankingChart } from './RankingChart';
+export { CompleteTaskModal } from './CompleteTaskModal';

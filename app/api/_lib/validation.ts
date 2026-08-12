@@ -98,12 +98,18 @@ export const UpdateTaskSchema = z.object({
   status: z.enum(['todo', 'in_progress', 'done', 'TODO', 'IN_PROGRESS', 'DONE']).optional(),
   blockers: z.string().optional().nullable(),
   pr_link: z.string().optional().nullable(),
+  completed_description: z.string().optional().nullable(),
+  self_score: z.number().min(1).optional().nullable(),
+  self_comment: z.string().optional().nullable(),
 });
 
 export const TaskStatusSchema = z.object({
   status: z.enum(['todo', 'in_progress', 'done', 'TODO', 'IN_PROGRESS', 'DONE']),
   blockers: z.string().optional().nullable(),
   pr_link: z.string().optional().nullable(),
+  completed_description: z.string().optional().nullable(),
+  self_score: z.number().min(1).optional().nullable(),
+  self_comment: z.string().optional().nullable(),
 });
 
 export const ScoreTaskSchema = z.object({

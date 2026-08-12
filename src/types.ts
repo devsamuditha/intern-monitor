@@ -67,6 +67,8 @@ export interface Task {
   comment?: string; // Tech Lead review comment
   blockers?: string;
   pr_link?: string;
+  self_score?: number;
+  self_comment?: string;
 }
 
 export interface Mark {

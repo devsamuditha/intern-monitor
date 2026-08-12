@@ -25,7 +25,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   }
 
   const { id } = await params;
-  const { title, description, due_date, priority, status, blockers, pr_link } = body;
+  const { title, description, due_date, priority, status, blockers, pr_link, completed_description, self_score, self_comment } = body;
 
   if (pr_link && !isValidGithubUrl(pr_link)) {
     return NextResponse.json({ error: "Invalid PR link. Must be a valid GitHub URL (https://github.com/...)" }, { status: 400 });
@@ -47,6 +47,9 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     if (priority !== undefined) updateData.priority = String(priority).toUpperCase();
     if (blockers !== undefined) updateData.blockers = blockers;
     if (pr_link !== undefined) updateData.prLink = pr_link;
+    if (completed_description !== undefined) updateData.completedDescription = completed_description;
+    if (self_score !== undefined) updateData.selfScore = self_score;
+    if (self_comment !== undefined) updateData.selfComment = self_comment;
     if (status !== undefined) {
       const normalizedStatus = String(status).toUpperCase();
       updateData.status = normalizedStatus;
@@ -56,7 +59,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const updated = await prisma.task.update({
       where: { id, ...scopeToOrganization({}, user) },
       data: updateData,
-      select: { id: true, organizationId: true, assignedToId: true, assignedById: true, title: true, description: true, dueDate: true, priority: true, status: true, completedAt: true, score: true, comment: true, blockers: true, prLink: true, createdAt: true },
+      select: { id: true, organizationId: true, assignedToId: true, assignedById: true, title: true, description: true, dueDate: true, priority: true, status: true, completedAt: true, score: true, comment: true, blockers: true, prLink: true, createdAt: true, selfScore: true, selfComment: true, completedDescription: true },
     });
 
     return NextResponse.json(mapTask(updated));

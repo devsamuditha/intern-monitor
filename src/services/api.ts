@@ -350,7 +350,7 @@ export const api = {
   updateTaskStatus: async (
     taskId: string,
     status: TaskStatus,
-    extra?: { blockers?: string; pr_link?: string }
+    extra?: { blockers?: string; pr_link?: string; completed_description?: string; self_score?: number; self_comment?: string }
   ): Promise<Task> => {
     const res = await fetchWithDedup(`/api/tasks/${taskId}/status`, {
       method: "POST",

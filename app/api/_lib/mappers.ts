@@ -83,6 +83,9 @@ export function mapTask(dbTask: any) {
     comment: dbTask.comment || undefined,
     blockers: dbTask.blockers || undefined,
     pr_link: dbTask.prLink || undefined,
+    self_score: dbTask.selfScore || undefined,
+    self_comment: dbTask.selfComment || undefined,
+    completed_description: dbTask.completedDescription || undefined,
   };
 }
 

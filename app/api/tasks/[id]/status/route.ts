@@ -25,7 +25,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   }
 
   const { id } = await params;
-  const { status, blockers, pr_link } = body;
+  const { status, blockers, pr_link, completed_description, self_score, self_comment } = body;
 
   const validStatuses = ["todo", "in_progress", "done", "TODO", "IN_PROGRESS", "DONE"];
   if (!status || !validStatuses.includes(status)) {
@@ -59,6 +59,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     if (blockers !== undefined) updateData.blockers = blockers;
     if (pr_link !== undefined) updateData.prLink = pr_link;
+    if (completed_description !== undefined) updateData.completedDescription = completed_description;
+    if (self_score !== undefined) updateData.selfScore = self_score;
+    if (self_comment !== undefined) updateData.selfComment = self_comment;
 
     const updated = await prisma.task.update({
       where: { id, ...scopeToOrganization({}, user) },

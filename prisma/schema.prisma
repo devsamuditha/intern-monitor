@@ -186,6 +186,9 @@ model Task {
   comment      String?
   blockers     String?
   prLink       String?
+  selfScore    Int?
+  selfComment  String?
+  completedDescription String?
   createdAt    DateTime     @default(now())
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)

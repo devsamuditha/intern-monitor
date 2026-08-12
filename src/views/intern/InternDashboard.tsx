@@ -20,7 +20,8 @@ import {
   EarlyExitRequestModal,
   TasksBoard,
   DailyLogTimeline,
-  FlaggedMistakesBanner
+  FlaggedMistakesBanner,
+  CompleteTaskModal
 } from '../../components/intern';
 import { formatDate } from '../../utils/helpers';
 import { useInternDashboard, useSubmitLog, useStartDaySession, useEndDaySession, useUpdateTaskStatus, useRequestEarlyExit } from '@/src/hooks/queries/useDashboardQueries';
@@ -38,6 +39,8 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
   const [startGitLink, setStartGitLink] = useState('');
   const [showEndDayPromptModal, setShowEndDayPromptModal] = useState(false);
   const [showEarlyExitModal, setShowEarlyExitModal] = useState(false);
+  const [showCompleteTaskModal, setShowCompleteTaskModal] = useState(false);
+  const [taskToComplete, setTaskToComplete] = useState<Task | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [dateFilter, setDateFilter] = useState('');
 
@@ -63,6 +66,7 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
   const todayStr = getISTDateString();
   const hasLogToday = logs.some((l: any) => l.date === todayStr);
   const assignedProjects = projects.filter(p => p.assigned_intern_ids?.includes(user.id));
+  const activeTask = tasks.find(t => t.status === 'in_progress') || null;
 
   useEffect(() => {
     if (user?.role !== 'intern') return;
@@ -260,50 +264,40 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
 
   const handleTaskStatusToggle = async (task: Task) => {
     if (updateTaskStatusMutation.isPending) return;
-    let nextStatus: TaskStatus;
     if (task.status === 'todo') {
-      nextStatus = 'in_progress';
-    } else if (task.status === 'in_progress') {
-      nextStatus = 'done';
-    } else {
-      return;
-    }
-
-    if (nextStatus === 'done' && (!task.pr_link || !task.pr_link.trim())) {
-      const prUrl = prompt('Enter your GitHub PR URL for this task (https://github.com/...):');
-      if (prUrl !== null) {
-        const clean = prUrl.trim();
-        try {
-          const parsed = new URL(clean);
-          if (parsed.hostname !== 'github.com' && parsed.hostname !== 'www.github.com') {
-            alert('Invalid PR URL. Please enter a valid GitHub URL (https://github.com/...)');
-            return;
-          }
-        } catch (err) {
-          alert('Invalid URL format. Please enter a valid GitHub URL (https://github.com/...)');
-          return;
-        }
-
-        try {
-          await updateTaskStatusMutation.mutateAsync({ taskId: task.id, status: 'done', extra: { pr_link: clean } });
-          refetch();
-          if (onRefreshStats) onRefreshStats();
-          return;
-        } catch (err: any) {
-          alert(err.message || 'Failed to update task');
-          return;
-        }
-      } else {
-        return;
-      }
-    }
-
-    try {
-      await updateTaskStatusMutation.mutateAsync({ taskId: task.id, status: nextStatus });
+      await updateTaskStatusMutation.mutateAsync({ taskId: task.id, status: 'in_progress' });
       refetch();
       if (onRefreshStats) onRefreshStats();
-    } catch (e: any) {
-      alert(e.message || 'Failed to update task status');
+    } else if (task.status === 'in_progress') {
+      setTaskToComplete(task);
+      setShowCompleteTaskModal(true);
+    }
+  };
+
+  const handleCompleteTaskSubmit = async (data: {
+    taskId: string;
+    pr_link: string;
+    completed_description: string;
+    self_score?: number;
+    self_comment?: string;
+  }) => {
+    try {
+      await updateTaskStatusMutation.mutateAsync({
+        taskId: data.taskId,
+        status: 'done',
+        extra: {
+          pr_link: data.pr_link,
+          completed_description: data.completed_description,
+          self_score: data.self_score,
+          self_comment: data.self_comment,
+        },
+      });
+      setShowCompleteTaskModal(false);
+      setTaskToComplete(null);
+      refetch();
+      if (onRefreshStats) onRefreshStats();
+    } catch (err: any) {
+      alert(err.message || 'Failed to complete task');
     }
   };
 
@@ -352,6 +346,7 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
             onStartDay={() => setShowStartDayModal(true)}
             onEndDay={handleEndDayClick}
             hasLogToday={hasLogToday}
+            activeTask={activeTask}
           />
 
           <StartDayModal
@@ -381,6 +376,17 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
             onClose={() => setShowEarlyExitModal(false)}
             onSubmit={handleEarlyExitSubmit}
             isLoading={requestEarlyExitMutation.isPending}
+          />
+
+          <CompleteTaskModal
+            show={showCompleteTaskModal}
+            onClose={() => {
+              setShowCompleteTaskModal(false);
+              setTaskToComplete(null);
+            }}
+            task={taskToComplete}
+            onSubmit={handleCompleteTaskSubmit}
+            submitting={updateTaskStatusMutation.isPending}
           />
 
           <StatsHeader

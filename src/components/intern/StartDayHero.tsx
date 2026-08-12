@@ -5,9 +5,9 @@
 
 import React, { useState, useEffect } from 'react';
 import {
-  Zap, CheckCircle2, Sun, FolderGit2, FileText, HelpCircle, Github, ExternalLink, AlertTriangle
+  Zap, CheckCircle2, Sun, FolderGit2, FileText, HelpCircle, Github, ExternalLink, AlertTriangle, Play
 } from 'lucide-react';
-import { DaySession } from '../../types.ts';
+import { DaySession, Task } from '../../types.ts';
 import { ThemedIcon } from '../../components/ui/ThemedIcon';
 import { formatISTTimeHHMMSS } from '../../utils/time';
 import { parseTimeToMinutes } from '@/app/api/_lib/mappers';
@@ -18,6 +18,7 @@ interface StartDayHeroProps {
   onStartDay: () => void;
   onEndDay: () => void;
   hasLogToday: boolean;
+  activeTask?: Task | null;
 }
 
 export const StartDayHero: React.FC<StartDayHeroProps> = ({
@@ -26,6 +27,7 @@ export const StartDayHero: React.FC<StartDayHeroProps> = ({
   onStartDay,
   onEndDay,
   hasLogToday,
+  activeTask,
 }) => {
   const [istTime, setIstTime] = useState(formatISTTimeHHMMSS());
   const [isLateNow, setIsLateNow] = useState(false);
@@ -187,8 +189,8 @@ export const StartDayHero: React.FC<StartDayHeroProps> = ({
       )}
 
       {/* Display Active/Completed Today Session details */}
-      {todaySession && (todaySession.today_project || todaySession.today_plan || todaySession.questions || todaySession.git_link) && (
-        <div className="mt-4 pt-4 border-t border-slate-700/60 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+      {todaySession && (todaySession.today_project || todaySession.today_plan || todaySession.questions || todaySession.git_link || activeTask) && (
+        <div className="mt-4 pt-4 border-t border-slate-700/60 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3 text-xs">
           {todaySession.today_project && (
             <div className="p-3 rounded-xl bg-white/5 border border-white/10 space-y-1">
               <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
@@ -229,6 +231,16 @@ export const StartDayHero: React.FC<StartDayHeroProps> = ({
               >
                 View Repo <ExternalLink className="h-3 w-3 inline shrink-0" />
               </a>
+            </div>
+          )}
+
+          {activeTask && (
+            <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 space-y-1">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-300 flex items-center gap-1">
+                <ThemedIcon icon={Play} color="emerald" size={12} /> Active Task
+              </p>
+              <p className="font-semibold text-white truncate">{activeTask.title}</p>
+              <p className="text-[10px] text-slate-300 capitalize">{activeTask.priority} priority</p>
             </div>
           )}
         </div>
