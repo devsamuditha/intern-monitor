@@ -5,7 +5,7 @@
  
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../context/AuthContext";
 import { 
@@ -29,18 +29,18 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
   onRefresh,
   settings,
 }) => {
-  const [mounted, setMounted] = useState(false);
   const router = useRouter();
   const { user, logout, refreshCurrentUser } = useAuth();
   const role = user?.role;
   const [showProfileModal, setShowProfileModal] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const handleLogout = async () => {
-    await logout();
+  const handleLogout = async (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    try {
+      await logout();
+    } catch (err) {
+      console.error("Logout failed:", err);
+    }
     router.push('/login');
   };
 
@@ -78,18 +78,6 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
 
   const navItems = getNavItems();
 
-  // Prevent hydration mismatch by only rendering interactive elements after mount
-  if (!mounted) {
-    return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-teal-600 mx-auto mb-4"></div>
-          <p className="text-sm text-slate-500 dark:text-slate-400">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-teal-950 via-cyan-950 to-emerald-950 text-slate-900 dark:text-slate-100 transition-colors duration-200">
 
@@ -120,12 +108,12 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
                   if (role === 'super_admin') {
                     router.push(`/superadmin/${item.id}`);
                   } else if (role === 'manager') {
-                    router.push(`/manager/${item.id}`);
+                    router.push('/manager');
                   } else if (role === 'tech_lead') {
                     if (item.id === 'projects') {
                       router.push('/projects');
                     } else {
-                      router.push(`/team/${item.id}`);
+                      router.push('/team');
                     }
                   } else if (role === 'intern') {
                     if (item.id === 'dashboard') router.push(`/dashboard`);
@@ -155,16 +143,16 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
                <p className="text-xs font-bold truncate text-white">{user?.name ?? 'User'}</p>
                <p className="text-[9px] text-slate-400 capitalize truncate">{user?.role ?? ''}</p>
              </div>
-             {user && (
-               <button 
-                 onClick={handleLogout}
-                 type="button"
-                 className="p-1.5 hover:bg-white/10 text-slate-400 hover:text-rose-400 rounded-lg transition"
-                 title="Logout"
-               >
-                 <LogOut className="h-4 w-4" />
-               </button>
-             )}
+              {user && (
+                <button 
+                  onClick={(e) => handleLogout(e)}
+                  type="button"
+                  className="p-1.5 hover:bg-white/10 text-slate-400 hover:text-rose-400 rounded-lg transition"
+                  title="Logout"
+                >
+                  <LogOut className="h-4 w-4" />
+                </button>
+              )}
            </div>
          </div>
        </aside>
@@ -201,15 +189,20 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
                 </button>
               )}
 
-              {/* Profile Avatar Mobile */}
-              <img 
-                src={user?.avatar ?? '/favicon.ico'} 
-                alt={user?.name ?? 'Avatar'} 
-                className="h-8 w-8 rounded-full object-cover border border-white/20 md:hidden cursor-pointer" 
+              {/* Profile Avatar */}
+              <button
                 onClick={() => setShowProfileModal(true)}
-                title="Profile"
-                referrerPolicy="no-referrer"
-              />
+                type="button"
+                className="h-8 w-8 rounded-full object-cover border border-white/20 cursor-pointer hover:ring-2 hover:ring-teal-400 transition"
+                title="Update Profile Picture"
+              >
+                <img 
+                  src={user?.avatar ?? '/favicon.ico'} 
+                  alt={user?.name ?? 'Avatar'} 
+                  className="h-8 w-8 rounded-full object-cover border border-white/20"
+                  referrerPolicy="no-referrer"
+                />
+              </button>
           </div>
         </header>
 
@@ -227,12 +220,12 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
                   if (role === 'super_admin') {
                     router.push(`/superadmin/${item.id}`);
                   } else if (role === 'manager') {
-                    router.push(`/manager/${item.id}`);
+                    router.push('/manager');
                   } else if (role === 'tech_lead') {
                     if (item.id === 'projects') {
                       router.push('/projects');
                     } else {
-                      router.push(`/team/${item.id}`);
+                      router.push('/team');
                     }
                   } else if (role === 'intern') {
                     if (item.id === 'dashboard') router.push(`/dashboard`);

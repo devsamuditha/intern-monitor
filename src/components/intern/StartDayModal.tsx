@@ -6,7 +6,8 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { scaleIn } from '../../utils/motion';
-import { X, Zap, Github } from 'lucide-react';
+import { X, Zap, Github, ChevronDown, FolderGit2 } from 'lucide-react';
+import { Project } from '../../types';
 
 interface StartDayModalProps {
   show: boolean;
@@ -21,6 +22,7 @@ interface StartDayModalProps {
   startGitLink: string;
   setStartGitLink: (v: string) => void;
   onSubmit: (e: React.FormEvent) => void;
+  assignedProjects: Project[];
 }
 
 export const StartDayModal: React.FC<StartDayModalProps> = ({
@@ -35,7 +37,8 @@ export const StartDayModal: React.FC<StartDayModalProps> = ({
   setStartQuestions,
   startGitLink,
   setStartGitLink,
-  onSubmit
+  onSubmit,
+  assignedProjects,
 }) => {
   if (!show) return null;
 
@@ -70,14 +73,32 @@ export const StartDayModal: React.FC<StartDayModalProps> = ({
           {/* Today Project */}
           <div>
             <label className="block text-xs font-bold text-white/70 mb-1">Today Project *</label>
-            <input
-              type="text"
-              required
-              placeholder="e.g. InternTrack Revamp, Checkout Service, API Integration"
-              value={startProject}
-              onChange={(e) => setStartProject(e.target.value)}
-              className="w-full text-xs rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-white placeholder:text-[10px] placeholder:text-white/40 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
-            />
+            {assignedProjects.length === 0 ? (
+              <div>
+                <select
+                  disabled
+                  className="w-full text-xs rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-white/50 focus:outline-none"
+                >
+                  <option>No projects assigned</option>
+                </select>
+                <p className="text-[10px] text-rose-300 mt-1">You must be assigned to at least one project to start your day.</p>
+              </div>
+            ) : (
+              <div className="relative">
+                <select
+                  required
+                  value={startProject}
+                  onChange={(e) => setStartProject(e.target.value)}
+                  className="w-full text-xs rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 appearance-none"
+                >
+                  <option value="" disabled>Select a project...</option>
+                  {assignedProjects.map((proj) => (
+                    <option key={proj.id} value={proj.name}>{proj.name}</option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3 top-2.5 h-4 w-4 text-white/50 pointer-events-none" />
+              </div>
+            )}
           </div>
 
           {/* What are you doing today */}

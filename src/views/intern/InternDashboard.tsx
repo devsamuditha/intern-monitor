@@ -62,6 +62,7 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
   const todaySession = todaySessions.length > 0 ? todaySessions[0] : null;
   const todayStr = getISTDateString();
   const hasLogToday = logs.some((l: any) => l.date === todayStr);
+  const assignedProjects = projects.filter(p => p.assigned_intern_ids?.includes(user.id));
 
   useEffect(() => {
     if (user?.role !== 'intern') return;
@@ -366,6 +367,7 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
             startGitLink={startGitLink}
             setStartGitLink={setStartGitLink}
             onSubmit={confirmStartDaySubmit}
+            assignedProjects={assignedProjects}
           />
 
           <EndDayPromptModal

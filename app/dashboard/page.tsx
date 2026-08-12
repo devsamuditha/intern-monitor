@@ -17,6 +17,9 @@ import { useSettings } from "@/src/context/SettingsContext";
 export default function DashboardPage() {
   const { user } = useAuth();
   const { settings } = useSettings();
+
+  if (!user) return null;
+
   const [activeTab, setActiveTab] = useState(
     user?.role === "tech_lead"
       ? "team_overview"

@@ -246,6 +246,13 @@ export const api = {
     return handleResponse(res);
   },
 
+  getProject: async (projectId: string): Promise<Project> => {
+    const res = await fetchWithDedup(`/api/projects/${projectId}`, {
+      headers: await getAuthHeaders()
+    });
+    return handleResponse(res);
+  },
+
   // Daily Logs
   getLogs: async (filters?: { intern_id?: string; project_id?: string }): Promise<DailyLog[]> => {
     const params = new URLSearchParams();

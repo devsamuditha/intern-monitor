@@ -141,7 +141,12 @@ export const StartDayHero: React.FC<StartDayHeroProps> = ({
               )}
               <button
                 onClick={onEndDay}
-                disabled={sessionLoading || (todaySession.earlyExitRequested && !todaySession.earlyExitApproved)}
+                disabled={
+                  sessionLoading ||
+                  (todaySession.earlyExitRequested &&
+                   !todaySession.earlyExitApproved &&
+                   istMinutes < 17 * 60)
+                }
                 className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-rose-300 border border-rose-500/30 font-bold text-xs active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
               >
                 {sessionLoading ? 'Ending Day...' : '🏁 Finish / End Day'}

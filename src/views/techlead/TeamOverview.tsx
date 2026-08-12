@@ -8,14 +8,15 @@ import { motion } from 'motion/react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../services/api';
-import { User, TeamStats, Project } from '../../types.ts';
+import { User, TeamStats, Project, ProjectStatus } from '../../types.ts';
 import { InternDetail } from '../../components/techlead/InternDetail';
 import { ReviewQueue } from '../../components/techlead/ReviewQueue';
+import { ProjectEditModal } from '../../components/techlead/ProjectEditModal';
 import { getSupabaseClient } from '../../lib/supabaseClient';
 import {
   Users, CheckCircle, Clock, Star, Flame, AlertTriangle,
   TrendingUp, Sparkles, ChevronRight, Check, X, ShieldCheck,
-  Zap, Sun, CheckCircle2, MessageSquare, PlusCircle, Github, ExternalLink, CheckSquare, Calendar, LogOut
+  Zap, Sun, CheckCircle2, MessageSquare, PlusCircle, Github, ExternalLink, CheckSquare, Calendar, LogOut, Trash2
 } from 'lucide-react';
 import { formatDate } from '../../utils/helpers';
 import { scaleIn } from '../../utils/motion';
@@ -625,6 +626,7 @@ export default TeamOverview;
 
 const UpcomingProjectsView: React.FC<{ currentUser: User }> = ({ currentUser }) => {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { data: projects = [], isLoading: loading } = useQuery({
     queryKey: ["projects", "upcoming"],
     queryFn: () => api.getProjects({ status: 'upcoming' }),
@@ -633,6 +635,54 @@ const UpcomingProjectsView: React.FC<{ currentUser: User }> = ({ currentUser }) 
     queryKey: ["public-tech-leads"],
     queryFn: () => api.getPublicTechLeads(),
   });
+  const { data: interns = [] } = useQuery({
+    queryKey: ["public-interns"],
+    queryFn: () => api.getPublicInterns(),
+  });
+
+  const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleDeleteProject = async (projectId: string, projectName: string) => {
+    if (!confirm(`Are you sure you want to delete "${projectName}"? This will remove all related logs and data permanently.`)) {
+      return;
+    }
+    try {
+      await api.deleteProject(projectId);
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      queryClient.invalidateQueries({ queryKey: ["projects", "upcoming"] });
+      queryClient.invalidateQueries({ queryKey: ["analytics", currentUser.id] });
+    } catch (err: any) {
+      alert(err.message || "Failed to delete project.");
+    }
+  };
+
+  const handleEditProject = async (data: {
+    id: string;
+    name: string;
+    description: string;
+    github_url: string;
+    tech_stack: string[];
+    screenshots: string[];
+    status: ProjectStatus;
+    start_date?: string;
+    end_date?: string;
+    assigned_tech_lead_ids: string[];
+    assigned_intern_ids: string[];
+  }) => {
+    try {
+      setIsSubmitting(true);
+      await api.saveProject(data);
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      queryClient.invalidateQueries({ queryKey: ["projects", "upcoming"] });
+      queryClient.invalidateQueries({ queryKey: ["analytics", currentUser.id] });
+      setEditingProject(null);
+    } catch (err: any) {
+      alert(err.message || "Failed to update project.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -738,6 +788,28 @@ const UpcomingProjectsView: React.FC<{ currentUser: User }> = ({ currentUser }) 
                       >
                         <Github className="h-4 w-4" /> Repo
                       </a>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEditingProject(proj);
+                          }}
+                          className="px-2.5 py-1.5 hover:bg-white/10 text-[10px] font-bold text-teal-300 rounded-lg flex items-center gap-1"
+                          title="Edit Project"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteProject(proj.id, proj.name);
+                          }}
+                          className="px-2.5 py-1.5 hover:bg-rose-500/20 text-[10px] font-bold text-rose-300 rounded-lg flex items-center gap-1 transition"
+                          title="Delete Project"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" /> Delete
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -746,6 +818,15 @@ const UpcomingProjectsView: React.FC<{ currentUser: User }> = ({ currentUser }) 
           })}
         </div>
       )}
+      <ProjectEditModal
+        show={!!editingProject}
+        onClose={() => setEditingProject(null)}
+        project={editingProject}
+        techLeads={techLeads}
+        interns={interns}
+        onSubmit={handleEditProject}
+        submitting={isSubmitting}
+      />
     </div>
   );
 };
