@@ -12,11 +12,12 @@ import { User, TeamStats, Project, ProjectStatus } from '../../types.ts';
 import { InternDetail } from '../../components/techlead/InternDetail';
 import { ReviewQueue } from '../../components/techlead/ReviewQueue';
 import { ProjectEditModal } from '../../components/techlead/ProjectEditModal';
+import { RankingChart } from '../../components/intern/RankingChart';
 import { getSupabaseClient } from '../../lib/supabaseClient';
 import {
   Users, CheckCircle, Clock, Star, Flame, AlertTriangle,
   TrendingUp, Sparkles, ChevronRight, Check, X, ShieldCheck,
-  Zap, Sun, CheckCircle2, MessageSquare, PlusCircle, Github, ExternalLink, CheckSquare, Calendar, LogOut, Trash2
+  Zap, Sun, CheckCircle2, MessageSquare, PlusCircle, Github, ExternalLink, CheckSquare, Calendar, LogOut, Trash2, Trophy
 } from 'lucide-react';
 import { formatDate } from '../../utils/helpers';
 import { scaleIn } from '../../utils/motion';
@@ -29,7 +30,7 @@ interface TeamOverviewProps {
 export const TeamOverview: React.FC<TeamOverviewProps> = ({ currentUser }) => {
   const queryClient = useQueryClient();
   const [selectedInternId, setSelectedInternId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'queue' | 'roster' | 'upcoming_projects'>('queue');
+  const [activeTab, setActiveTab] = useState<'queue' | 'roster' | 'upcoming_projects' | 'ranking'>('queue');
   const [isApprovingAll, setIsApprovingAll] = useState(false);
 
   const { data: analytics, isLoading: loading } = useQuery({
@@ -229,6 +230,16 @@ export const TeamOverview: React.FC<TeamOverviewProps> = ({ currentUser }) => {
         >
           <Calendar className="h-4 w-4" /> Upcoming Projects
         </button>
+        <button
+          onClick={() => setActiveTab('ranking')}
+          className={`px-5 py-3 text-xs font-bold rounded-t-2xl transition flex items-center gap-2 border-t-2 ${
+            activeTab === 'ranking'
+              ? 'bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-teal-600 text-teal-700 dark:text-teal-400 border-x border-white/20 dark:border-slate-700/30 shadow-lg shadow-teal-500/5'
+              : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+          }`}
+        >
+          <Trophy className="h-4 w-4" /> Intern Rankings
+        </button>
       </div>
 
       {activeTab === 'queue' ? (
@@ -236,6 +247,8 @@ export const TeamOverview: React.FC<TeamOverviewProps> = ({ currentUser }) => {
           currentUser={currentUser}
           onSelectIntern={(internId) => setSelectedInternId(internId)}
         />
+      ) : activeTab === 'ranking' ? (
+        <RankingChart currentUserId={currentUser.id} />
       ) : activeTab === 'upcoming_projects' ? (
         <UpcomingProjectsView currentUser={currentUser} />
       ) : (

@@ -136,7 +136,7 @@ export const TasksBoard: React.FC<TasksBoardProps> = ({ tasks, onTaskStatusToggl
                     ) : (
                       <Check className="h-3 w-3 fill-current" />
                     )}
-                    Complete
+                    End the task
                   </button>
                 )}
                 {task.status === 'done' && (
