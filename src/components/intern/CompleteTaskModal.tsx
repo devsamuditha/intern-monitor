@@ -7,10 +7,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Github, Check, Star, AlertTriangle } from 'lucide-react';
+import { X, Github, Check, AlertTriangle } from 'lucide-react';
 import { scaleIn } from '../../utils/motion';
 import { Task } from '../../types';
-import { useMarkingScale } from '../../context/SettingsContext';
 
 interface CompleteTaskModalProps {
   show: boolean;
@@ -35,21 +34,17 @@ export const CompleteTaskModal: React.FC<CompleteTaskModalProps> = ({
 }) => {
   const [prLink, setPrLink] = useState('');
   const [completedDescription, setCompletedDescription] = useState('');
-  const [selfScore, setSelfScore] = useState<number>(5);
   const [selfComment, setSelfComment] = useState('');
   const [error, setError] = useState('');
-  const markingScale = useMarkingScale();
-  const maxScore = markingScale === '1-10' ? 10 : 5;
 
   useEffect(() => {
     if (task) {
       setPrLink(task.pr_link || '');
       setCompletedDescription('');
-      setSelfScore(maxScore === 10 ? 5 : 3);
       setSelfComment('');
       setError('');
     }
-  }, [task, maxScore]);
+  }, [task]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,13 +68,10 @@ export const CompleteTaskModal: React.FC<CompleteTaskModalProps> = ({
       return;
     }
 
-    const score = Math.min(Math.max(selfScore, 1), maxScore);
-
     await onSubmit({
       taskId: task.id,
       pr_link: prLink.trim(),
       completed_description: completedDescription.trim(),
-      self_score: score,
       self_comment: selfComment.trim() || undefined,
     });
   };
@@ -139,30 +131,6 @@ export const CompleteTaskModal: React.FC<CompleteTaskModalProps> = ({
                 onChange={(e) => setCompletedDescription(e.target.value)}
                 className="w-full text-xs rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-white placeholder:text-white/40 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
               />
-            </div>
-
-            <div>
-              <label className="block text-[10px] font-bold text-teal-100 uppercase mb-1">
-                Self-Rating (optional) — max {maxScore}
-              </label>
-              <div className="flex items-center gap-3">
-                <input
-                  type="number"
-                  min={1}
-                  max={maxScore}
-                  value={selfScore}
-                  onChange={(e) => setSelfScore(Number(e.target.value))}
-                  className="w-20 text-xs rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-white text-center focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
-                />
-                <div className="flex items-center gap-1">
-                  {Array.from({ length: maxScore }).map((_, i) => (
-                    <Star
-                      key={i}
-                      className={`h-4 w-4 transition ${i < selfScore ? 'fill-amber-400 text-amber-400' : 'text-slate-500'}`}
-                    />
-                  ))}
-                </div>
-              </div>
             </div>
 
             <div>

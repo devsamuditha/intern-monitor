@@ -48,7 +48,9 @@ export const InternDetail: React.FC<InternDetailProps> = ({ internId, currentUse
   const [taskDesc, setTaskDesc] = useState('');
   const [taskDueDate, setTaskDueDate] = useState('');
   const [taskPriority, setTaskPriority] = useState<'low' | 'medium' | 'high'>('medium');
+  const [taskScore, setTaskScore] = useState<number>(5);
   const [showTaskForm, setShowTaskForm] = useState(false);
+  const [taskSubmitting, setTaskSubmitting] = useState(false);
 
   // Flag state
   const [flaggedItems, setFlaggedItems] = useState<Set<string>>(new Set());
@@ -176,27 +178,32 @@ export const InternDetail: React.FC<InternDetailProps> = ({ internId, currentUse
 
   const handleAssignTask = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!taskTitle.trim() || !taskDesc.trim() || !taskDueDate) return;
+    if (!taskTitle.trim() || !taskDesc.trim() || !taskDueDate || taskSubmitting) return;
 
     try {
+      setTaskSubmitting(true);
       await api.assignTask({
         assigned_to: internId,
         assigned_by: currentUser.id,
         title: taskTitle.trim(),
         description: taskDesc.trim(),
         due_date: taskDueDate,
-        priority: taskPriority
+        priority: taskPriority,
+        score: taskScore,
       });
 
       setTaskTitle('');
       setTaskDesc('');
       setTaskDueDate('');
       setTaskPriority('medium');
+      setTaskScore(markingScale === '1-10' ? 5 : 3);
       setShowTaskForm(false);
 
       await loadAllInternData();
     } catch (err) {
       alert("Failed to assign task");
+    } finally {
+      setTaskSubmitting(false);
     }
   };
 
@@ -700,7 +707,8 @@ export const InternDetail: React.FC<InternDetailProps> = ({ internId, currentUse
                       placeholder="e.g., Run Jest integration tests" 
                       value={taskTitle}
                       onChange={(e) => setTaskTitle(e.target.value)}
-                      className="w-full text-xs rounded-lg border border-white/20 bg-white/5 px-3 py-2 text-white placeholder:text-[10px] placeholder:text-slate-400 focus:outline"
+                      disabled={taskSubmitting}
+                      className="w-full text-xs rounded-lg border border-white/20 bg-white/5 px-3 py-2 text-white placeholder:text-[10px] placeholder:text-slate-400 focus:outline disabled:opacity-50"
                     />
                   </div>
                   <div>
@@ -709,7 +717,8 @@ export const InternDetail: React.FC<InternDetailProps> = ({ internId, currentUse
                       type="date" 
                       value={taskDueDate}
                       onChange={(e) => setTaskDueDate(e.target.value)}
-                      className="w-full text-xs rounded-lg border border-white/20 bg-white/5 px-3 py-2 text-white focus:outline"
+                      disabled={taskSubmitting}
+                      className="w-full text-xs rounded-lg border border-white/20 bg-white/5 px-3 py-2 text-white focus:outline disabled:opacity-50"
                     />
                   </div>
                   <div className="md:col-span-2">
@@ -719,7 +728,8 @@ export const InternDetail: React.FC<InternDetailProps> = ({ internId, currentUse
                       placeholder="e.g. Set up a mock Stripe environment and assert shipping validations work flawlessly..."
                       value={taskDesc}
                       onChange={(e) => setTaskDesc(e.target.value)}
-                      className="w-full text-xs rounded-lg border border-white/20 bg-white/5 px-3 py-2 text-white placeholder:text-[10px] placeholder:text-slate-400 focus:outline"
+                      disabled={taskSubmitting}
+                      className="w-full text-xs rounded-lg border border-white/20 bg-white/5 px-3 py-2 text-white placeholder:text-[10px] placeholder:text-slate-400 focus:outline disabled:opacity-50"
                     />
                   </div>
                   <div>
@@ -730,7 +740,8 @@ export const InternDetail: React.FC<InternDetailProps> = ({ internId, currentUse
                           type="button"
                           key={p}
                           onClick={() => setTaskPriority(p)}
-                          className={`flex-1 py-1 text-[10px] font-bold capitalize rounded-md transition ${
+                          disabled={taskSubmitting}
+                          className={`flex-1 py-1 text-[10px] font-bold capitalize rounded-md transition disabled:opacity-50 ${
                             taskPriority === p
                               ? 'bg-teal-600 text-white shadow-sm'
                               : 'bg-white/10 text-white/70 border border-white/20 hover:bg-white/20'
@@ -741,9 +752,28 @@ export const InternDetail: React.FC<InternDetailProps> = ({ internId, currentUse
                       ))}
                     </div>
                   </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-teal-100 uppercase mb-1">Score / Rating</label>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="number"
+                        min={1}
+                        max={markingScale === '1-10' ? 10 : 5}
+                        value={taskScore}
+                        onChange={(e) => setTaskScore(Number(e.target.value))}
+                        disabled={taskSubmitting}
+                        className="w-20 text-xs rounded-lg border border-white/20 bg-white/5 px-3 py-2 text-white text-center focus:outline disabled:opacity-50"
+                      />
+                      <span className="text-[10px] text-slate-400">/ {markingScale === '1-10' ? 10 : 5}</span>
+                    </div>
+                  </div>
                   <div className="md:col-span-2 flex justify-end">
-                    <button type="submit"                      className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-semibold">
-                      Create Task Card 📋
+                    <button 
+                      type="submit" 
+                      disabled={taskSubmitting}
+                      className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
+                    >
+                      {taskSubmitting ? 'Creating...' : 'Create Task Card 📋'}
                     </button>
                   </div>
                 </form>

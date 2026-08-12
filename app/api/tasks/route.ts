@@ -73,6 +73,7 @@ export async function POST(request: NextRequest) {
         priority: (body.priority || "MEDIUM").toUpperCase(),
         status: "TODO",
         organizationId: user.organizationId as string,
+        score: body.score !== undefined ? body.score : undefined,
       },
     });
 

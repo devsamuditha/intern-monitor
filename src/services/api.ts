@@ -318,6 +318,7 @@ export const api = {
     priority: TaskPriority;
     blockers?: string;
     pr_link?: string;
+    score?: number;
   }): Promise<Task> => {
     const res = await fetchWithDedup("/api/tasks", {
       method: "POST",
