@@ -10,9 +10,10 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "../../context/AuthContext";
 import { 
   LayoutDashboard, FolderKanban,
-  Users, TrendingUp, LogOut, Shield, Target, Settings, AlertTriangle, Building2, Trophy
+  Users, TrendingUp, LogOut, Shield, Target, Settings, AlertTriangle, Building2, Trophy, Calendar
 } from "lucide-react";
 import { ProfileImageModal } from "../ui/ProfileImageModal";
+import { CalendarPopover } from "../ui/CalendarPopover";
 
 interface DashboardShellProps {
   children: React.ReactNode;
@@ -33,6 +34,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
   const { user, logout, refreshCurrentUser } = useAuth();
   const role = user?.role;
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showCalendar, setShowCalendar] = useState(false);
 
   const handleLogout = async (e?: React.MouseEvent) => {
     e?.stopPropagation();
@@ -159,8 +161,8 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
 
       {/* Main Container (offset for fixed sidebar) */}
       <div className="flex-1 flex flex-col min-w-0 md:ml-64">
-        {/* Topbar */}
-        <header className="h-20 bg-white/10 dark:bg-slate-900/10 backdrop-blur-xl border-b border-white/20 dark:border-slate-700/30 flex items-center justify-between px-8 z-10">
+         {/* Topbar */}
+         <header className="h-20 bg-white/10 dark:bg-slate-900/10 backdrop-blur-xl border-b border-white/20 dark:border-slate-700/30 flex items-center justify-between px-8 z-10 relative">
           
           {/* Left indicator / Mobile Title */}
           <div className="flex items-center gap-2">
@@ -189,6 +191,17 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
                 </button>
               )}
 
+              <button
+                onClick={() => setShowCalendar(!showCalendar)}
+                type="button"
+                className={`p-2 border border-white/20 dark:border-slate-700/30 rounded-xl transition ${
+                  showCalendar ? 'text-teal-300 bg-white/10' : 'text-slate-300 hover:text-white'
+                }`}
+                title="My Calendar"
+              >
+                <Calendar className="h-4 w-4" />
+              </button>
+
               {/* Profile Avatar */}
               <button
                 onClick={() => setShowProfileModal(true)}
@@ -204,6 +217,16 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
                 />
               </button>
           </div>
+
+          {showCalendar && (
+            <div className="absolute top-20 right-8 z-50">
+              <CalendarPopover
+                isOpen={showCalendar}
+                onClose={() => setShowCalendar(false)}
+                userId={user?.id ?? ''}
+              />
+            </div>
+          )}
         </header>
 
         {/* Mobile Navigation bar */}

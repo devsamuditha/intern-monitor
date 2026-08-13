@@ -15,7 +15,8 @@ import {
   DaySession,
   TaskPriority,
   TaskStatus,
-  MistakeSeverity
+  MistakeSeverity,
+  CalendarMarker
 } from "../types.js";
 import { AuditLog, SystemSetting, ContentFlag } from "../types.js";
 
@@ -638,6 +639,34 @@ export const api = {
       headers: await getAuthHeaders()
     });
     return handleResponse(res);
-  }
+  },
+
+  // Calendar
+  getCalendarMarkers: async (filters?: { month?: number; year?: number }): Promise<CalendarMarker[]> => {
+    const params = new URLSearchParams();
+    if (filters?.month) params.append("month", String(filters.month));
+    if (filters?.year) params.append("year", String(filters.year));
+    const res = await fetchWithDedup(`/api/calendar/markers?${params.toString()}`, {
+      headers: await getAuthHeaders()
+    });
+    return handleResponse(res);
+  },
+
+  toggleCalendarMarker: async (date: string, isAvailable: boolean): Promise<CalendarMarker> => {
+    const res = await fetchWithDedup("/api/calendar/markers", {
+      method: "POST",
+      headers: await getAuthHeaders(),
+      body: JSON.stringify({ date, isAvailable })
+    });
+    return handleResponse(res);
+  },
+
+  deleteCalendarMarker: async (markerId: string): Promise<{ success: boolean }> => {
+    const res = await fetchWithDedup(`/api/calendar/markers/${markerId}`, {
+      method: "DELETE",
+      headers: await getAuthHeaders()
+    });
+    return handleResponse(res);
+  },
 };
 

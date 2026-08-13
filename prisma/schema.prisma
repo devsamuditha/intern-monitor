@@ -68,6 +68,7 @@ model Organization {
   auditLogs        AuditLog[]
   systemSettings   SystemSetting[]
   contentFlags     ContentFlag[]
+  calendarMarkers  UserCalendarMarker[]
 }
 
 model User {
@@ -107,6 +108,7 @@ model User {
   auditLogs        AuditLog[]
   settingsUpdated  SystemSetting[]
   flagsReviewed    ContentFlag[]
+  calendarMarkers  UserCalendarMarker[]
 
   @@index([role])
   @@index([techLeadId])
@@ -385,6 +387,24 @@ model SystemSetting {
   @@index([key])
   @@index([organizationId])
   @@unique([organizationId, key])
+}
+
+model UserCalendarMarker {
+  id             String    @id @default(uuid())
+  organizationId String
+  userId         String
+  date           String    // YYYY-MM-DD
+  isAvailable    Boolean   @default(false)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([date])
+  @@index([organizationId])
+  @@unique([userId, date])
 }
 
 model ContentFlag {

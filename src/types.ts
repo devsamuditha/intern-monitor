@@ -162,4 +162,11 @@ export interface ContentFlag {
   };
 }
 
+export interface CalendarMarker {
+  id: string;
+  user_id: string;
+  date: string;
+  is_available: boolean;
+}
+
 
