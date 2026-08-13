@@ -3,9 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useRouter } from 'next/navigation';
+import { CheckCircle2, XCircle } from 'lucide-react';
 import { Preloader } from '@/src/components/ui/Preloader';
 import { User, DailyLog, Task, Mistake, Mark, DaySession, TaskStatus } from '../../types';
 import { api } from '../../services/api';
@@ -45,6 +46,12 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
   const [showJournalReminderModal, setShowJournalReminderModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [dateFilter, setDateFilter] = useState('');
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
+  const showToast = useCallback((message: string, type: 'success' | 'error') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  }, []);
 
   const { data, isLoading, refetch } = useInternDashboard(user.id);
   const submitLogMutation = useSubmitLog(user.id);
@@ -290,7 +297,7 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
     if (updateTaskStatusMutation.isPending) return;
     if (task.status === 'todo') {
       await updateTaskStatusMutation.mutateAsync({ taskId: task.id, status: 'in_progress' });
-      alert('Task started successfully!');
+      showToast('Task started successfully!', 'success');
       if (onRefreshStats) onRefreshStats();
     } else if (task.status === 'in_progress') {
       setTaskToComplete(task);
@@ -374,6 +381,24 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
         transition={{ duration: 0.3, delay: 0.1 }}
       >
         <div className="relative z-10 space-y-6">
+          <AnimatePresence>
+            {toast && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className={`flex items-center gap-2 px-4 py-3 rounded-xl border text-xs font-semibold ${
+                  toast.type === 'success'
+                    ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-900/30 text-emerald-700 dark:text-emerald-300'
+                    : 'bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-900/30 text-rose-700 dark:text-rose-300'
+                }`}
+              >
+                {toast.type === 'success' ? <CheckCircle2 className="h-4 w-4" /> : <XCircle className="h-4 w-4" />}
+                {toast.message}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           <StartDayHero
             todaySession={todaySession}
             sessionLoading={sessionLoading}

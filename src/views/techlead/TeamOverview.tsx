@@ -30,7 +30,7 @@ interface TeamOverviewProps {
 export const TeamOverview: React.FC<TeamOverviewProps> = ({ currentUser }) => {
   const queryClient = useQueryClient();
   const [selectedInternId, setSelectedInternId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'queue' | 'roster' | 'upcoming_projects' | 'ranking'>('queue');
+  const [activeTab, setActiveTab] = useState<'queue' | 'roster' | 'upcoming_projects'>('roster');
   const [isApprovingAll, setIsApprovingAll] = useState(false);
 
   const { data: analytics, isLoading: loading } = useQuery({
@@ -201,16 +201,6 @@ export const TeamOverview: React.FC<TeamOverviewProps> = ({ currentUser }) => {
       {/* Main Navigation Tabs */}
       <div className="flex border-b border-white/20 dark:border-slate-700/30 gap-2 overflow-x-auto">
         <button
-          onClick={() => setActiveTab('queue')}
-          className={`px-5 py-3 text-xs font-bold rounded-t-2xl transition flex items-center gap-2 border-t-2 ${
-            activeTab === 'queue'
-              ? 'bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-teal-600 text-teal-700 dark:text-teal-400 border-x border-white/20 dark:border-slate-700/30 shadow-lg shadow-teal-500/5'
-              : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
-          }`}
-        >
-          <CheckSquare className="h-4 w-4" /> Review Queue & Grading Desk
-        </button>
-        <button
           onClick={() => setActiveTab('roster')}
           className={`px-5 py-3 text-xs font-bold rounded-t-2xl transition flex items-center gap-2 border-t-2 ${
             activeTab === 'roster'
@@ -219,6 +209,16 @@ export const TeamOverview: React.FC<TeamOverviewProps> = ({ currentUser }) => {
           }`}
         >
           <Users className="h-4 w-4" /> Team Roster & Attendance Feed
+        </button>
+        <button
+          onClick={() => setActiveTab('queue')}
+          className={`px-5 py-3 text-xs font-bold rounded-t-2xl transition flex items-center gap-2 border-t-2 ${
+            activeTab === 'queue'
+              ? 'bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-teal-600 text-teal-700 dark:text-teal-400 border-x border-white/20 dark:border-slate-700/30 shadow-lg shadow-teal-500/5'
+              : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+          }`}
+        >
+          <CheckSquare className="h-4 w-4" /> Review Queue & Grading Desk
         </button>
         <button
           onClick={() => setActiveTab('upcoming_projects')}
@@ -230,120 +230,101 @@ export const TeamOverview: React.FC<TeamOverviewProps> = ({ currentUser }) => {
         >
           <Calendar className="h-4 w-4" /> Upcoming Projects
         </button>
-        <button
-          onClick={() => setActiveTab('ranking')}
-          className={`px-5 py-3 text-xs font-bold rounded-t-2xl transition flex items-center gap-2 border-t-2 ${
-            activeTab === 'ranking'
-              ? 'bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-teal-600 text-teal-700 dark:text-teal-400 border-x border-white/20 dark:border-slate-700/30 shadow-lg shadow-teal-500/5'
-              : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
-          }`}
-        >
-          <Trophy className="h-4 w-4" /> Intern Rankings
-        </button>
       </div>
 
-      {activeTab === 'queue' ? (
-        <ReviewQueue
-          currentUser={currentUser}
-          onSelectIntern={(internId) => setSelectedInternId(internId)}
-        />
-      ) : activeTab === 'ranking' ? (
-        <RankingChart currentUserId={currentUser.id} />
-      ) : activeTab === 'upcoming_projects' ? (
-        <UpcomingProjectsView currentUser={currentUser} />
-      ) : (
+      {activeTab === 'roster' ? (
         <>
           {/* TODAY'S LIVE ATTENDANCE & START DAY FEED */}
-      <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-slate-700/30 rounded-2xl p-6 shadow-sm space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <div className="bg-emerald-50 dark:bg-emerald-950/50 p-2 rounded-xl text-emerald-600 dark:text-emerald-400">
-              <Zap className="h-5 w-5 fill-emerald-500/20 text-emerald-500" />
-            </div>
-            <div>
-              <h3 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
-                Today's Intern Attendance & Start Day Feed
-                <span className="px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-[10px] font-extrabold uppercase">
-                  {rosterData.filter((r: any) => r.todaySession?.status === 'active').length} Active On Duty
-                </span>
-              </h3>
-              <p className="text-xs text-slate-400">Real-time status of interns who started their workday session today.</p>
-            </div>
-          </div>
-        </div>
+       <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-slate-700/30 rounded-2xl p-6 shadow-sm space-y-4">
+         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+           <div className="flex items-center gap-2">
+             <div className="bg-emerald-50 dark:bg-emerald-950/50 p-2 rounded-xl text-emerald-600 dark:text-emerald-400">
+               <Zap className="h-5 w-5 fill-emerald-500/20 text-emerald-500" />
+             </div>
+             <div>
+               <h3 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
+                 Today's Intern Attendance & Start Day Feed
+                 <span className="px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-[10px] font-extrabold uppercase">
+                   {rosterData.filter((r: any) => r.todaySession?.status === 'active').length} Active On Duty
+                 </span>
+               </h3>
+               <p className="text-xs text-slate-400">Real-time status of interns who started their workday session today.</p>
+             </div>
+           </div>
+         </div>
 
-        {(() => {
-          const pendingCount = rosterData.filter((r: any) => r.todaySession?.earlyExitRequested && !r.todaySession?.earlyExitApproved).length;
-          return pendingCount > 0 ? (
-            <button
-              onClick={handleApproveAllEarlyExits}
-              disabled={isApprovingAll || approveEarlyExitMutation.isPending}
-              className="px-4 py-2 bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 text-white text-xs font-bold rounded-xl transition flex items-center gap-2 self-start"
-            >
-              {isApprovingAll ? 'Approving All...' : `Approve All Pending Early Exits (${pendingCount})`}
-            </button>
-          ) : null;
-        })()}
+         {(() => {
+           const pendingCount = rosterData.filter((r: any) => r.todaySession?.earlyExitRequested && !r.todaySession?.earlyExitApproved).length;
+           return pendingCount > 0 ? (
+             <button
+               onClick={handleApproveAllEarlyExits}
+               disabled={isApprovingAll || approveEarlyExitMutation.isPending}
+               className="px-4 py-2 bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 text-white text-xs font-bold rounded-xl transition flex items-center gap-2 self-start"
+             >
+               {isApprovingAll ? 'Approving All...' : `Approve All Pending Early Exits (${pendingCount})`}
+             </button>
+           ) : null;
+         })()}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-          {rosterData.length === 0 ? (
-            <p className="text-xs text-slate-400 py-4 italic">No interns assigned to display attendance feed.</p>
-          ) : (
-            rosterData.map((row: any) => {
-              const sess = row.todaySession;
-              const isActive = sess?.status === 'active';
-              const isCompleted = sess?.status === 'completed';
-              const hasSubmittedToday = row.lastSubmission === formatDate(new Date().toISOString().split('T')[0]);
+         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+           {rosterData.length === 0 ? (
+             <p className="text-xs text-slate-400 py-4 italic">No interns assigned to display attendance feed.</p>
+           ) : (
+             rosterData.map((row: any) => {
+               const sess = row.todaySession;
+               const isActive = sess?.status === 'active';
+               const isCompleted = sess?.status === 'completed';
+               const hasSubmittedToday = row.lastSubmission === formatDate(new Date().toISOString().split('T')[0]);
 
-              return (
-                <div
-                  key={row.intern.id}
-                  onClick={() => setSelectedInternId(row.intern.id)}
-                  className={`p-3.5 rounded-xl border transition-all cursor-pointer flex flex-col justify-between gap-3 ${
-                    isActive
-                      ? 'bg-emerald-50/40 dark:bg-emerald-950/20 border-emerald-300 dark:border-emerald-800/60 shadow-sm hover:border-emerald-500'
-                      : isCompleted
-                      ? 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800'
-                       : 'bg-slate-50/50 dark:bg-slate-950/40 border-dashed border-slate-200 dark:border-slate-800 hover:border-teal-400'
-                  }`}
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="relative">
-                        <img src={row.intern.avatar} alt={row.intern.name} className="h-8 w-8 rounded-full object-cover border" referrerPolicy="no-referrer" />
-                        {isActive && (
-                          <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-emerald-500 border-2 border-white dark:border-slate-900 animate-pulse" />
-                        )}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{row.intern.name}</p>
-                        <p className="text-[10px] text-slate-400 truncate">{row.intern.email}</p>
-                      </div>
-                    </div>
+               return (
+                 <div
+                   key={row.intern.id}
+                   onClick={() => setSelectedInternId(row.intern.id)}
+                   className={`p-3.5 rounded-xl border transition-all cursor-pointer flex flex-col justify-between gap-3 ${
+                     isActive
+                       ? 'bg-emerald-50/40 dark:bg-emerald-950/20 border-emerald-300 dark:border-emerald-800/60 shadow-sm hover:border-emerald-500'
+                       : isCompleted
+                       ? 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800'
+                        : 'bg-slate-50/50 dark:bg-slate-950/40 border-dashed border-slate-200 dark:border-slate-800 hover:border-teal-400'
+                   }`}
+                 >
+                   <div className="flex items-center justify-between gap-2">
+                     <div className="flex items-center gap-2.5 min-w-0">
+                       <div className="relative">
+                         <img src={row.intern.avatar} alt={row.intern.name} className="h-8 w-8 rounded-full object-cover border" referrerPolicy="no-referrer" />
+                         {isActive && (
+                           <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-emerald-500 border-2 border-white dark:border-slate-900 animate-pulse" />
+                         )}
+                       </div>
+                       <div className="min-w-0">
+                         <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{row.intern.name}</p>
+                         <p className="text-[10px] text-slate-400 truncate">{row.intern.email}</p>
+                       </div>
+                     </div>
 
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedInternId(row.intern.id);
-                      }}
-                      className="px-2 py-1 rounded-lg bg-teal-50 dark:bg-teal-950/60 text-teal-600 dark:text-teal-400 text-[10px] font-bold hover:bg-teal-100 dark:hover:bg-teal-900 transition shrink-0"
-                    >
-                      View
-                    </button>
-                  </div>
+                     <button
+                       onClick={(e) => {
+                         e.stopPropagation();
+                         setSelectedInternId(row.intern.id);
+                       }}
+                       className="px-2 py-1 rounded-lg bg-teal-50 dark:bg-teal-950/60 text-teal-600 dark:text-teal-400 text-[10px] font-bold hover:bg-teal-100 dark:hover:bg-teal-900 transition shrink-0"
+                     >
+                       View
+                     </button>
+                   </div>
 
-                  <div className="pt-2 border-t border-slate-200/60 dark:border-slate-800/60 flex items-center justify-between text-[10px]">
-                    <div className="flex items-center gap-1 font-semibold">
-                      {isActive ? (
-                        <span className="text-emerald-700 dark:text-emerald-400 font-extrabold flex items-center gap-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping inline-block" />
-                          Started {sess.started_at}
-                          {sess?.is_late && (
-                            <span className="px-1.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-amber-500/20 text-amber-400 border border-amber-500/30">
-                              LATE
-                            </span>
-                          )}
-                        </span>
+                   <div className="pt-2 border-t border-slate-200/60 dark:border-slate-800/60 flex items-center justify-between text-[10px]">
+                     <div className="flex items-center gap-1 font-semibold">
+                       {isActive ? (
+                         <span className="text-emerald-700 dark:text-emerald-400 font-extrabold flex items-center gap-1">
+                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping inline-block" />
+                           Started {sess.started_at}
+                           {sess?.is_late && (
+                             <span className="px-1.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                               LATE
+                             </span>
+                           )}
+                         </span>
                       ) : isCompleted ? (
                         <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1">
                           <CheckCircle2 className="h-3 w-3 text-teal-500" />
@@ -667,6 +648,9 @@ export const TeamOverview: React.FC<TeamOverviewProps> = ({ currentUser }) => {
 
         {/* High level team trends */}
         <div className="lg:col-span-4 space-y-6">
+          {/* Intern Rankings */}
+          <RankingChart currentUserId={currentUser.id} />
+
           {/* Custom SVG Bar Chart */}
           <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl rounded-2xl shadow-lg shadow-teal-500/5 border border-white/20 dark:border-slate-700/30 p-6 space-y-3.5">
             <div>
@@ -728,8 +712,15 @@ export const TeamOverview: React.FC<TeamOverviewProps> = ({ currentUser }) => {
           </div>
         </div>
       </div>
-        </>
-      )}
+    </>
+  ) : activeTab === 'queue' ? (
+    <ReviewQueue
+      currentUser={currentUser}
+      onSelectIntern={(internId) => setSelectedInternId(internId)}
+    />
+  ) : (
+    <UpcomingProjectsView currentUser={currentUser} />
+  )}
     </div>
   );
 };
