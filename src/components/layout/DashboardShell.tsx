@@ -193,6 +193,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
 
               <button
                 onClick={() => setShowCalendar(!showCalendar)}
+                onMouseDown={(e) => e.stopPropagation()}
                 type="button"
                 className={`p-2 border border-white/20 dark:border-slate-700/30 rounded-xl transition ${
                   showCalendar ? 'text-teal-300 bg-white/10' : 'text-slate-300 hover:text-white'
@@ -216,20 +217,20 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
                   referrerPolicy="no-referrer"
                 />
               </button>
+           </div>
+         </header>
+
+        {showCalendar && (
+          <div className="fixed top-20 right-8 z-50">
+            <CalendarPopover
+              isOpen={showCalendar}
+              onClose={() => setShowCalendar(false)}
+              userId={user?.id ?? ''}
+            />
           </div>
+        )}
 
-          {showCalendar && (
-            <div className="absolute top-20 right-8 z-50">
-              <CalendarPopover
-                isOpen={showCalendar}
-                onClose={() => setShowCalendar(false)}
-                userId={user?.id ?? ''}
-              />
-            </div>
-          )}
-        </header>
-
-        {/* Mobile Navigation bar */}
+         {/* Mobile Navigation bar */}
         <div className="md:hidden flex bg-white/10 dark:bg-slate-900/10 backdrop-blur-xl border-b border-white/20 dark:border-slate-700/30 px-4 py-2 justify-around gap-1 shrink-0 overflow-x-auto">
           {navItems.map((item) => {
             const Icon = item.icon;

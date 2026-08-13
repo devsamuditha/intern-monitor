@@ -156,11 +156,10 @@ export const CalendarPopover: React.FC<CalendarPopoverProps> = ({ isOpen, onClos
   const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
   return (
-    <div className="absolute top-20 right-8 z-50">
-      <div
-        ref={popoverRef}
-        className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-white/20 dark:border-slate-700/30 rounded-2xl shadow-xl p-4 w-80"
-      >
+    <div
+      ref={popoverRef}
+      className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-white/20 dark:border-slate-700/30 rounded-2xl shadow-xl p-4 w-80"
+    >
         <div className="flex items-center justify-between mb-4">
           <button
             onClick={handlePrevMonth}
@@ -238,6 +237,5 @@ export const CalendarPopover: React.FC<CalendarPopoverProps> = ({ isOpen, onClos
           </button>
         </div>
       </div>
-    </div>
   );
 };

@@ -172,14 +172,6 @@ export const StartDayHero: React.FC<StartDayHeroProps> = ({
         </div>
       )}
 
-      {/* 4:30 PM Journal Reminder (amber) */}
-      {todaySession?.status === 'active' && !hasLogToday && istMinutes >= 16 * 60 + 30 && istMinutes < 16 * 60 + 45 && (
-        <div className="mt-4 p-3 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-200 flex items-center gap-2.5 text-xs">
-          <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0 animate-pulse" />
-          <span className="font-semibold">Submit your daily journal before 5:00 PM.</span>
-        </div>
-      )}
-
       {/* 4:45 PM Urgent Journal Reminder (red) */}
       {todaySession?.status === 'active' && !hasLogToday && istMinutes >= 16 * 60 + 45 && (
         <div className="mt-4 p-3 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-100 flex items-center gap-2.5 text-xs animate-pulse">

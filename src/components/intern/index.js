@@ -14,3 +14,5 @@ export { DailyLogTimeline } from './DailyLogTimeline';
 export { FlaggedMistakesBanner } from './FlaggedMistakesBanner';
 export { RankingChart } from './RankingChart';
 export { CompleteTaskModal } from './CompleteTaskModal';
+export { LastJournalReminderModal } from './LastJournalReminderModal';
+export { FinalWarningModal } from './FinalWarningModal';

@@ -23,7 +23,9 @@ import {
   DailyLogTimeline,
   FlaggedMistakesBanner,
   CompleteTaskModal,
-  JournalReminderModal
+  JournalReminderModal,
+  LastJournalReminderModal,
+  FinalWarningModal
 } from '../../components/intern';
 import { formatDate } from '../../utils/helpers';
 import { useInternDashboard, useSubmitLog, useStartDaySession, useEndDaySession, useUpdateTaskStatus, useRequestEarlyExit } from '@/src/hooks/queries/useDashboardQueries';
@@ -44,6 +46,10 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
   const [showCompleteTaskModal, setShowCompleteTaskModal] = useState(false);
   const [taskToComplete, setTaskToComplete] = useState<Task | null>(null);
   const [showJournalReminderModal, setShowJournalReminderModal] = useState(false);
+  const [showLastJournalModal, setShowLastJournalModal] = useState(false);
+  const [hasShownLastReminder, setHasShownLastReminder] = useState(false);
+  const [showFinalWarningModal, setShowFinalWarningModal] = useState(false);
+  const [hasShownFinalWarning, setHasShownFinalWarning] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [dateFilter, setDateFilter] = useState('');
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
@@ -53,6 +59,26 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
     setTimeout(() => setToast(null), 3000);
   }, []);
 
+  const requestNotificationPermission = async () => {
+    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default') {
+      try {
+        await Notification.requestPermission();
+      } catch (e) {
+        console.warn('Notification permission request failed:', e);
+      }
+    }
+  };
+
+  const sendBrowserNotification = (title: string, body: string) => {
+    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+      try {
+        new Notification(title, { body, icon: '/favicon.ico' });
+      } catch (e) {
+        console.warn('Browser notification failed:', e);
+      }
+    }
+  };
+
   const { data, isLoading, refetch } = useInternDashboard(user.id);
   const submitLogMutation = useSubmitLog(user.id);
   const startDayMutation = useStartDaySession(user.id);
@@ -61,8 +87,6 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
   const updateTaskStatusMutation = useUpdateTaskStatus(user.id);
   const router = useRouter();
   const [showAutoLogout, setShowAutoLogout] = useState(false);
-  const [hasNotified430, setHasNotified430] = useState(false);
-  const [hasNotified445, setHasNotified445] = useState(false);
 
   const logs = data?.logs ?? [];
   const tasks = data?.tasks ?? [];
@@ -87,16 +111,18 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
 
       if (!sessionActive) return;
 
-      // 4:30 PM Notification
-      if (istMinutes >= 16 * 60 + 30 && istMinutes < 16 * 60 + 45 && !hasNotified430) {
-        alert("Reminder: It's 4:30 PM. Please submit your final daily journal soon.");
-        setHasNotified430(true);
+      // 4:30 PM Last Journal Reminder
+      if (istMinutes >= 16 * 60 + 30 && !hasShownLastReminder && !hasLogToday) {
+        setShowLastJournalModal(true);
+        setHasShownLastReminder(true);
+        sendBrowserNotification('Daily Journal Reminder', 'Submit your last daily journal before 5:00 PM.');
       }
 
-      // 4:45 PM Final Warning Notification
-      if (istMinutes >= 16 * 60 + 45 && istMinutes < 17 * 60 + 15 && !hasNotified445) {
-        alert("FINAL WARNING: It's 4:45 PM. You must submit your final daily journal before 5:00 PM.");
-        setHasNotified445(true);
+      // 4:45 PM Final Warning
+      if (istMinutes >= 16 * 60 + 45 && !hasShownFinalWarning && !hasLogToday) {
+        setShowFinalWarningModal(true);
+        setHasShownFinalWarning(true);
+        sendBrowserNotification('Final Warning', 'You must submit your final daily journal before 5:00 PM.');
       }
 
       // 5:15 PM Auto Logout
@@ -109,7 +135,7 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
     const interval = setInterval(checkAutoLogout, 60000);
 
     return () => clearInterval(interval);
-  }, [user, logs, todaySession, hasLogToday, hasNotified430, hasNotified445]);
+  }, [user, logs, todaySession, hasLogToday, hasShownLastReminder, hasShownFinalWarning]);
 
   useEffect(() => {
     if (user?.role !== 'intern') return;
@@ -245,6 +271,7 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
         git_link: startGitLink.trim() || undefined,
       });
       setShowStartDayModal(false);
+      await requestNotificationPermission();
       if (onRefreshStats) onRefreshStats();
     } catch (err) {
       console.error("Start day failed", err);
@@ -334,6 +361,8 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
 
   const handleLogSubmitSuccess = () => {
     refetch();
+    setShowLastJournalModal(false);
+    setShowFinalWarningModal(false);
     if (onRefreshStats) onRefreshStats();
   };
 
@@ -354,6 +383,26 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
       el.scrollIntoView({ behavior: 'smooth' });
       el.classList.add('ring-2', 'ring-teal-500');
       setTimeout(() => el.classList.remove('ring-2', 'ring-teal-500'), 2000);
+    }
+  };
+
+  const handleGoToJournalFromLastReminder = () => {
+    setShowLastJournalModal(false);
+    const el = document.getElementById('daily-log-form-container');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+      el.classList.add('ring-2', 'ring-amber-500');
+      setTimeout(() => el.classList.remove('ring-2', 'ring-amber-500'), 2000);
+    }
+  };
+
+  const handleGoToJournalFromFinalWarning = () => {
+    setShowFinalWarningModal(false);
+    const el = document.getElementById('daily-log-form-container');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+      el.classList.add('ring-2', 'ring-rose-500');
+      setTimeout(() => el.classList.remove('ring-2', 'ring-rose-500'), 2000);
     }
   };
 
@@ -434,6 +483,18 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
             show={showJournalReminderModal}
             onClose={() => setShowJournalReminderModal(false)}
             onGoToJournal={handleGoToJournalFromReminder}
+          />
+
+          <LastJournalReminderModal
+            show={showLastJournalModal}
+            onClose={() => setShowLastJournalModal(false)}
+            onGoToJournal={handleGoToJournalFromLastReminder}
+          />
+
+          <FinalWarningModal
+            show={showFinalWarningModal}
+            onClose={() => setShowFinalWarningModal(false)}
+            onGoToJournal={handleGoToJournalFromFinalWarning}
           />
 
           <EarlyExitRequestModal
