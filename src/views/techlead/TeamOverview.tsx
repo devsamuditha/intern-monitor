@@ -113,7 +113,7 @@ export const TeamOverview: React.FC<TeamOverviewProps> = ({ currentUser }) => {
             invalidateAnalytics();
           })
           .on('postgres_changes', { event: '*', schema: 'public', table: 'Task' }, () => {
-            invalidateAnalytics();
+            invalidateDashboard();
           })
           .on('postgres_changes', { event: '*', schema: 'public', table: 'DaySession' }, () => {
             invalidateAnalytics();
