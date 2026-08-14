@@ -31,7 +31,12 @@ export const ManagerAssignments: React.FC<ManagerAssignmentsProps> = ({
 
   const acceptTaskMutation = useAcceptTask();
 
-  const myTasks = allTasks.filter(t => t.assigned_to === currentUser.id);
+  const myTasks = allTasks.filter(t => {
+    if (t.assigned_tech_lead_ids && t.assigned_tech_lead_ids.length > 0) {
+      return t.assigned_tech_lead_ids.includes(currentUser.id);
+    }
+    return t.assigned_to === currentUser.id;
+  });
 
   const pendingTasks = myTasks.filter(t => t.pending_acceptance);
   const acceptedTasks = myTasks.filter(t => !t.pending_acceptance && t.accepted_at);

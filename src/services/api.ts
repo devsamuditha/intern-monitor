@@ -311,7 +311,7 @@ export const api = {
   },
 
   assignTask: async (task: {
-    assigned_to: string;
+    assigned_to?: string;
     assigned_by: string;
     title: string;
     description: string;
@@ -321,6 +321,7 @@ export const api = {
     pr_link?: string;
     score?: number;
     start_date?: string;
+    assigned_tech_lead_ids?: string[];
   }): Promise<Task> => {
     const res = await fetchWithDedup("/api/tasks", {
       method: "POST",

@@ -40,7 +40,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     await prisma.mark.create({
       data: {
-        internId: updatedTask.assignedToId,
+        internId: updatedTask.assignedToId || reviewer_id,
         givenById: reviewer_id,
         relatedTaskId: updatedTask.id,
         score: Number(score),

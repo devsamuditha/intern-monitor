@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
         id: true, organizationId: true, assignedToId: true, assignedById: true,
         title: true, description: true, dueDate: true, priority: true,
         status: true, completedAt: true, score: true, comment: true,
-        blockers: true, prLink: true, createdAt: true,
+        blockers: true, prLink: true, createdAt: true, assignedTechLeadIds: true,
       },
       orderBy: { createdAt: "desc" },
     });
@@ -65,16 +65,13 @@ export async function POST(request: NextRequest) {
   try {
     const validated = CreateTaskSchema.parse(body);
     const prisma: any = getPrisma();
-    const assignee = await prisma.user.findUnique({
-      where: { id: validated.assigned_to },
-      select: { role: true },
-    });
-    const isTechLead = assignee?.role === "TECH_LEAD";
+    const techLeadIds = validated.assigned_tech_lead_ids || [];
+    const isTechLeadAssignment = techLeadIds.length > 0;
     const dueDate = validated.start_date || validated.due_date;
 
     const created = await prisma.task.create({
       data: {
-        assignedToId: validated.assigned_to,
+        assignedToId: validated.assigned_to || techLeadIds[0] || undefined,
         assignedById: validated.assigned_by || user.id,
         title: validated.title,
         description: validated.description,
@@ -82,7 +79,8 @@ export async function POST(request: NextRequest) {
         priority: (validated.priority || "MEDIUM").toUpperCase(),
         status: "TODO",
         organizationId: user.organizationId as string,
-        pendingAcceptance: isTechLead,
+        assignedTechLeadIds: techLeadIds,
+        pendingAcceptance: isTechLeadAssignment,
       },
     });
 

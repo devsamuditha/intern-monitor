@@ -26,10 +26,12 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const prisma = getPrisma();
     const existing = await prisma.task.findFirst({
       where: { id, ...scopeToOrganization({}, user) },
-      select: { id: true, assignedToId: true, pendingAcceptance: true },
+      select: { id: true, assignedToId: true, assignedTechLeadIds: true, pendingAcceptance: true },
     });
     if (!existing) return NextResponse.json({ error: "Task not found" }, { status: 404 });
-    if (existing.assignedToId !== user.id) {
+    const isAssignedTechLead = existing.assignedTechLeadIds?.includes(user.id);
+    const isAssignedTo = existing.assignedToId === user.id;
+    if (!isAssignedTechLead && !isAssignedTo) {
       return NextResponse.json({ error: "Forbidden: Only the assigned tech lead can accept this task." }, { status: 403 });
     }
     if (!existing.pendingAcceptance) {
@@ -48,7 +50,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         status: true, completedAt: true, score: true, comment: true,
         blockers: true, prLink: true, createdAt: true, selfScore: true,
         selfComment: true, completedDescription: true, pendingAcceptance: true,
-        acceptedAt: true,
+        acceptedAt: true, assignedTechLeadIds: true,
       },
     });
 

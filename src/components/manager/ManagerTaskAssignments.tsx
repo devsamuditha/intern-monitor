@@ -33,7 +33,7 @@ export const ManagerTaskAssignments: React.FC<ManagerTaskAssignmentsProps> = ({
   const [showForm, setShowForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  const [techLeadId, setTechLeadId] = useState('');
+  const [techLeadIds, setTechLeadIds] = useState<string[]>([]);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [startDate, setStartDate] = useState('');
@@ -43,9 +43,16 @@ export const ManagerTaskAssignments: React.FC<ManagerTaskAssignmentsProps> = ({
 
   const assignedTasks = allTasks.filter(t => {
     if (t.assigned_by !== currentUser.id) return false;
+    if (t.assigned_tech_lead_ids && t.assigned_tech_lead_ids.length > 0) return true;
     const assignee = allUsers.find(u => u.id === t.assigned_to);
     return assignee?.role === 'tech_lead';
   });
+
+  const toggleTechLead = (id: string) => {
+    setTechLeadIds(prev =>
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    );
+  };
 
   const assignTaskMutation = useMutation({
     mutationFn: api.assignTask,
@@ -54,7 +61,7 @@ export const ManagerTaskAssignments: React.FC<ManagerTaskAssignmentsProps> = ({
       queryClient.invalidateQueries({ queryKey: ['analytics'] });
       onRefresh();
       setShowForm(false);
-      setTechLeadId('');
+      setTechLeadIds([]);
       setTitle('');
       setDescription('');
       setStartDate('');
@@ -64,16 +71,17 @@ export const ManagerTaskAssignments: React.FC<ManagerTaskAssignmentsProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!techLeadId || !title.trim() || !description.trim() || !startDate) return;
+    if (techLeadIds.length === 0 || !title.trim() || !description.trim() || !startDate) return;
     setSubmitting(true);
     try {
       await assignTaskMutation.mutateAsync({
-        assigned_to: techLeadId,
+        assigned_to: techLeadIds[0],
         assigned_by: currentUser.id,
         title: title.trim(),
         description: description.trim(),
         due_date: startDate,
         priority,
+        assigned_tech_lead_ids: techLeadIds,
       });
     } catch (err) {
       console.error(err);
@@ -134,22 +142,32 @@ export const ManagerTaskAssignments: React.FC<ManagerTaskAssignmentsProps> = ({
             <button onClick={() => setShowForm(false)} className="text-xs text-slate-400 hover:text-white">Close</button>
           </div>
           <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Tech Lead</label>
-              <div className="relative">
-                <select
-                  value={techLeadId}
-                  onChange={(e) => setTechLeadId(e.target.value)}
-                  disabled={submitting}
-                  className="w-full text-xs rounded-lg border border-white/20 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50 px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/20 disabled:opacity-50 appearance-none"
-                >
-                  <option value="">Select a tech lead</option>
-                  {techLeads.map(tl => (
-                    <option key={tl.id} value={tl.id}>{tl.name}</option>
-                  ))}
-                </select>
-                <ChevronDown className="absolute right-2 top-2.5 h-4 w-4 text-slate-400 pointer-events-none" />
+            <div className="md:col-span-2">
+              <label className="block text-[10px] font-bold text-slate-500 uppercase mb-2">Tech Leads</label>
+              <div className="flex flex-wrap gap-2">
+                {techLeads.map(tl => (
+                  <label
+                    key={tl.id}
+                    className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border cursor-pointer transition ${
+                      techLeadIds.includes(tl.id)
+                        ? 'bg-purple-600 border-purple-600 text-white'
+                        : 'bg-white/50 dark:bg-slate-800/50 border-white/20 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-white/80 dark:hover:bg-slate-700/50'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={techLeadIds.includes(tl.id)}
+                      onChange={() => toggleTechLead(tl.id)}
+                      disabled={submitting}
+                      className="hidden"
+                    />
+                    <span className="text-xs font-semibold">{tl.name}</span>
+                  </label>
+                ))}
               </div>
+              {techLeadIds.length === 0 && (
+                <p className="text-[10px] text-rose-500 mt-1">Select at least one tech lead</p>
+              )}
             </div>
             <div>
               <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Task Title</label>
@@ -162,6 +180,16 @@ export const ManagerTaskAssignments: React.FC<ManagerTaskAssignmentsProps> = ({
                 className="w-full text-xs rounded-lg border border-white/20 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50 px-3 py-2 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 disabled:opacity-50"
               />
             </div>
+            <div>
+              <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Start Date</label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                disabled={submitting}
+                className="w-full text-xs rounded-lg border border-white/20 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50 px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/20 disabled:opacity-50"
+              />
+            </div>
             <div className="md:col-span-2">
               <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Description</label>
               <textarea
@@ -171,16 +199,6 @@ export const ManagerTaskAssignments: React.FC<ManagerTaskAssignmentsProps> = ({
                 onChange={(e) => setDescription(e.target.value)}
                 disabled={submitting}
                 className="w-full text-xs rounded-lg border border-white/20 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50 px-3 py-2 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 disabled:opacity-50"
-              />
-            </div>
-            <div>
-              <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Start Date</label>
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                disabled={submitting}
-                className="w-full text-xs rounded-lg border border-white/20 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50 px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/20 disabled:opacity-50"
               />
             </div>
             <div>
@@ -206,7 +224,7 @@ export const ManagerTaskAssignments: React.FC<ManagerTaskAssignmentsProps> = ({
             <div className="md:col-span-2 flex justify-end">
               <button
                 type="submit"
-                disabled={submitting || !techLeadId || !title.trim() || !description.trim() || !startDate}
+                disabled={submitting || techLeadIds.length === 0 || !title.trim() || !description.trim() || !startDate}
                 className="px-5 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 transition"
               >
                 {submitting ? (

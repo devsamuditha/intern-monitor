@@ -91,7 +91,7 @@ export const ReviewQueue: React.FC<ReviewQueueProps> = ({ currentUser, onSelectI
 
       setInterns(myInterns);
       setLogs(allLogs.filter(l => myInternIds.has(l.intern_id)));
-      setTasks(allTasks.filter(t => myInternIds.has(t.assigned_to)));
+      setTasks(allTasks.filter(t => t.assigned_to && myInternIds.has(t.assigned_to)));
     } catch (err) {
       console.error("Error loading review queue data:", err);
     } finally {
@@ -129,6 +129,7 @@ export const ReviewQueue: React.FC<ReviewQueueProps> = ({ currentUser, onSelectI
 
   // Add Sprint Tasks (Tasks marked as 'done' or with scores)
   tasks.forEach(task => {
+    if (!task.assigned_to) return;
     const intern = internMap.get(task.assigned_to);
     // Task needs review if completed ('done') or already scored
     const isReviewed = task.score !== undefined && task.score !== null && task.score > 0;

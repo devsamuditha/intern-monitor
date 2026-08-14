@@ -80,7 +80,7 @@ export const ReviewLogSchema = z.object({
 });
 
 export const CreateTaskSchema = z.object({
-  assigned_to: z.string().min(1, { message: "Assigned intern ID is required" }),
+  assigned_to: z.string().min(1, { message: "Assigned intern ID is required" }).optional().nullable(),
   assigned_by: z.string().min(1, { message: "Assigner ID is required" }),
   title: z.string().min(1, { message: "Task title is required" }),
   description: z.string().min(1, { message: "Task description is required" }),
@@ -89,6 +89,7 @@ export const CreateTaskSchema = z.object({
   priority: z.enum(['low', 'medium', 'high', 'LOW', 'MEDIUM', 'HIGH']),
   blockers: z.string().optional().nullable(),
   pr_link: z.string().optional().nullable(),
+  assigned_tech_lead_ids: z.array(z.string()).optional().nullable(),
 });
 
 export const UpdateTaskSchema = z.object({

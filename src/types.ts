@@ -55,8 +55,8 @@ export type TaskStatus = 'todo' | 'in_progress' | 'done';
 
 export interface Task {
   id: string;
-  assigned_to: string; // intern_id
-  assigned_by: string; // tech_lead_id
+  assigned_to?: string;
+  assigned_by: string;
   title: string;
   description: string;
   due_date: string;
@@ -64,13 +64,14 @@ export interface Task {
   status: TaskStatus;
   started_at?: string;
   completed_at?: string;
-  score?: number; // given by Tech Lead
-  comment?: string; // Tech Lead review comment
+  score?: number;
+  comment?: string;
   blockers?: string;
   pr_link?: string;
   self_score?: number;
   self_comment?: string;
   completed_description?: string;
+  assigned_tech_lead_ids?: string[];
   pending_acceptance?: boolean;
   accepted_at?: string;
   created_at?: string;

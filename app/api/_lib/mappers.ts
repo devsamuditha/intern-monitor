@@ -71,7 +71,7 @@ export function mapTask(dbTask: any) {
   if (!dbTask) return null;
   return {
     id: dbTask.id,
-    assigned_to: dbTask.assignedToId,
+    assigned_to: dbTask.assignedToId || undefined,
     assigned_by: dbTask.assignedById,
     title: dbTask.title,
     description: dbTask.description,
@@ -87,6 +87,7 @@ export function mapTask(dbTask: any) {
     self_score: dbTask.selfScore || undefined,
     self_comment: dbTask.selfComment || undefined,
     completed_description: dbTask.completedDescription || undefined,
+    assigned_tech_lead_ids: dbTask.assignedTechLeadIds || undefined,
     pending_acceptance: dbTask.pendingAcceptance || undefined,
     accepted_at: dbTask.acceptedAt ? dbTask.acceptedAt.toISOString() : undefined,
     created_at: dbTask.createdAt ? dbTask.createdAt.toISOString() : undefined,
