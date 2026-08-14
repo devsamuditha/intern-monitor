@@ -33,6 +33,7 @@ export const TeamOverview: React.FC<TeamOverviewProps> = ({ currentUser }) => {
   const [selectedInternId, setSelectedInternId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'queue' | 'roster' | 'upcoming_projects' | 'manager_assignments'>('roster');
   const [isApprovingAll, setIsApprovingAll] = useState(false);
+  const [lastNotifiedInternId, setLastNotifiedInternId] = useState<string | null>(null);
 
   const { data: analytics, isLoading: loading } = useQuery({
     queryKey: ["analytics", currentUser.id],
@@ -100,42 +101,57 @@ export const TeamOverview: React.FC<TeamOverviewProps> = ({ currentUser }) => {
   useEffect(() => {
     let subscriptionChannel: any = null;
 
-    const setupRealtime = async () => {
-      let cleanup: (() => void) | undefined;
-      try {
-        const supabase = await getSupabaseClient();
-        subscriptionChannel = supabase
-          .channel('techlead-team-overview')
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'User' }, () => {
-            invalidateAnalytics();
-          })
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'DailyLog' }, () => {
-            invalidateAnalytics();
-          })
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'Task' }, () => {
-            invalidateDashboard();
-          })
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'DaySession' }, () => {
-            invalidateAnalytics();
-          })
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'Project' }, () => {
-            invalidateAnalytics();
-          })
-          .subscribe();
-        cleanup = () => { if (subscriptionChannel) subscriptionChannel.unsubscribe(); };
-      } catch (err) {
-        console.warn("Realtime subscriptions are inactive in TeamOverview:", err);
-      }
-      return cleanup;
-    };
-
-    let cleanup: (() => void) | undefined;
-    setupRealtime().then((c) => { cleanup = c; });
+    try {
+      const supabase = getSupabaseClient();
+      subscriptionChannel = supabase
+        .channel('techlead-team-overview')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'User' }, () => {
+          invalidateAnalytics();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'DailyLog' }, () => {
+          invalidateAnalytics();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'Task' }, () => {
+          invalidateDashboard();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'DaySession' }, () => {
+          invalidateAnalytics();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'Project' }, () => {
+          invalidateAnalytics();
+        })
+        .subscribe();
+    } catch (err) {
+      console.warn("Realtime subscriptions are inactive in TeamOverview:", err);
+    }
 
     return () => {
-      cleanup?.();
+      if (subscriptionChannel) {
+        subscriptionChannel.unsubscribe();
+      }
     };
   }, [currentUser]);
+
+  useEffect(() => {
+    if (!selectedInternId || selectedInternId === lastNotifiedInternId) return;
+
+    const notifyIntern = async () => {
+      try {
+        await api.createNotification({
+          userId: selectedInternId,
+          type: 'profile_viewed',
+          title: 'Profile Viewed',
+          message: `${currentUser.name} viewed your profile`,
+          isRed: false,
+        });
+        setLastNotifiedInternId(selectedInternId);
+      } catch (e) {
+        console.error('Failed to create profile_viewed notification:', e);
+      }
+    };
+
+    notifyIntern();
+  }, [selectedInternId, currentUser, lastNotifiedInternId]);
 
   if (loading || usersQuery.isLoading || tasksQuery.isLoading) {
     return (

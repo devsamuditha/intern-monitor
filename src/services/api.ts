@@ -686,5 +686,45 @@ export const api = {
     });
     return handleResponse(res);
   },
+
+  getNotifications: async (unreadOnly?: boolean): Promise<{ notifications: any[]; unreadCount: number }> => {
+    const url = unreadOnly ? "/api/notifications?unread_only=true" : "/api/notifications";
+    const res = await fetchWithDedup(url, {
+      headers: await getAuthHeaders()
+    });
+    return handleResponse(res);
+  },
+
+  markNotificationRead: async (id: string): Promise<any> => {
+    const res = await fetchWithDedup(`/api/notifications/${id}/read`, {
+      method: "PATCH",
+      headers: await getAuthHeaders()
+    });
+    return handleResponse(res);
+  },
+
+  markAllNotificationsRead: async (): Promise<{ success: boolean; count: number }> => {
+    const res = await fetchWithDedup("/api/notifications/read-all", {
+      method: "PATCH",
+      headers: await getAuthHeaders()
+    });
+    return handleResponse(res);
+  },
+
+  createNotification: async (data: {
+    userId: string;
+    type: string;
+    title: string;
+    message: string;
+    isRed?: boolean;
+    relatedId?: string;
+  }): Promise<any> => {
+    const res = await fetchWithDedup("/api/notifications", {
+      method: "POST",
+      headers: await getAuthHeaders(),
+      body: JSON.stringify(data)
+    });
+    return handleResponse(res);
+  },
 };
 

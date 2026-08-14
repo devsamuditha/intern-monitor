@@ -72,6 +72,51 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           })
         )
       );
+
+      const hasCritical = mistakesFlagged.some((m: any) => String(m.severity).toLowerCase() === "high");
+      if (hasCritical) {
+        try {
+          const flagger = await prisma.user.findUnique({
+            where: { id: reviewer_id },
+            select: { name: true },
+          });
+          await prisma.notification.create({
+            data: {
+              userId: log.internId,
+              organizationId: user.organizationId as string,
+              type: "mistake_flagged",
+              title: "Critical Mistake Flagged",
+              message: `${flagger?.name || 'Tech Lead'} flagged a critical mistake on your journal.`,
+              isRed: true,
+              relatedId: log.id,
+            },
+          });
+        } catch (e) {
+          console.error("Failed to create mistake_flagged notification:", e);
+        }
+      }
+    }
+
+    if (score !== undefined) {
+      try {
+        const reviewer = await prisma.user.findUnique({
+          where: { id: reviewer_id },
+          select: { name: true },
+        });
+        await prisma.notification.create({
+          data: {
+            userId: log.internId,
+            organizationId: user.organizationId as string,
+            type: "mark_received",
+            title: "Daily Task Reviewed",
+            message: `${reviewer?.name || 'Tech Lead'} reviewed your journal. Score: ${score}/10`,
+            isRed: false,
+            relatedId: log.id,
+          },
+        });
+      } catch (e) {
+        console.error("Failed to create mark_received notification:", e);
+      }
     }
 
     return NextResponse.json({ success: true, log: mapDailyLog(updatedLog) });

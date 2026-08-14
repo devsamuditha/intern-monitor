@@ -99,39 +99,35 @@ export const InternDetail: React.FC<InternDetailProps> = ({ internId, currentUse
 
     let subscriptionChannel: any = null;
 
-    const setupRealtime = async () => {
-      try {
-        const supabase = await getSupabaseClient();
-        subscriptionChannel = supabase
-          .channel(`intern-detail-${internId}`)
-          .on(
-            'postgres_changes',
-            { event: '*', schema: 'public', table: 'DailyLog' },
-            () => {
-              loadAllInternData();
-            }
-          )
-          .on(
-            'postgres_changes',
-            { event: '*', schema: 'public', table: 'Task' },
-            () => {
-              loadAllInternData();
-            }
-          )
-          .on(
-            'postgres_changes',
-            { event: '*', schema: 'public', table: 'Mistake' },
-            () => {
-              loadAllInternData();
-            }
-          )
-          .subscribe();
-      } catch (err) {
-        console.warn("Realtime subscriptions are inactive in InternDetail:", err);
-      }
-    };
-
-    setupRealtime();
+    try {
+      const supabase = getSupabaseClient();
+      subscriptionChannel = supabase
+        .channel(`intern-detail-${internId}`)
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'DailyLog' },
+          () => {
+            loadAllInternData();
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'Task' },
+          () => {
+            loadAllInternData();
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'Mistake' },
+          () => {
+            loadAllInternData();
+          }
+        )
+        .subscribe();
+    } catch (err) {
+      console.warn("Realtime subscriptions are inactive in InternDetail:", err);
+    }
 
     return () => {
       if (subscriptionChannel) {

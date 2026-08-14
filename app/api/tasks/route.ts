@@ -84,6 +84,28 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    if (created.assignedToId) {
+      try {
+        const assigner = await prisma.user.findUnique({
+          where: { id: created.assignedById },
+          select: { name: true },
+        });
+        await prisma.notification.create({
+          data: {
+            userId: created.assignedToId,
+            organizationId: user.organizationId as string,
+            type: "task_assigned",
+            title: "New Task Assigned",
+            message: `${assigner?.name || 'Tech Lead'} assigned you: ${created.title}`,
+            isRed: false,
+            relatedId: created.id,
+          },
+        });
+      } catch (e) {
+        console.error("Failed to create task_assigned notification:", e);
+      }
+    }
+
     return NextResponse.json(mapTask(created));
   } catch (error: any) {
     if (error.name === 'ZodError') {

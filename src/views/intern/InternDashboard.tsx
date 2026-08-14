@@ -50,6 +50,8 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
   const [hasShownLastReminder, setHasShownLastReminder] = useState(false);
   const [showFinalWarningModal, setShowFinalWarningModal] = useState(false);
   const [hasShownFinalWarning, setHasShownFinalWarning] = useState(false);
+  const [hasShownJournalReminder, setHasShownJournalReminder] = useState(false);
+  const [hasShownJournalMissed, setHasShownJournalMissed] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [dateFilter, setDateFilter] = useState('');
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
@@ -116,6 +118,13 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
         setShowLastJournalModal(true);
         setHasShownLastReminder(true);
         sendBrowserNotification('Daily Journal Reminder', 'Submit your last daily journal before 5:00 PM.');
+        api.createNotification({
+          userId: user.id,
+          type: 'final_warning',
+          title: 'Final Journal Warning',
+          message: 'Submit your last journal before 5:00 PM.',
+          isRed: true,
+        }).catch(() => {});
       }
 
       // 4:45 PM Final Warning
@@ -146,10 +155,32 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
       const sessionActive = todaySession && todaySession.status === 'active';
 
       if (!sessionActive) return;
-      if (hasLogToday) return;
 
-      if (istMinutes >= 13 * 60 && istMinutes < 14 * 60 + 30) {
+      // 1:00 PM Journal Reminder
+      if (istMinutes >= 13 * 60 && !hasShownJournalReminder && !hasLogToday) {
         setShowJournalReminderModal(true);
+        setHasShownJournalReminder(true);
+        sendBrowserNotification('Journal Reminder', 'Submit your daily journal before 1:30 PM.');
+        api.createNotification({
+          userId: user.id,
+          type: 'journal_reminder',
+          title: 'Journal Reminder',
+          message: 'Submit your daily journal before 1:30 PM.',
+          isRed: false,
+        }).catch(() => {});
+      }
+
+      // 1:30 PM Missed Journal
+      if (istMinutes >= 13 * 60 + 30 && !hasShownJournalMissed && !hasLogToday) {
+        setHasShownJournalMissed(true);
+        sendBrowserNotification('Journal Missed', 'You missed the 1:30 PM submit. Techlead will take action.');
+        api.createNotification({
+          userId: user.id,
+          type: 'journal_missed',
+          title: 'Journal Missed',
+          message: 'You missed the 1:30 PM submit. Techlead will take action.',
+          isRed: true,
+        }).catch(() => {});
       }
     };
 
@@ -157,7 +188,7 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
     const interval = setInterval(checkJournalReminder, 60000);
 
     return () => clearInterval(interval);
-  }, [user, todaySession, hasLogToday]);
+  }, [user, todaySession, hasLogToday, hasShownJournalReminder, hasShownJournalMissed]);
 
   const performAutoLogout = async () => {
     try {
@@ -188,32 +219,30 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
   useEffect(() => {
     if (!user?.id) return;
 
-    let cleanup: (() => void) | undefined;
+    let subscriptionChannel: any = null;
 
-    const setupRealtime = async () => {
-      try {
-        const supabase = await getSupabaseClient();
-        const channel = supabase
-          .channel('intern-dashboard')
-          .on('postgres_changes', {
-            event: '*',
-            schema: 'public',
-            table: 'DaySession',
-            filter: `intern_id=eq.${user.id}`,
-          }, () => {
-            refetch();
-          })
-          .subscribe();
-        cleanup = () => { channel.unsubscribe(); };
-      } catch (err) {
-        console.warn("Realtime subscriptions are inactive in InternDashboard:", err);
-      }
-    };
-
-    setupRealtime();
+    try {
+      const supabase = getSupabaseClient();
+      const channel = supabase
+        .channel('intern-dashboard')
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'DaySession',
+          filter: `intern_id=eq.${user.id}`,
+        }, () => {
+          refetch();
+        })
+        .subscribe();
+      subscriptionChannel = channel;
+    } catch (err) {
+      console.warn("Realtime subscriptions are inactive in InternDashboard:", err);
+    }
 
     return () => {
-      cleanup?.();
+      if (subscriptionChannel) {
+        subscriptionChannel.unsubscribe();
+      }
     };
   }, [user.id, refetch]);
 

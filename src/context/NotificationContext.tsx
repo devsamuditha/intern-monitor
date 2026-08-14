@@ -1,0 +1,85 @@
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { api } from '@/src/services/api';
+
+export interface Notification {
+  id: string;
+  organizationId: string;
+  userId: string;
+  type: string;
+  title: string;
+  message: string;
+  isRead: boolean;
+  isRed: boolean;
+  relatedId?: string;
+  createdAt: string;
+}
+
+interface NotificationContextType {
+  notifications: Notification[];
+  unreadCount: number;
+  refreshNotifications: () => Promise<void>;
+  markAsRead: (id: string) => Promise<void>;
+  markAllAsRead: () => Promise<any>;
+  isLoading: boolean;
+}
+
+const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
+
+export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const refreshNotifications = useCallback(async () => {
+    try {
+      const data = await api.getNotifications();
+      setNotifications(data.notifications || []);
+      setUnreadCount(data.unreadCount || 0);
+    } catch (e) {
+      console.error('Failed to fetch notifications:', e);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const markAsRead = useCallback(async (id: string) => {
+    try {
+      await api.markNotificationRead(id);
+      setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
+      setUnreadCount(prev => Math.max(0, prev - 1));
+    } catch (e) {
+      console.error('Failed to mark notification as read:', e);
+    }
+  }, []);
+
+  const markAllAsRead = useCallback(async () => {
+    try {
+      const result = await api.markAllNotificationsRead();
+      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+      setUnreadCount(0);
+      return result;
+    } catch (e) {
+      console.error('Failed to mark all notifications as read:', e);
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshNotifications();
+    const interval = setInterval(refreshNotifications, 60000);
+    return () => clearInterval(interval);
+  }, [refreshNotifications]);
+
+  return (
+    <NotificationContext.Provider value={{ notifications, unreadCount, refreshNotifications, markAsRead, markAllAsRead, isLoading }}>
+      {children}
+    </NotificationContext.Provider>
+  );
+};
+
+export const useNotifications = () => {
+  const context = useContext(NotificationContext);
+  if (!context) {
+    throw new Error('useNotifications must be used within a NotificationProvider');
+  }
+  return context;
+};

@@ -13,12 +13,11 @@ import { SuperAdminModeration } from "@/src/views/superadmin/SuperAdminModeratio
 import { SuperAdminSettings } from "@/src/views/superadmin/SuperAdminSettings";
 import { useAuth } from "@/src/context/AuthContext";
 import { useSettings } from "@/src/context/SettingsContext";
+import { NotificationProvider } from "@/src/context/NotificationContext";
 
 export default function DashboardPage() {
   const { user } = useAuth();
   const { settings } = useSettings();
-
-  if (!user) return null;
 
   const [activeTab, setActiveTab] = useState(
     user?.role === "tech_lead"
@@ -81,16 +80,20 @@ export default function DashboardPage() {
     }
   };
 
+  if (!user) {
+    return (
+      <div className="text-center py-12">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600 mx-auto mb-4" />
+        <p className="text-sm text-slate-500">Loading dashboard...</p>
+      </div>
+    );
+  }
+
   return (
-    <DashboardShell settings={settings} activeTab={activeTab} setActiveTab={setActiveTab}>
-      {user ? (
-        renderPanel()
-      ) : (
-        <div className="text-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600 mx-auto mb-4" />
-          <p className="text-sm text-slate-500">Loading dashboard...</p>
-        </div>
-      )}
-    </DashboardShell>
+    <NotificationProvider>
+      <DashboardShell settings={settings} activeTab={activeTab} setActiveTab={setActiveTab}>
+        {renderPanel()}
+      </DashboardShell>
+    </NotificationProvider>
   );
 }

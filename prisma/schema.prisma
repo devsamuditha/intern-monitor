@@ -69,6 +69,7 @@ model Organization {
   systemSettings   SystemSetting[]
   contentFlags     ContentFlag[]
   calendarMarkers  UserCalendarMarker[]
+  notifications    Notification[]
 }
 
 model User {
@@ -109,6 +110,7 @@ model User {
   settingsUpdated  SystemSetting[]
   flagsReviewed    ContentFlag[]
   calendarMarkers  UserCalendarMarker[]
+  notifications    Notification[]
 
   @@index([role])
   @@index([techLeadId])
@@ -423,11 +425,31 @@ model ContentFlag {
   resolvedAt  DateTime?
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([contentId])
   @@index([status])
   @@index([organizationId])
   @@index([organizationId, status, createdAt])
+}
+
+model Notification {
+  id             String    @id @default(uuid())
+  organizationId String
+  userId         String
+  type           String
+  title          String
+  message        String
+  isRead         Boolean   @default(false)
+  isRed          Boolean   @default(false)
+  relatedId      String?
+  createdAt      DateTime  @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@index([organizationId])
+  @@index([userId, createdAt])
 }

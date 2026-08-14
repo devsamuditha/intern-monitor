@@ -64,40 +64,34 @@ export const ManagerOverview: React.FC<ManagerOverviewProps> = ({ currentUser })
   useEffect(() => {
     let subscriptionChannel: any = null;
 
-    const setupRealtime = async () => {
-      let cleanup: (() => void) | undefined;
-      try {
-        const supabase = await getSupabaseClient();
-        subscriptionChannel = supabase
-          .channel('manager-oversight')
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'User' }, () => {
-            invalidateDashboard();
-          })
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'DailyLog' }, () => {
-            invalidateDashboard();
-          })
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'Task' }, () => {
-            invalidateDashboard();
-          })
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'DaySession' }, () => {
-            invalidateDashboard();
-          })
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'Project' }, () => {
-            invalidateDashboard();
-          })
-          .subscribe();
-        cleanup = () => { if (subscriptionChannel) subscriptionChannel.unsubscribe(); };
-      } catch (err) {
-        console.warn("Realtime subscriptions are inactive in ManagerOverview:", err);
-      }
-      return cleanup;
-    };
-
-    let cleanup: (() => void) | undefined;
-    setupRealtime().then((c) => { cleanup = c; });
+    try {
+      const supabase = getSupabaseClient();
+      subscriptionChannel = supabase
+        .channel('manager-oversight')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'User' }, () => {
+          invalidateDashboard();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'DailyLog' }, () => {
+          invalidateDashboard();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'Task' }, () => {
+          invalidateDashboard();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'DaySession' }, () => {
+          invalidateDashboard();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'Project' }, () => {
+          invalidateDashboard();
+        })
+        .subscribe();
+    } catch (err) {
+      console.warn("Realtime subscriptions are inactive in ManagerOverview:", err);
+    }
 
     return () => {
-      cleanup?.();
+      if (subscriptionChannel) {
+        subscriptionChannel.unsubscribe();
+      }
     };
   }, []);
 

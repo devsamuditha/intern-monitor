@@ -35,31 +35,27 @@ export const SuperAdminOverview: React.FC<SuperAdminOverviewProps> = ({ currentU
   useEffect(() => {
     let subscriptionChannel: any = null;
 
-    const setupRealtime = async () => {
-      try {
-        const supabase = await getSupabaseClient();
-        const channelName = `superadmin-overview-${Date.now()}`;
-        subscriptionChannel = supabase
-          .channel(channelName)
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'User' }, () => {
-            queryClient.invalidateQueries({ queryKey: ["superadmin", "overview"] });
-          })
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'DailyLog' }, () => {
-            queryClient.invalidateQueries({ queryKey: ["superadmin", "overview"] });
-          })
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'Task' }, () => {
-            queryClient.invalidateQueries({ queryKey: ["superadmin", "overview"] });
-          })
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'DaySession' }, () => {
-            queryClient.invalidateQueries({ queryKey: ["superadmin", "overview"] });
-          })
-          .subscribe();
-      } catch (err) {
-        console.warn("Realtime subscriptions are inactive in SuperAdminOverview:", err);
-      }
-    };
-
-    setupRealtime();
+    try {
+      const supabase = getSupabaseClient();
+      const channelName = `superadmin-overview-${Date.now()}`;
+      subscriptionChannel = supabase
+        .channel(channelName)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'User' }, () => {
+          queryClient.invalidateQueries({ queryKey: ["superadmin", "overview"] });
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'DailyLog' }, () => {
+          queryClient.invalidateQueries({ queryKey: ["superadmin", "overview"] });
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'Task' }, () => {
+          queryClient.invalidateQueries({ queryKey: ["superadmin", "overview"] });
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'DaySession' }, () => {
+          queryClient.invalidateQueries({ queryKey: ["superadmin", "overview"] });
+        })
+        .subscribe();
+    } catch (err) {
+      console.warn("Realtime subscriptions are inactive in SuperAdminOverview:", err);
+    }
 
     return () => {
       if (subscriptionChannel) {

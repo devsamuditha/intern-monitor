@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { ProfileImageModal } from "../ui/ProfileImageModal";
 import { CalendarPopover } from "../ui/CalendarPopover";
+import { NotificationBell } from "../intern/NotificationBell";
 
 interface DashboardShellProps {
   children: React.ReactNode;
@@ -202,6 +203,8 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
               >
                 <Calendar className="h-4 w-4" />
               </button>
+
+              {role === 'intern' && <NotificationBell />}
 
               {/* Profile Avatar */}
               <button

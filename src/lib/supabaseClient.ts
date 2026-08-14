@@ -2,7 +2,7 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 let supabaseClient: SupabaseClient | null = null;
 
-export async function getSupabaseClient(): Promise<SupabaseClient> {
+export function getSupabaseClient(): SupabaseClient {
   if (supabaseClient) return supabaseClient;
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL as string;
