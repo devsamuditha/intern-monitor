@@ -11,7 +11,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../services/api';
 import { User, Task } from '../../types';
 import {
-  Plus, Calendar, ChevronDown, CheckCircle2, Clock, X, Loader2
+  Plus, Calendar, CheckCircle2, Clock, X, Loader2
 } from 'lucide-react';
 import { formatDate } from '../../utils/helpers';
 import { scaleIn } from '../../utils/motion';
@@ -144,29 +144,37 @@ export const ManagerTaskAssignments: React.FC<ManagerTaskAssignmentsProps> = ({
           <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="md:col-span-2">
               <label className="block text-[10px] font-bold text-slate-500 uppercase mb-2">Tech Leads</label>
-              <div className="flex flex-wrap gap-2">
-                {techLeads.map(tl => (
-                  <label
-                    key={tl.id}
-                    className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border cursor-pointer transition ${
-                      techLeadIds.includes(tl.id)
-                        ? 'bg-purple-600 border-purple-600 text-white'
-                        : 'bg-white/50 dark:bg-slate-800/50 border-white/20 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-white/80 dark:hover:bg-slate-700/50'
-                    }`}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={techLeadIds.includes(tl.id)}
-                      onChange={() => toggleTechLead(tl.id)}
-                      disabled={submitting}
-                      className="hidden"
-                    />
-                    <span className="text-xs font-semibold">{tl.name}</span>
-                  </label>
-                ))}
-              </div>
-              {techLeadIds.length === 0 && (
-                <p className="text-[10px] text-rose-500 mt-1">Select at least one tech lead</p>
+              {techLeads.length === 0 ? (
+                <div className="p-4 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50 text-center">
+                  <p className="text-xs text-slate-500 dark:text-slate-400">No active tech leads available. Please create tech lead users first.</p>
+                </div>
+              ) : (
+                <>
+                  <div className="flex flex-wrap gap-2">
+                    {techLeads.map(tl => (
+                      <label
+                        key={tl.id}
+                        className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer transition ${
+                          techLeadIds.includes(tl.id)
+                            ? 'bg-purple-600 border-purple-600 text-white shadow-sm'
+                            : 'bg-white/80 dark:bg-slate-800/80 border-white/40 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={techLeadIds.includes(tl.id)}
+                          onChange={() => toggleTechLead(tl.id)}
+                          disabled={submitting}
+                          className="w-3.5 h-3.5 rounded border-slate-300 text-purple-600 focus:ring-purple-500"
+                        />
+                        <span className="text-xs font-semibold">{tl.name}</span>
+                      </label>
+                    ))}
+                  </div>
+                  {techLeadIds.length === 0 && (
+                    <p className="text-[10px] text-rose-500 mt-1.5 font-medium">Select at least one tech lead</p>
+                  )}
+                </>
               )}
             </div>
             <div>
