@@ -4,6 +4,7 @@ import { getPrisma } from "@/src/db/prisma";
 import { mapTask } from "@/app/api/_lib/mappers";
 import { TaskStatus, TaskPriority } from "@prisma/client";
 import { scopeToOrganization } from "@/app/api/_lib/tenant";
+import { CreateTaskSchema } from "@/app/api/_lib/validation";
 
 export const dynamic = 'force-dynamic';
 
@@ -62,23 +63,34 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    const validated = CreateTaskSchema.parse(body);
     const prisma: any = getPrisma();
+    const assignee = await prisma.user.findUnique({
+      where: { id: validated.assigned_to },
+      select: { role: true },
+    });
+    const isTechLead = assignee?.role === "TECH_LEAD";
+    const dueDate = validated.start_date || validated.due_date;
+
     const created = await prisma.task.create({
       data: {
-        assignedToId: body.assigned_to,
-        assignedById: body.assigned_by || user.id,
-        title: body.title,
-        description: body.description,
-        dueDate: body.due_date,
-        priority: (body.priority || "MEDIUM").toUpperCase(),
+        assignedToId: validated.assigned_to,
+        assignedById: validated.assigned_by || user.id,
+        title: validated.title,
+        description: validated.description,
+        dueDate: dueDate,
+        priority: (validated.priority || "MEDIUM").toUpperCase(),
         status: "TODO",
         organizationId: user.organizationId as string,
-        score: body.score !== undefined ? body.score : undefined,
+        pendingAcceptance: isTechLead,
       },
     });
 
     return NextResponse.json(mapTask(created));
   } catch (error: any) {
+    if (error.name === 'ZodError') {
+      return NextResponse.json({ error: error.errors.map((e: any) => `${e.path.join('.')}: ${e.message}`).join(', ') }, { status: 400 });
+    }
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

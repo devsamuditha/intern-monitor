@@ -11,6 +11,7 @@ import { User, Task, Project } from '../../types.ts';
 import { InternDetail } from '../../components/techlead/InternDetail';
 import { UserManagement } from '../../components/manager/UserManagement';
 import { UpcomingProjectsManager } from '../../components/manager/UpcomingProjectsManager';
+import { ManagerTaskAssignments } from '../../components/manager/ManagerTaskAssignments';
 import { getSupabaseClient } from '../../lib/supabaseClient';
 import {
   Clock, Users, Building,
@@ -26,7 +27,7 @@ interface ManagerOverviewProps {
 
 export const ManagerOverview: React.FC<ManagerOverviewProps> = ({ currentUser }) => {
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<'telemetry' | 'users' | 'upcoming_projects'>('telemetry');
+  const [activeTab, setActiveTab] = useState<'telemetry' | 'users' | 'upcoming_projects' | 'task_assignments'>('telemetry');
 
   // Drilldown states
   const [drilldownInternId, setDrilldownInternId] = useState<string | null>(null);
@@ -198,12 +199,24 @@ export const ManagerOverview: React.FC<ManagerOverviewProps> = ({ currentUser })
         >
           <Calendar className="h-4 w-4" /> Upcoming Projects Pipeline
         </button>
+        <button
+          onClick={() => setActiveTab('task_assignments')}
+          className={`px-5 py-3 text-xs font-bold rounded-t-2xl transition flex items-center gap-2 border-t-2 ${
+            activeTab === 'task_assignments'
+              ? 'bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-teal-600 text-teal-700 dark:text-teal-400 border-x border-white/20 dark:border-slate-700/30 shadow-lg shadow-teal-500/5'
+              : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+          }`}
+        >
+          <Calendar className="h-4 w-4" /> Task Assignments
+        </button>
       </div>
 
       {activeTab === 'users' ? (
         <UserManagement currentUser={currentUser} onRefresh={invalidateDashboard} />
       ) : activeTab === 'upcoming_projects' ? (
         <UpcomingProjectsManager currentUser={currentUser} onRefresh={invalidateDashboard} />
+      ) : activeTab === 'task_assignments' ? (
+        <ManagerTaskAssignments currentUser={currentUser} allUsers={allUsers} allTasks={allTasks} onRefresh={invalidateDashboard} />
       ) : (
         <>
           {/* Stats Widgets Grid */}

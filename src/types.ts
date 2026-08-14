@@ -70,6 +70,10 @@ export interface Task {
   pr_link?: string;
   self_score?: number;
   self_comment?: string;
+  completed_description?: string;
+  pending_acceptance?: boolean;
+  accepted_at?: string;
+  created_at?: string;
 }
 
 export interface Mark {

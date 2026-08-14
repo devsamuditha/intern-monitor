@@ -145,3 +145,14 @@ export function useApproveEarlyExit() {
     },
   });
 }
+
+export function useAcceptTask() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: api.acceptTask,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["analytics"] });
+    },
+  });
+}

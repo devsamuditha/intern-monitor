@@ -85,6 +85,7 @@ export const CreateTaskSchema = z.object({
   title: z.string().min(1, { message: "Task title is required" }),
   description: z.string().min(1, { message: "Task description is required" }),
   due_date: z.string().min(1, { message: "Due date is required" }),
+  start_date: z.string().optional().nullable(),
   priority: z.enum(['low', 'medium', 'high', 'LOW', 'MEDIUM', 'HIGH']),
   blockers: z.string().optional().nullable(),
   pr_link: z.string().optional().nullable(),
@@ -102,6 +103,8 @@ export const UpdateTaskSchema = z.object({
   self_score: z.number().min(1).optional().nullable(),
   self_comment: z.string().optional().nullable(),
 });
+
+export const AcceptTaskSchema = z.object({});
 
 export const TaskStatusSchema = z.object({
   status: z.enum(['todo', 'in_progress', 'done', 'TODO', 'IN_PROGRESS', 'DONE']),

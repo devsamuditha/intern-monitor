@@ -13,6 +13,7 @@ import { InternDetail } from '../../components/techlead/InternDetail';
 import { ReviewQueue } from '../../components/techlead/ReviewQueue';
 import { ProjectEditModal } from '../../components/techlead/ProjectEditModal';
 import { RankingChart } from '../../components/intern/RankingChart';
+import { ManagerAssignments } from '../../components/techlead/ManagerAssignments';
 import { getSupabaseClient } from '../../lib/supabaseClient';
 import {
   Users, CheckCircle, Clock, Star, Flame, AlertTriangle,
@@ -30,12 +31,24 @@ interface TeamOverviewProps {
 export const TeamOverview: React.FC<TeamOverviewProps> = ({ currentUser }) => {
   const queryClient = useQueryClient();
   const [selectedInternId, setSelectedInternId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'queue' | 'roster' | 'upcoming_projects'>('roster');
+  const [activeTab, setActiveTab] = useState<'queue' | 'roster' | 'upcoming_projects' | 'manager_assignments'>('roster');
   const [isApprovingAll, setIsApprovingAll] = useState(false);
 
   const { data: analytics, isLoading: loading } = useQuery({
     queryKey: ["analytics", currentUser.id],
     queryFn: () => api.getAnalytics(currentUser.id),
+    staleTime: 2 * 60 * 1000,
+  });
+
+  const usersQuery = useQuery({
+    queryKey: ["users"],
+    queryFn: () => api.getUsers(),
+    staleTime: 2 * 60 * 1000,
+  });
+
+  const tasksQuery = useQuery({
+    queryKey: ["tasks"],
+    queryFn: () => api.getTasks(),
     staleTime: 2 * 60 * 1000,
   });
 
@@ -55,6 +68,12 @@ export const TeamOverview: React.FC<TeamOverviewProps> = ({ currentUser }) => {
 
   const invalidateAnalytics = () => {
     queryClient.invalidateQueries({ queryKey: ["analytics", currentUser.id] });
+  };
+
+  const invalidateDashboard = () => {
+    queryClient.invalidateQueries({ queryKey: ["analytics", currentUser.id] });
+    queryClient.invalidateQueries({ queryKey: ["users"] });
+    queryClient.invalidateQueries({ queryKey: ["tasks"] });
   };
 
   const handleApproveAllEarlyExits = async () => {
@@ -118,7 +137,7 @@ export const TeamOverview: React.FC<TeamOverviewProps> = ({ currentUser }) => {
     };
   }, [currentUser]);
 
-  if (loading) {
+  if (loading || usersQuery.isLoading || tasksQuery.isLoading) {
     return (
       <div className="text-center py-20">
         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-teal-600 mx-auto mb-4"></div>
@@ -147,6 +166,9 @@ export const TeamOverview: React.FC<TeamOverviewProps> = ({ currentUser }) => {
     submissionTrend = [],
     mostUsedTechs = []
   } = analytics || {};
+
+  const allUsers = usersQuery.data || [];
+  const allTasks = tasksQuery.data || [];
 
   return (
     <div id="techlead-overview-root" className="space-y-6">
@@ -230,12 +252,22 @@ export const TeamOverview: React.FC<TeamOverviewProps> = ({ currentUser }) => {
         >
           <Calendar className="h-4 w-4" /> Upcoming Projects
         </button>
+        <button
+          onClick={() => setActiveTab('manager_assignments')}
+          className={`px-5 py-3 text-xs font-bold rounded-t-2xl transition flex items-center gap-2 border-t-2 ${
+            activeTab === 'manager_assignments'
+              ? 'bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-teal-600 text-teal-700 dark:text-teal-400 border-x border-white/20 dark:border-slate-700/30 shadow-lg shadow-teal-500/5'
+              : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+          }`}
+        >
+          <Calendar className="h-4 w-4" /> Manager Assignments
+        </button>
       </div>
 
       {activeTab === 'roster' ? (
         <>
           {/* TODAY'S LIVE ATTENDANCE & START DAY FEED */}
-       <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-slate-700/30 rounded-2xl p-6 shadow-sm space-y-4">
+        <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-slate-700/30 rounded-2xl p-6 shadow-sm space-y-4">
          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
            <div className="flex items-center gap-2">
              <div className="bg-emerald-50 dark:bg-emerald-950/50 p-2 rounded-xl text-emerald-600 dark:text-emerald-400">
@@ -717,6 +749,13 @@ export const TeamOverview: React.FC<TeamOverviewProps> = ({ currentUser }) => {
     <ReviewQueue
       currentUser={currentUser}
       onSelectIntern={(internId) => setSelectedInternId(internId)}
+    />
+  ) : activeTab === 'manager_assignments' ? (
+    <ManagerAssignments
+      currentUser={currentUser}
+      allUsers={allUsers}
+      allTasks={allTasks}
+      onRefresh={invalidateDashboard}
     />
   ) : (
     <UpcomingProjectsView currentUser={currentUser} />

@@ -320,11 +320,28 @@ export const api = {
     blockers?: string;
     pr_link?: string;
     score?: number;
+    start_date?: string;
   }): Promise<Task> => {
     const res = await fetchWithDedup("/api/tasks", {
       method: "POST",
       headers: await getAuthHeaders(),
       body: JSON.stringify(task)
+    });
+    return handleResponse(res);
+  },
+
+  acceptTask: async (taskId: string): Promise<Task> => {
+    const res = await fetchWithDedup(`/api/tasks/${taskId}/accept`, {
+      method: "POST",
+      headers: await getAuthHeaders(),
+    });
+    return handleResponse(res);
+  },
+
+  rejectTask: async (taskId: string): Promise<{ success: boolean }> => {
+    const res = await fetchWithDedup(`/api/tasks/${taskId}/reject`, {
+      method: "POST",
+      headers: await getAuthHeaders(),
     });
     return handleResponse(res);
   },

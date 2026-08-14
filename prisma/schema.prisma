@@ -192,7 +192,9 @@ model Task {
   selfScore    Int?
   selfComment  String?
   completedDescription String?
-  createdAt    DateTime     @default(now())
+  pendingAcceptance   Boolean   @default(false)
+  acceptedAt          DateTime?
+  createdAt           DateTime  @default(now())
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   assignedTo   User         @relation("TaskAssignedTo", fields: [assignedToId], references: [id], onDelete: Cascade)
