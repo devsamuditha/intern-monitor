@@ -1,5 +1,8 @@
+"use client";
+
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { api } from '@/src/services/api';
+import { getSupabaseClient } from '@/src/lib/supabaseClient';
 
 export interface Notification {
   id: string;
@@ -67,6 +70,28 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     refreshNotifications();
     const interval = setInterval(refreshNotifications, 60000);
     return () => clearInterval(interval);
+  }, [refreshNotifications]);
+
+  useEffect(() => {
+    let subscriptionChannel: any = null;
+
+    try {
+      const supabase = getSupabaseClient();
+      subscriptionChannel = supabase
+        .channel('notifications-realtime')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'Notification' }, () => {
+          refreshNotifications();
+        })
+        .subscribe();
+    } catch (err) {
+      console.warn("Realtime notifications are inactive:", err);
+    }
+
+    return () => {
+      if (subscriptionChannel) {
+        subscriptionChannel.unsubscribe();
+      }
+    };
   }, [refreshNotifications]);
 
   return (
