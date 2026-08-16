@@ -163,7 +163,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
       {/* Main Container (offset for fixed sidebar) */}
       <div className="flex-1 flex flex-col min-w-0 md:ml-64">
          {/* Topbar */}
-         <header className="h-20 bg-white/10 dark:bg-slate-900/10 backdrop-blur-xl border-b border-white/20 dark:border-slate-700/30 flex items-center justify-between px-8 z-10 relative">
+         <header className="h-20 bg-white/10 dark:bg-slate-900/10 backdrop-blur-xl border-b border-white/20 dark:border-slate-700/30 flex items-center justify-between px-8 z-30 relative">
           
           {/* Left indicator / Mobile Title */}
           <div className="flex items-center gap-2">
