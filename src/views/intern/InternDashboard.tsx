@@ -29,6 +29,7 @@ import {
 } from '../../components/intern';
 import { formatDate } from '../../utils/helpers';
 import { useInternDashboard, useSubmitLog, useStartDaySession, useEndDaySession, useUpdateTaskStatus, useRequestEarlyExit } from '@/src/hooks/queries/useDashboardQueries';
+import { playNotificationSound } from '@/src/utils/notificationSounds';
 
 interface InternDashboardProps {
   user: User;
@@ -118,6 +119,7 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
         setShowLastJournalModal(true);
         setHasShownLastReminder(true);
         sendBrowserNotification('Daily Journal Reminder', 'Submit your last daily journal before 5:00 PM.');
+        playNotificationSound('reminder');
         api.createNotification({
           userId: user.id,
           type: 'final_warning',
@@ -132,6 +134,14 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
         setShowFinalWarningModal(true);
         setHasShownFinalWarning(true);
         sendBrowserNotification('Final Warning', 'You must submit your final daily journal before 5:00 PM.');
+        playNotificationSound('warning');
+        api.createNotification({
+          userId: user.id,
+          type: 'final_warning',
+          title: 'Final Warning',
+          message: 'You must submit your final daily journal before 5:00 PM.',
+          isRed: true,
+        }).catch(() => {});
       }
 
       // 5:15 PM Auto Logout
