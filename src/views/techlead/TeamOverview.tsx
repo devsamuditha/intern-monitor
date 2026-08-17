@@ -14,6 +14,7 @@ import { ReviewQueue } from '../../components/techlead/ReviewQueue';
 import { ProjectEditModal } from '../../components/techlead/ProjectEditModal';
 import { RankingChart } from '../../components/intern/RankingChart';
 import { ManagerAssignments } from '../../components/techlead/ManagerAssignments';
+import { InternAttendanceFeed } from '../../components/attendance/InternAttendanceFeed';
 import { getSupabaseClient } from '../../lib/supabaseClient';
 import {
   Users, CheckCircle, Clock, Star, Flame, AlertTriangle,
@@ -32,7 +33,6 @@ export const TeamOverview: React.FC<TeamOverviewProps> = ({ currentUser }) => {
   const queryClient = useQueryClient();
   const [selectedInternId, setSelectedInternId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'queue' | 'roster' | 'upcoming_projects' | 'manager_assignments'>('roster');
-  const [isApprovingAll, setIsApprovingAll] = useState(false);
   const [lastNotifiedInternId, setLastNotifiedInternId] = useState<string | null>(null);
 
   const { data: analytics, isLoading: loading } = useQuery({
@@ -75,27 +75,6 @@ export const TeamOverview: React.FC<TeamOverviewProps> = ({ currentUser }) => {
     queryClient.invalidateQueries({ queryKey: ["analytics", currentUser.id] });
     queryClient.invalidateQueries({ queryKey: ["users"] });
     queryClient.invalidateQueries({ queryKey: ["tasks"] });
-  };
-
-  const handleApproveAllEarlyExits = async () => {
-    if (isApprovingAll) return;
-    const pendingSessions = rosterData
-      .filter((r: any) => r.todaySession?.earlyExitRequested && !r.todaySession?.earlyExitApproved)
-      .map((r: any) => r.todaySession.id);
-
-    if (pendingSessions.length === 0) return;
-
-    setIsApprovingAll(true);
-    try {
-      await Promise.all(pendingSessions.map((id: string) => approveEarlyExitMutation.mutateAsync({ session_id: id })));
-      invalidateAnalytics();
-      alert(`Approved ${pendingSessions.length} early exit request(s) successfully.`);
-    } catch (err) {
-      console.error(err);
-      alert('Failed to approve one or more early exit requests.');
-    } finally {
-      setIsApprovingAll(false);
-    }
   };
 
   useEffect(() => {
@@ -282,193 +261,12 @@ export const TeamOverview: React.FC<TeamOverviewProps> = ({ currentUser }) => {
 
       {activeTab === 'roster' ? (
         <>
-          {/* TODAY'S LIVE ATTENDANCE & START DAY FEED */}
-        <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-slate-700/30 rounded-2xl p-6 shadow-sm space-y-4">
-         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-           <div className="flex items-center gap-2">
-             <div className="bg-emerald-50 dark:bg-emerald-950/50 p-2 rounded-xl text-emerald-600 dark:text-emerald-400">
-               <Zap className="h-5 w-5 fill-emerald-500/20 text-emerald-500" />
-             </div>
-             <div>
-               <h3 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
-                 Today's Intern Attendance & Start Day Feed
-                 <span className="px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-[10px] font-extrabold uppercase">
-                   {rosterData.filter((r: any) => r.todaySession?.status === 'active').length} Active On Duty
-                 </span>
-               </h3>
-               <p className="text-xs text-slate-400">Real-time status of interns who started their workday session today.</p>
-             </div>
-           </div>
-         </div>
-
-         {(() => {
-           const pendingCount = rosterData.filter((r: any) => r.todaySession?.earlyExitRequested && !r.todaySession?.earlyExitApproved).length;
-           return pendingCount > 0 ? (
-             <button
-               onClick={handleApproveAllEarlyExits}
-               disabled={isApprovingAll || approveEarlyExitMutation.isPending}
-               className="px-4 py-2 bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 text-white text-xs font-bold rounded-xl transition flex items-center gap-2 self-start"
-             >
-               {isApprovingAll ? 'Approving All...' : `Approve All Pending Early Exits (${pendingCount})`}
-             </button>
-           ) : null;
-         })()}
-
-         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-           {rosterData.length === 0 ? (
-             <p className="text-xs text-slate-400 py-4 italic">No interns assigned to display attendance feed.</p>
-           ) : (
-             rosterData.map((row: any) => {
-               const sess = row.todaySession;
-               const isActive = sess?.status === 'active';
-               const isCompleted = sess?.status === 'completed';
-               const hasSubmittedToday = row.lastSubmission === formatDate(new Date().toISOString().split('T')[0]);
-
-               return (
-                 <div
-                   key={row.intern.id}
-                   onClick={() => setSelectedInternId(row.intern.id)}
-                   className={`p-3.5 rounded-xl border transition-all cursor-pointer flex flex-col justify-between gap-3 ${
-                     isActive
-                       ? 'bg-emerald-50/40 dark:bg-emerald-950/20 border-emerald-300 dark:border-emerald-800/60 shadow-sm hover:border-emerald-500'
-                       : isCompleted
-                       ? 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800'
-                        : 'bg-slate-50/50 dark:bg-slate-950/40 border-dashed border-slate-200 dark:border-slate-800 hover:border-teal-400'
-                   }`}
-                 >
-                   <div className="flex items-center justify-between gap-2">
-                     <div className="flex items-center gap-2.5 min-w-0">
-                       <div className="relative">
-                         <img src={row.intern.avatar} alt={row.intern.name} className="h-8 w-8 rounded-full object-cover border" referrerPolicy="no-referrer" />
-                         {isActive && (
-                           <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-emerald-500 border-2 border-white dark:border-slate-900 animate-pulse" />
-                         )}
-                       </div>
-                       <div className="min-w-0">
-                         <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{row.intern.name}</p>
-                         <p className="text-[10px] text-slate-400 truncate">{row.intern.email}</p>
-                       </div>
-                     </div>
-
-                     <button
-                       onClick={(e) => {
-                         e.stopPropagation();
-                         setSelectedInternId(row.intern.id);
-                       }}
-                       className="px-2 py-1 rounded-lg bg-teal-50 dark:bg-teal-950/60 text-teal-600 dark:text-teal-400 text-[10px] font-bold hover:bg-teal-100 dark:hover:bg-teal-900 transition shrink-0"
-                     >
-                       View
-                     </button>
-                   </div>
-
-                   <div className="pt-2 border-t border-slate-200/60 dark:border-slate-800/60 flex items-center justify-between text-[10px]">
-                     <div className="flex items-center gap-1 font-semibold">
-                       {isActive ? (
-                         <span className="text-emerald-700 dark:text-emerald-400 font-extrabold flex items-center gap-1">
-                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping inline-block" />
-                           Started {sess.started_at}
-                           {sess?.is_late && (
-                             <span className="px-1.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-amber-500/20 text-amber-400 border border-amber-500/30">
-                               LATE
-                             </span>
-                           )}
-                         </span>
-                      ) : isCompleted ? (
-                        <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1">
-                          <CheckCircle2 className="h-3 w-3 text-teal-500" />
-                          Ended {sess.ended_at}
-                        </span>
-                      ) : (
-                        <span className="text-slate-400 flex items-center gap-1">
-                          <Sun className="h-3 w-3 text-amber-500" />
-                          Not started yet
-                        </span>
-                      )}
-                    </div>
-
-                     <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold flex items-center gap-0.5 ${
-                       sess?.missedFinalJournal
-                         ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30 animate-pulse'
-                         : row.missingLog500
-                         ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30 animate-pulse'
-                         : row.missingLog130
-                         ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                         : hasSubmittedToday
-                         ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300'
-                         : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
-                     }`}>
-                       {sess?.missedFinalJournal ? (
-                         <>
-                           <AlertTriangle className="h-3 w-3" /> Missed Final Journal
-                         </>
-                       ) : row.missingLog500 ? (
-                         <>
-                           <AlertTriangle className="h-3 w-3" /> Missing Log
-                         </>
-                       ) : row.missingLog130 ? (
-                         <>
-                           <AlertTriangle className="h-3 w-3" /> Missing Log (1:30 PM)
-                         </>
-                       ) : hasSubmittedToday ? (
-                         <>Log Submitted 📝</>
-                       ) : (
-                         <>Pending Log ⏳</>
-                       )}
-                     </span>
-                  </div>
-
-                  {sess && (sess.today_project || sess.today_plan || sess.git_link) && (
-                    <div className="pt-2 border-t border-slate-200/60 dark:border-slate-800/60 text-[10px] space-y-1">
-                      {sess.today_project && (
-                        <p className="font-semibold text-slate-800 dark:text-slate-200 truncate">
-                          📁 {sess.today_project}
-                        </p>
-                      )}
-                      {sess.today_plan && (
-                        <p className="text-slate-500 dark:text-slate-400 line-clamp-1 italic">
-                          "{sess.today_plan}"
-                        </p>
-                      )}
-                      {sess.git_link && (
-                        <a
-                          href={sess.git_link.startsWith('http') ? sess.git_link : `https://${sess.git_link}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={(e) => e.stopPropagation()}
-                           className="text-teal-600 dark:text-teal-400 hover:underline flex items-center gap-1 font-mono text-[9px]"
-                        >
-                          <Github className="h-3 w-3 inline" /> Git Repo <ExternalLink className="h-2.5 w-2.5 inline" />
-                        </a>
-                      )}
-                    </div>
-                  )}
-
-                  {sess && sess.earlyExitRequested && !sess.earlyExitApproved && (
-                    <div className="pt-2 border-t border-rose-200/60 dark:border-rose-900/60 flex flex-col gap-2">
-                      <div className="flex items-center gap-1.5 text-rose-600 dark:text-rose-400">
-                        <LogOut className="h-3.5 w-3.5" />
-                        <span className="text-[10px] font-bold">Early Exit Requested</span>
-                      </div>
-                      {sess.earlyExitReason && (
-                        <p className="text-[9px] text-slate-500 dark:text-slate-400 italic bg-slate-50 dark:bg-slate-900 p-1.5 rounded">
-                          "{sess.earlyExitReason}"
-                        </p>
-                      )}
-                      <button
-                        onClick={(e) => handleApproveEarlyExit(sess.id, e)}
-                        disabled={approveEarlyExitMutation.isPending}
-                        className="w-full py-1.5 bg-rose-100 hover:bg-rose-200 dark:bg-rose-900/40 dark:hover:bg-rose-900/60 text-rose-700 dark:text-rose-300 text-[10px] font-bold rounded-lg transition"
-                      >
-                        {approveEarlyExitMutation.isPending ? 'Approving...' : 'Approve Early Exit'}
-                      </button>
-                    </div>
-                  )}
-                </div>
-              );
-            })
-          )}
-        </div>
-      </div>
+          <InternAttendanceFeed
+            rosterData={rosterData}
+            onInternSelect={(id) => setSelectedInternId(id)}
+            canApproveEarlyExit={true}
+            onApproveEarlyExit={async (sessionId) => { await approveEarlyExitMutation.mutateAsync({ session_id: sessionId }); }}
+          />
 
       {/* MISSING 1:30 PM JOURNAL COMPLIANCE */}
       {(() => {
@@ -991,4 +789,5 @@ const UpcomingProjectsView: React.FC<{ currentUser: User }> = ({ currentUser }) 
     </div>
   );
 };
+
 

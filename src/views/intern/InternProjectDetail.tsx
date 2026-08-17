@@ -6,7 +6,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
 import { api } from "../../services/api";
 import { User, Project } from "../../types";
@@ -15,13 +14,12 @@ import {
   ExternalLink, Tag, Lock, AlertTriangle
 } from "lucide-react";
 
-interface InternProjectDetailProps {
+interface ProjectDetailContentProps {
   projectId: string;
   currentUser: User;
 }
 
-export const InternProjectDetail: React.FC<InternProjectDetailProps> = ({ projectId, currentUser }) => {
-  const router = useRouter();
+export const ProjectDetailContent: React.FC<ProjectDetailContentProps> = ({ projectId, currentUser }) => {
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -53,12 +51,6 @@ export const InternProjectDetail: React.FC<InternProjectDetailProps> = ({ projec
       <div className="text-center py-20 space-y-3">
         <AlertTriangle className="h-10 w-10 text-rose-400 mx-auto" />
         <p className="text-sm font-bold text-white">{error || "Project not found"}</p>
-        <button
-          onClick={() => router.push("/projects")}
-          className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold rounded-xl"
-        >
-          Back to Projects
-        </button>
       </div>
     );
   }
@@ -71,12 +63,6 @@ export const InternProjectDetail: React.FC<InternProjectDetailProps> = ({ projec
       <div className="text-center py-20 space-y-3">
         <Lock className="h-10 w-10 text-slate-400 mx-auto" />
         <p className="text-sm font-bold text-white">You do not have access to this project.</p>
-        <button
-          onClick={() => router.push("/projects")}
-          className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold rounded-xl"
-        >
-          Back to Projects
-        </button>
       </div>
     );
   }
@@ -87,13 +73,6 @@ export const InternProjectDetail: React.FC<InternProjectDetailProps> = ({ projec
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6"
     >
-      <button
-        onClick={() => router.back()}
-        className="flex items-center gap-1.5 text-xs font-semibold text-slate-300 hover:text-white transition"
-      >
-        <ArrowLeft className="h-4 w-4" /> Back
-      </button>
-
       <div className="bg-white/10 dark:bg-slate-900/10 backdrop-blur-xl border border-white/20 dark:border-slate-700/30 rounded-2xl overflow-hidden shadow-lg shadow-teal-500/5">
         <div className="h-56 bg-slate-100 dark:bg-slate-950 relative overflow-hidden shrink-0">
           <img
@@ -170,4 +149,13 @@ export const InternProjectDetail: React.FC<InternProjectDetailProps> = ({ projec
       </div>
     </motion.div>
   );
+};
+
+interface InternProjectDetailProps {
+  projectId: string;
+  currentUser: User;
+}
+
+export const InternProjectDetail: React.FC<InternProjectDetailProps> = ({ projectId, currentUser }) => {
+  return <ProjectDetailContent projectId={projectId} currentUser={currentUser} />;
 };

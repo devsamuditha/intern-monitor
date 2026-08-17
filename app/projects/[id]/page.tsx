@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import { DashboardShell } from "@/src/components/layout/DashboardShell";
 import { InternProjectDetail } from "@/src/views/intern/InternProjectDetail";

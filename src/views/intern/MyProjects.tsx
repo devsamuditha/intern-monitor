@@ -5,12 +5,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { useRouter } from 'next/navigation';
 import { api } from '../../services/api';
 import { User, Project } from '../../types';
 import { Plus, Folder, Github, ExternalLink, Tag, Edit, Sparkles, X, User as UserIcon, Lock, Upload, Users, Trash2 } from 'lucide-react';
 import { scaleIn } from '../../utils/motion';
 import { uploadBase64Image } from '../../lib/supabase';
+import { ProjectDetailModal } from '../../components/intern/ProjectDetailModal';
 
 interface MyProjectsProps {
   currentUser: User;
@@ -18,7 +18,6 @@ interface MyProjectsProps {
 }
 
 export const MyProjects: React.FC<MyProjectsProps> = ({ currentUser, readOnly = false }) => {
-  const router = useRouter();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -37,6 +36,7 @@ export const MyProjects: React.FC<MyProjectsProps> = ({ currentUser, readOnly = 
   const [error, setError] = useState('');
   const [interns, setInterns] = useState<User[]>([]);
   const [assignedInternIds, setAssignedInternIds] = useState<string[]>([]);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
 
   const loadProjects = async () => {
     try {
@@ -166,7 +166,7 @@ export const MyProjects: React.FC<MyProjectsProps> = ({ currentUser, readOnly = 
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         className={`bg-white/10 dark:bg-slate-900/10 backdrop-blur-2xl border border-white/30 dark:border-slate-700/40 rounded-2xl overflow-hidden shadow-lg shadow-teal-500/10 flex flex-col hover:shadow-md transition duration-250 group relative ${isIntern ? 'cursor-pointer' : ''}`}
-        onClick={() => isIntern && router.push(`/projects/${proj.id}`)}
+        onClick={() => isIntern && setSelectedProjectId(proj.id)}
       >
         {/* Screenshot cover */}
         <div className="h-28 bg-slate-100 dark:bg-slate-950 relative overflow-hidden shrink-0">
@@ -501,6 +501,13 @@ export const MyProjects: React.FC<MyProjectsProps> = ({ currentUser, readOnly = 
           </section>
         </div>
       )}
+      
+      <ProjectDetailModal
+        projectId={selectedProjectId}
+        user={currentUser}
+        isOpen={!!selectedProjectId}
+        onClose={() => setSelectedProjectId(null)}
+      />
     </div>
   );
 };

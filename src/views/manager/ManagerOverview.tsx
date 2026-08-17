@@ -13,6 +13,8 @@ import { UserManagement } from '../../components/manager/UserManagement';
 import { UpcomingProjectsManager } from '../../components/manager/UpcomingProjectsManager';
 import { ManagerTaskAssignments } from '../../components/manager/ManagerTaskAssignments';
 import { getSupabaseClient } from '../../lib/supabaseClient';
+import { useApproveEarlyExit } from '../../hooks/queries/useDashboardQueries';
+import { InternAttendanceFeed } from '../../components/attendance/InternAttendanceFeed';
 import {
   Clock, Users, Building,
   ChevronRight, Star, Calendar, ShieldCheck,
@@ -54,6 +56,8 @@ export const ManagerOverview: React.FC<ManagerOverviewProps> = ({ currentUser })
   const allTasks = tasksQuery.data || [];
   const techLeads = allUsers.filter(u => u.role === 'tech_lead');
   const loading = analyticsQuery.isLoading || usersQuery.isLoading || tasksQuery.isLoading;
+
+  const approveEarlyExitMutation = useApproveEarlyExit();
 
   const invalidateDashboard = () => {
     queryClient.invalidateQueries({ queryKey: ["analytics"] });
@@ -255,6 +259,13 @@ export const ManagerOverview: React.FC<ManagerOverviewProps> = ({ currentUser })
               </div>
             </div>
           </div>
+
+          <InternAttendanceFeed
+            rosterData={rosterData}
+            onInternSelect={(id) => setDrilldownInternId(id)}
+            canApproveEarlyExit={true}
+            onApproveEarlyExit={async (sessionId) => { await approveEarlyExitMutation.mutateAsync({ session_id: sessionId }); }}
+          />
 
           {/* Charts & Tech Distribution Bento */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
