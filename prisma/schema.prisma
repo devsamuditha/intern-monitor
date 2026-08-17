@@ -83,8 +83,9 @@ model User {
   role              Role
   avatarUrl         String
   techLeadId        String?
-  isActive          Boolean   @default(true)
-  createdAt         DateTime  @default(now())
+   isActive          Boolean   @default(true)
+   notificationSettings Json?
+   createdAt         DateTime  @default(now())
 
   organization     Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   

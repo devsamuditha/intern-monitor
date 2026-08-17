@@ -1,15 +1,22 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Bell, X } from 'lucide-react';
+"use client";
+
+import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { Bell, X, ChevronDown, ChevronUp, VolumeX, Volume2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useNotifications } from '@/src/context/NotificationContext';
+import { api } from '@/src/services/api';
 
 interface NotificationBellProps {
   onToggle?: () => void;
 }
 
-export const NotificationBell: React.FC<NotificationBellProps> = () => {
+export const NotificationBell: React.FC<NotificationBellProps> = ({ onToggle }) => {
   const { unreadCount, markAsRead, notifications } = useNotifications();
   const [isOpen, setIsOpen] = useState(false);
+  const [showMuteSection, setShowMuteSection] = useState(false);
+  const [mutedTypes, setMutedTypes] = useState<string[]>([]);
   const panelRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -21,10 +28,55 @@ export const NotificationBell: React.FC<NotificationBellProps> = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const loadMutedTypes = async () => {
+    try {
+      const data = await api.getNotificationSettings();
+      setMutedTypes(data.mutedTypes || []);
+    } catch {
+      setMutedTypes([]);
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      loadMutedTypes();
+    }
+  }, [isOpen]);
+
+  const toggleMute = async (type: string) => {
+    const newMuted = mutedTypes.includes(type)
+      ? mutedTypes.filter((t) => t !== type)
+      : [...mutedTypes, type];
+    setMutedTypes(newMuted);
+    try {
+      await api.updateNotificationSettings(newMuted);
+    } catch {
+      // revert on failure
+      setMutedTypes((prev) =>
+        prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]
+      );
+    }
+  };
+
+  const distinctTypes = useMemo(() => {
+    const types = new Set<string>();
+    notifications.forEach((n) => types.add(n.type));
+    return Array.from(types);
+  }, [notifications]);
+
+  const handleNotificationClick = (notification: any) => {
+    markAsRead(notification.id);
+    setIsOpen(false);
+    router.push('/notifications');
+  };
+
   return (
     <div className="relative">
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => {
+          setIsOpen(!isOpen);
+          if (onToggle) onToggle();
+        }}
         type="button"
         className="p-2 border border-white/20 dark:border-slate-700/30 rounded-xl text-slate-300 hover:text-white transition relative"
         title="Notifications"
@@ -42,21 +94,60 @@ export const NotificationBell: React.FC<NotificationBellProps> = () => {
           <div className="w-96 max-h-[500px] overflow-y-auto bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-slate-700/30 rounded-2xl shadow-2xl">
             <div className="flex items-center justify-between p-4 border-b border-white/20 dark:border-slate-700/30">
               <h3 className="text-sm font-bold text-white">Notifications</h3>
-              <button
-                onClick={() => setIsOpen(false)}
-                className="text-slate-400 hover:text-white transition"
-              >
-                <X className="h-4 w-4" />
-              </button>
+              <div className="flex items-center gap-2">
+                {distinctTypes.length > 0 && (
+                  <button
+                    onClick={() => setShowMuteSection(!showMuteSection)}
+                    type="button"
+                    className="text-slate-400 hover:text-white transition"
+                    title="Mute notification types"
+                  >
+                    {showMuteSection ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  </button>
+                )}
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="text-slate-400 hover:text-white transition"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
             </div>
+
+            {showMuteSection && distinctTypes.length > 0 && (
+              <div className="p-3 border-b border-white/20 dark:border-slate-700/30">
+                <p className="text-[10px] text-slate-400 uppercase font-semibold mb-2">Mute by type</p>
+                <div className="space-y-1">
+                  {distinctTypes.map((type) => {
+                    const isMuted = mutedTypes.includes(type);
+                    return (
+                      <button
+                        key={type}
+                        onClick={() => toggleMute(type)}
+                        className="w-full flex items-center justify-between p-1.5 text-xs text-slate-300 hover:text-white hover:bg-white/5 rounded-lg transition"
+                        type="button"
+                      >
+                        <span className="truncate">{type}</span>
+                        {isMuted ? (
+                          <VolumeX className="h-3 w-3 text-rose-400" />
+                        ) : (
+                          <Volume2 className="h-3 w-3 text-teal-400" />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             <div className="p-2">
               {notifications.length === 0 ? (
                 <p className="text-xs text-slate-400 text-center py-6">No notifications yet</p>
               ) : (
-                notifications.map(notification => (
+                notifications.map((notification) => (
                   <div
                     key={notification.id}
-                    onClick={() => markAsRead(notification.id)}
+                    onClick={() => handleNotificationClick(notification)}
                     className={`p-3 rounded-xl mb-2 cursor-pointer transition border-l-4 ${
                       notification.isRead
                         ? 'bg-white/40 dark:bg-slate-800/40 border-l-slate-300'

@@ -4,6 +4,7 @@ import { ThemeProvider } from "@/src/context/ThemeContext";
 import { AuthProvider } from "@/src/context/AuthContext";
 import { QueryProvider } from "@/src/components/QueryProvider";
 import { SettingsProvider } from "@/src/context/SettingsContext";
+import { NotificationProviders } from "@/src/components/providers/NotificationProviders";
 
 export const metadata = {
   title: "InternTrack",
@@ -16,11 +17,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <ThemeProvider>
           <AuthProvider>
-            <QueryProvider>
-              <SettingsProvider>
-                {children}
-              </SettingsProvider>
-            </QueryProvider>
+            <NotificationProviders>
+              <QueryProvider>
+                <SettingsProvider>
+                  {children}
+                </SettingsProvider>
+              </QueryProvider>
+            </NotificationProviders>
           </AuthProvider>
         </ThemeProvider>
       </body>

@@ -711,7 +711,7 @@ export const api = {
     return handleResponse(res);
   },
 
-  createNotification: async (data: {
+   createNotification: async (data: {
     userId: string;
     type: string;
     title: string;
@@ -723,6 +723,23 @@ export const api = {
       method: "POST",
       headers: await getAuthHeaders(),
       body: JSON.stringify(data)
+    });
+    return handleResponse(res);
+  },
+
+  // Notification settings
+  getNotificationSettings: async (): Promise<{ mutedTypes: string[] }> => {
+    const res = await fetchWithDedup("/api/users/me/notification-settings", {
+      headers: await getAuthHeaders()
+    });
+    return handleResponse(res);
+  },
+
+  updateNotificationSettings: async (mutedTypes: string[]): Promise<{ mutedTypes: string[] }> => {
+    const res = await fetchWithDedup("/api/users/me/notification-settings", {
+      method: "PATCH",
+      headers: await getAuthHeaders(),
+      body: JSON.stringify({ mutedTypes })
     });
     return handleResponse(res);
   },

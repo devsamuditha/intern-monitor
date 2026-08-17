@@ -10,11 +10,11 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "../../context/AuthContext";
 import { 
   LayoutDashboard, FolderKanban,
-  Users, TrendingUp, LogOut, Shield, Target, Settings, AlertTriangle, Building2, Trophy, Calendar
+  Users, TrendingUp, LogOut, Shield, Target, Settings, AlertTriangle, Building2, Trophy, Calendar, Bell
 } from "lucide-react";
 import { ProfileImageModal } from "../ui/ProfileImageModal";
 import { CalendarPopover } from "../ui/CalendarPopover";
-import { NotificationBell } from "../intern/NotificationBell";
+import { NotificationBell } from "../notifications/NotificationBell";
 
 interface DashboardShellProps {
   children: React.ReactNode;
@@ -140,25 +140,37 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
 
         {/* Bottom Profile Row */}
         <div className="p-4 border-t border-white/20 dark:border-slate-700/30 space-y-2">
+          <div className="flex items-center justify-between p-2.5 bg-white/10 dark:bg-slate-900/10 border border-white/20 dark:border-slate-700/30 rounded-xl">
+            <button
+              onClick={() => router.push('/notifications')}
+              type="button"
+              className="flex items-center gap-2 text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/10 px-2 py-1.5 rounded-lg transition"
+              title="Notifications"
+            >
+              <Bell className="h-4 w-4" />
+              All Notifications
+            </button>
+            <NotificationBell />
+          </div>
          <div className="flex items-center gap-3 p-2.5 bg-white/10 dark:bg-slate-900/10 border border-white/20 dark:border-slate-700/30 rounded-xl cursor-pointer" onClick={() => setShowProfileModal(true)}>
-             <img src={user?.avatar ?? '/favicon.ico'} alt={user?.name ?? 'Avatar'} className="h-9 w-9 rounded-full object-cover border border-white/20 dark:border-slate-700/30" referrerPolicy="no-referrer" />
-             <div className="flex-1 min-w-0">
-               <p className="text-xs font-bold truncate text-white">{user?.name ?? 'User'}</p>
-               <p className="text-[9px] text-slate-400 capitalize truncate">{user?.role ?? ''}</p>
-             </div>
-              {user && (
-                <button 
-                  onClick={(e) => handleLogout(e)}
-                  type="button"
-                  className="p-1.5 hover:bg-white/10 text-slate-400 hover:text-rose-400 rounded-lg transition"
-                  title="Logout"
-                >
-                  <LogOut className="h-4 w-4" />
-                </button>
-              )}
-           </div>
-         </div>
-       </aside>
+              <img src={user?.avatar ?? '/favicon.ico'} alt={user?.name ?? 'Avatar'} className="h-9 w-9 rounded-full object-cover border border-white/20 dark:border-slate-700/30" referrerPolicy="no-referrer" />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-bold truncate text-white">{user?.name ?? 'User'}</p>
+                <p className="text-[9px] text-slate-400 capitalize truncate">{user?.role ?? ''}</p>
+              </div>
+               {user && (
+                 <button 
+                   onClick={(e) => handleLogout(e)}
+                   type="button"
+                   className="p-1.5 hover:bg-white/10 text-slate-400 hover:text-rose-400 rounded-lg transition"
+                   title="Logout"
+                 >
+                   <LogOut className="h-4 w-4" />
+                 </button>
+               )}
+            </div>
+          </div>
+        </aside>
 
       {/* Main Container (offset for fixed sidebar) */}
       <div className="flex-1 flex flex-col min-w-0 md:ml-64">
@@ -192,19 +204,17 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
                 </button>
               )}
 
-              <button
-                onClick={() => setShowCalendar(!showCalendar)}
-                onMouseDown={(e) => e.stopPropagation()}
-                type="button"
-                className={`p-2 border border-white/20 dark:border-slate-700/30 rounded-xl transition ${
-                  showCalendar ? 'text-teal-300 bg-white/10' : 'text-slate-300 hover:text-white'
-                }`}
-                title="My Calendar"
-              >
-                <Calendar className="h-4 w-4" />
-              </button>
-
-              {role === 'intern' && <NotificationBell />}
+               <button
+                 onClick={() => setShowCalendar(!showCalendar)}
+                 onMouseDown={(e) => e.stopPropagation()}
+                 type="button"
+                 className={`p-2 border border-white/20 dark:border-slate-700/30 rounded-xl transition ${
+                   showCalendar ? 'text-teal-300 bg-white/10' : 'text-slate-300 hover:text-white'
+                 }`}
+                 title="My Calendar"
+               >
+                 <Calendar className="h-4 w-4" />
+               </button>
 
               {/* Profile Avatar */}
               <button

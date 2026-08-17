@@ -16,4 +16,3 @@ export { RankingChart } from './RankingChart';
 export { CompleteTaskModal } from './CompleteTaskModal';
 export { LastJournalReminderModal } from './LastJournalReminderModal';
 export { FinalWarningModal } from './FinalWarningModal';
-export { NotificationBell } from './NotificationBell';

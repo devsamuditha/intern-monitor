@@ -28,8 +28,7 @@ import {
   FinalWarningModal
 } from '../../components/intern';
 import { formatDate } from '../../utils/helpers';
-import { useInternDashboard, useSubmitLog, useStartDaySession, useEndDaySession, useUpdateTaskStatus, useRequestEarlyExit } from '@/src/hooks/queries/useDashboardQueries';
-import { playNotificationSound } from '@/src/utils/notificationSounds';
+ import { useInternDashboard, useSubmitLog, useStartDaySession, useEndDaySession, useUpdateTaskStatus, useRequestEarlyExit } from '@/src/hooks/queries/useDashboardQueries';
 
 interface InternDashboardProps {
   user: User;
@@ -61,26 +60,6 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
   }, []);
-
-  const requestNotificationPermission = async () => {
-    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default') {
-      try {
-        await Notification.requestPermission();
-      } catch (e) {
-        console.warn('Notification permission request failed:', e);
-      }
-    }
-  };
-
-  const sendBrowserNotification = (title: string, body: string) => {
-    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
-      try {
-        new Notification(title, { body, icon: '/favicon.ico' });
-      } catch (e) {
-        console.warn('Browser notification failed:', e);
-      }
-    }
-  };
 
   const { data, isLoading, refetch } = useInternDashboard(user.id);
   const submitLogMutation = useSubmitLog(user.id);
@@ -118,8 +97,6 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
       if (istMinutes >= 16 * 60 + 30 && !hasShownLastReminder && !hasLogToday) {
         setShowLastJournalModal(true);
         setHasShownLastReminder(true);
-        sendBrowserNotification('Daily Journal Reminder', 'Submit your last daily journal before 5:00 PM.');
-        playNotificationSound('reminder');
         api.createNotification({
           userId: user.id,
           type: 'final_warning',
@@ -133,8 +110,6 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
       if (istMinutes >= 16 * 60 + 45 && !hasShownFinalWarning && !hasLogToday) {
         setShowFinalWarningModal(true);
         setHasShownFinalWarning(true);
-        sendBrowserNotification('Final Warning', 'You must submit your final daily journal before 5:00 PM.');
-        playNotificationSound('warning');
         api.createNotification({
           userId: user.id,
           type: 'final_warning',
@@ -170,7 +145,6 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
       if (istMinutes >= 13 * 60 && !hasShownJournalReminder && !hasLogToday) {
         setShowJournalReminderModal(true);
         setHasShownJournalReminder(true);
-        sendBrowserNotification('Journal Reminder', 'Submit your daily journal before 1:30 PM.');
         api.createNotification({
           userId: user.id,
           type: 'journal_reminder',
@@ -183,7 +157,6 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
       // 1:30 PM Missed Journal
       if (istMinutes >= 13 * 60 + 30 && !hasShownJournalMissed && !hasLogToday) {
         setHasShownJournalMissed(true);
-        sendBrowserNotification('Journal Missed', 'You missed the 1:30 PM submit. Techlead will take action.');
         api.createNotification({
           userId: user.id,
           type: 'journal_missed',
@@ -310,7 +283,6 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
         git_link: startGitLink.trim() || undefined,
       });
       setShowStartDayModal(false);
-      await requestNotificationPermission();
       if (onRefreshStats) onRefreshStats();
     } catch (err) {
       console.error("Start day failed", err);

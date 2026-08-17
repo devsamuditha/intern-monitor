@@ -7,6 +7,10 @@ export type UserRole = 'intern' | 'tech_lead' | 'manager' | 'super_admin';
 
 export type ProjectStatus = 'planned' | 'upcoming' | 'active' | 'completed' | 'archived';
 
+export interface NotificationSettings {
+  mutedTypes: string[];
+}
+
 export interface User {
   id: string;
   name: string;
@@ -18,6 +22,7 @@ export interface User {
   assigned_tech_lead_id?: string;
   mustChangePassword?: boolean;
   organizationId?: string;
+  notificationSettings?: NotificationSettings;
 }
 
 export interface Project {

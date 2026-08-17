@@ -13,7 +13,6 @@ import { SuperAdminModeration } from "@/src/views/superadmin/SuperAdminModeratio
 import { SuperAdminSettings } from "@/src/views/superadmin/SuperAdminSettings";
 import { useAuth } from "@/src/context/AuthContext";
 import { useSettings } from "@/src/context/SettingsContext";
-import { NotificationProvider } from "@/src/context/NotificationContext";
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -90,10 +89,8 @@ export default function DashboardPage() {
   }
 
   return (
-    <NotificationProvider>
-      <DashboardShell settings={settings} activeTab={activeTab} setActiveTab={setActiveTab}>
-        {renderPanel()}
-      </DashboardShell>
-    </NotificationProvider>
+    <DashboardShell settings={settings} activeTab={activeTab} setActiveTab={setActiveTab}>
+      {renderPanel()}
+    </DashboardShell>
   );
 }

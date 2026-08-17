@@ -28,12 +28,16 @@ interface NotificationContextType {
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
-export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const NotificationProvider: React.FC<{ children: React.ReactNode; userId?: string }> = ({ children, userId }) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
   const refreshNotifications = useCallback(async () => {
+    if (!userId) {
+      setIsLoading(false);
+      return;
+    }
     try {
       const data = await api.getNotifications();
       setNotifications(data.notifications || []);
@@ -43,7 +47,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [userId]);
 
   const markAsRead = useCallback(async (id: string) => {
     try {

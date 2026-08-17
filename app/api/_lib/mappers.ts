@@ -9,6 +9,7 @@ export const SAFE_USER_SELECT = {
   organizationId: true,
   isActive: true,
   mustChangePassword: true,
+  notificationSettings: true,
   createdAt: true,
 };
 
@@ -30,6 +31,11 @@ export function mapUser(dbUser: any) {
     mustChangePassword: dbUser.mustChangePassword,
     organizationId: dbUser.organizationId || undefined,
     isActive: dbUser.isActive,
+    notificationSettings: dbUser.notificationSettings
+      ? (typeof dbUser.notificationSettings === 'string'
+          ? JSON.parse(dbUser.notificationSettings)
+          : dbUser.notificationSettings)
+      : undefined,
   };
 }
 
