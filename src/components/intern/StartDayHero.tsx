@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import {
-  Zap, CheckCircle2, Sun, FolderGit2, FileText, HelpCircle, Github, ExternalLink, AlertTriangle, Play
+  Zap, CheckCircle2, Sun, FolderGit2, FileText, HelpCircle, Github, ExternalLink, AlertTriangle, Play, Lock
 } from 'lucide-react';
 import { DaySession, Task } from '../../types.ts';
 import { ThemedIcon } from '../../components/ui/ThemedIcon';
@@ -19,6 +19,7 @@ interface StartDayHeroProps {
   onEndDay: () => void;
   hasLogToday: boolean;
   activeTask?: Task | null;
+  dayEnded?: boolean;
 }
 
 export const StartDayHero: React.FC<StartDayHeroProps> = ({
@@ -28,6 +29,7 @@ export const StartDayHero: React.FC<StartDayHeroProps> = ({
   onEndDay,
   hasLogToday,
   activeTask,
+  dayEnded = false,
 }) => {
   const [istTime, setIstTime] = useState(formatISTTimeHHMMSS());
   const [isLateNow, setIsLateNow] = useState(false);
@@ -60,7 +62,7 @@ export const StartDayHero: React.FC<StartDayHeroProps> = ({
         <div className="flex items-start gap-4">
           <div className={`p-3.5 rounded-2xl flex items-center justify-center shrink-0 ${
             todaySession?.status === 'active'
-              ? 'bg-emerald-500/20 text-emerald-300 ring-2 ring-emerald-500/30 animate-pulse'
+              ? 'text-emerald-300 animate-pulse'
               : todaySession?.status === 'completed'
               ? 'bg-teal-500/20 text-teal-300'
               : 'bg-amber-500/20 text-amber-300'
@@ -78,10 +80,10 @@ export const StartDayHero: React.FC<StartDayHeroProps> = ({
             <div className="flex items-center gap-2 flex-wrap">
               <h2 className="text-lg font-black tracking-tight">
                 {todaySession?.status === 'active'
-                  ? 'Day Active — You are On Duty! 🟢'
+                  ? 'You are On Duty!'
                   : todaySession?.status === 'completed'
-                  ? 'Day Session Completed Today 🏁'
-                  : 'Good Day, Intern! Ready to Start? 🚀'}
+                  ? 'Day Session Completed Today'
+                  : 'Good Day, Intern! Ready to Start? '}
               </h2>
               {todaySession?.status === 'active' && (
                 <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
@@ -96,7 +98,7 @@ export const StartDayHero: React.FC<StartDayHeroProps> = ({
             </div>
             <p className="text-xs text-slate-300 leading-relaxed max-w-xl">
               {todaySession?.status === 'active'
-                ? 'Your Tech Lead can see you are active in their live dashboard. Log your achievements in Write Daily Journal before finishing your session.'
+                ? 'Your Tech Lead can see you are active in their live dashboard.'
                 : todaySession?.status === 'completed'
                 ? 'Great job today! You have checked out for the day. You can review past journals and feedback anytime.'
                 : 'Click "Start My Day" to enter your plan, project, questions, and git link to notify your Tech Lead.'}
@@ -109,56 +111,90 @@ export const StartDayHero: React.FC<StartDayHeroProps> = ({
             <span className="text-xs font-mono text-white/50">{istTime}</span>
           </div>
           {!todaySession ? (
-            <>
-              {isLateNow && (
-                <div className="mb-3 p-3 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-200 flex items-center gap-2.5 text-xs">
-                  <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0" />
-                  <span>
-                    It is past 9:30 AM IST. Starting now will mark your session as LATE for your Tech Lead.
-                  </span>
-                </div>
-              )}
-              <button
-                onClick={onStartDay}
-                disabled={sessionLoading}
-                className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-sm shadow-emerald-500/25 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
-              >
-               
+             <>
+               {isLateNow && (
+                 <div className="mb-3 p-3 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-200 flex items-center gap-2.5 text-xs">
+                   <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0" />
+                   <span>
+                     It is past 9:30 AM IST. Starting now will mark your session as LATE for your Tech Lead.
+                   </span>
+                 </div>
+               )}
+               <button
+                 onClick={onStartDay}
+                 disabled={sessionLoading}
+                 className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-sm shadow-emerald-500/25 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+               >
+                
                Start My Day
-             </button>
-           </>
-         ) : todaySession.status === 'active' ? (
-            <div className="flex flex-col items-end gap-2">
-              {todaySession.earlyExitRequested && !todaySession.earlyExitApproved && (
-                <div className="px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[10px] font-bold animate-pulse flex items-center gap-1.5">
-                  <AlertTriangle className="h-3 w-3" />
-                  Early Exit Pending Approval
-                </div>
-              )}
-              {todaySession.earlyExitApproved && (
-                <div className="px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold flex items-center gap-1.5">
-                  <CheckCircle2 className="h-3 w-3" />
-                  Early Exit Approved. You can end the day.
-                </div>
-              )}
-              <button
-                onClick={onEndDay}
-                disabled={
-                  sessionLoading ||
-                  (todaySession.earlyExitRequested &&
-                   !todaySession.earlyExitApproved &&
-                   istMinutes < 17 * 60)
-                }
-                className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-rose-300 border border-rose-500/30 font-bold text-xs active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
-              >
-                {sessionLoading ? 'Ending Day...' : '🏁 Finish / End Day'}
               </button>
+            </>
+          ) : todaySession.status === 'completed' || dayEnded ? (
+            <div className="flex flex-col items-center gap-2">
+              <div className="px-4 py-2 rounded-xl bg-teal-500/10 border border-teal-500/30 text-teal-300 font-bold text-xs flex items-center gap-2">
+                <Lock className="h-4 w-4" />
+                You ended the day.
+              </div>
             </div>
           ) : (
-            <div className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-slate-300 font-medium text-xs text-center">
-              Checked out today ✨
-            </div>
-          )}
+             <div className="flex flex-col items-end gap-2">
+               {todaySession.earlyExitRequested && !todaySession.earlyExitApproved && (
+                 <div className="px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[10px] font-bold animate-pulse flex items-center gap-1.5">
+                   <AlertTriangle className="h-3 w-3" />
+                   Early Exit Pending Approval
+                 </div>
+               )}
+               {todaySession.earlyExitApproved && (
+                 <div className="px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold flex items-center gap-1.5">
+                   <CheckCircle2 className="h-3 w-3" />
+                   Early Exit Approved. You can end the day.
+                 </div>
+               )}
+
+               {/* Journal deadline timeline */}
+               {(() => {
+                 const startMinutes = parseTimeToMinutes(todaySession.started_at || "9:00 AM");
+                 const deadlineMinutes = 13 * 60 + 30;
+                 const totalSpan = deadlineMinutes - startMinutes;
+                 if (totalSpan <= 0) return null;
+                 const elapsed = istMinutes - startMinutes;
+                 const progressPercent = Math.min(100, Math.max(0, (elapsed / totalSpan) * 100));
+                 const remainingMinutes = Math.max(0, deadlineMinutes - istMinutes);
+                 const hours = Math.floor(remainingMinutes / 60);
+                 const mins = remainingMinutes % 60;
+                 return (
+                   <div className="w-full sm:w-64 space-y-1">
+                     <div className="flex items-center justify-between">
+                       <span className="text-[10px] font-medium text-white/50">Journal deadline (1:30 PM)</span>
+                       <span className="text-[10px] font-mono text-white/40">{Math.round(progressPercent)}%</span>
+                     </div>
+                     <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
+                       <div
+                         className="h-full rounded-full bg-gradient-to-r from-teal-500 to-emerald-400 transition-all duration-1000"
+                         style={{ width: `${progressPercent}%` }}
+                       />
+                     </div>
+                     <p className="text-[9px] text-amber-300 font-mono">
+                       Time remaining until 1:30 PM journal deadline: {remainingMinutes <= 0 ? '0h 0m' : `${hours}h ${mins}m`}
+                     </p>
+                   </div>
+                 );
+               })()}
+
+               <button
+                 onClick={onEndDay}
+                 disabled={
+                   sessionLoading ||
+                   (todaySession.earlyExitRequested &&
+                    !todaySession.earlyExitApproved &&
+                    istMinutes < 17 * 60)
+                 }
+                 className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-rose-300 border border-rose-500/30 font-bold text-xs active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+               >
+                 {sessionLoading ? 'Ending Day...' : '🏁 Finish / End Day'}
+               </button>
+             </div>
+           )}
         </div>
       </div>
 
@@ -182,9 +218,9 @@ export const StartDayHero: React.FC<StartDayHeroProps> = ({
 
       {/* Display Active/Completed Today Session details */}
       {todaySession && (todaySession.today_project || todaySession.today_plan || todaySession.questions || todaySession.git_link || activeTask) && (
-        <div className="mt-4 pt-4 border-t border-slate-700/60 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-5 gap-3 text-xs">
+        <div className="mt-3 pt-3 border-t border-slate-700/60 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-5 gap-2 text-xs">
           {todaySession.today_project && (
-            <div className="p-3 rounded-xl bg-white/5 border border-white/10 space-y-1">
+            <div className="p-2 rounded-xl bg-white/5 border border-white/10 space-y-0.5">
               <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
                 <ThemedIcon icon={FolderGit2} color="teal" size={12} /> Today Project
               </p>
@@ -193,7 +229,7 @@ export const StartDayHero: React.FC<StartDayHeroProps> = ({
           )}
 
           {todaySession.today_plan && (
-            <div className="p-3 rounded-xl bg-white/5 border border-white/10 space-y-1">
+            <div className="p-2 rounded-xl bg-white/5 border border-white/10 space-y-0.5">
               <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
                 <ThemedIcon icon={FileText} color="emerald" size={12} /> Today&apos;s Plan
               </p>
@@ -202,7 +238,7 @@ export const StartDayHero: React.FC<StartDayHeroProps> = ({
           )}
 
           {todaySession.questions && (
-            <div className="p-3 rounded-xl bg-white/5 border border-white/10 space-y-1">
+            <div className="p-2 rounded-xl bg-white/5 border border-white/10 space-y-0.5">
               <p className="text-[10px] font-bold uppercase tracking-wider text-amber-300 flex items-center gap-1">
                 <ThemedIcon icon={HelpCircle} color="amber" size={12} /> Questions / Blocker
               </p>
@@ -211,7 +247,7 @@ export const StartDayHero: React.FC<StartDayHeroProps> = ({
           )}
 
           {todaySession.git_link && (
-            <div className="p-3 rounded-xl bg-white/5 border border-white/10 space-y-1">
+            <div className="p-2 rounded-xl bg-white/5 border border-white/10 space-y-0.5">
               <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
                 <ThemedIcon icon={Github} color="slate" size={12} /> Git Repo / Branch Link
               </p>
@@ -227,7 +263,7 @@ export const StartDayHero: React.FC<StartDayHeroProps> = ({
           )}
 
           {activeTask && (
-            <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 space-y-1">
+            <div className="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 space-y-0.5">
               <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-300 flex items-center gap-1">
                 <ThemedIcon icon={Play} color="emerald" size={12} /> Active Task
               </p>

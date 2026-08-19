@@ -43,8 +43,10 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode; userId?
       const data = await api.getNotifications();
       setNotifications(data.notifications || []);
       setUnreadCount(data.unreadCount || 0);
-    } catch (e) {
-      console.error('Failed to fetch notifications:', e);
+    } catch (e: any) {
+      if (!(e?.status === 403 && typeof e?.message === "string" && e.message.includes("inactive"))) {
+        console.error('Failed to fetch notifications:', e);
+      }
     } finally {
       setIsLoading(false);
     }

@@ -148,6 +148,24 @@ export function usePublicTechLeads() {
   });
 }
 
+export function useDaySessions(internId?: string, limit?: number) {
+  return useQuery({
+    queryKey: ["day-sessions", internId, limit],
+    queryFn: () => api.getDaySessions(internId, limit),
+    enabled: !!internId,
+    staleTime: 2 * 60 * 1000,
+  });
+}
+
+export function useMistakes(internId?: string) {
+  return useQuery({
+    queryKey: ["mistakes", internId],
+    queryFn: () => api.getMistakes(internId ? { intern_id: internId } : undefined),
+    enabled: !!internId,
+    staleTime: 2 * 60 * 1000,
+  });
+}
+
 // ─── Mutation Hooks ──────────────────────────────────────
 
 const invalidateDashboardQueries = (qc: any) => {

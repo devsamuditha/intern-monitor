@@ -6,8 +6,9 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { scaleIn } from '../../utils/motion';
-import { X, Zap, Github, ChevronDown, FolderGit2 } from 'lucide-react';
+import { X, Zap, Github, ChevronDown, FolderGit2, Info } from 'lucide-react';
 import { Project } from '../../types';
+import { getISTDate } from '../../utils/time';
 
 interface StartDayModalProps {
   show: boolean;
@@ -70,7 +71,21 @@ export const StartDayModal: React.FC<StartDayModalProps> = ({
         </div>
 
         <form onSubmit={onSubmit} className="space-y-3.5">
-          {/* Today Project */}
+           {(() => {
+             const ist = getISTDate();
+             const istMinutes = ist.getHours() * 60 + ist.getMinutes();
+             const isBefore930 = istMinutes < 9 * 60 + 30;
+             return isBefore930;
+           })() && (
+             <div className="p-3 rounded-xl bg-teal-500/15 border border-teal-500/30 text-teal-200 flex items-center gap-2.5 text-xs">
+               <Info className="h-4 w-4 text-teal-400 shrink-0" />
+               <span>
+                 You are starting your day before 9:30 AM IST. Your Tech Lead will be notified.
+               </span>
+             </div>
+           )}
+
+           {/* Today Project */}
           <div>
             <label className="block text-xs font-bold text-white/70 mb-1">Today Project *</label>
             {assignedProjects.length === 0 ? (

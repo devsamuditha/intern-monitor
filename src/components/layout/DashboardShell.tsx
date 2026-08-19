@@ -11,7 +11,8 @@ import { useAuth } from "../../context/AuthContext";
 import { 
   LayoutDashboard, FolderKanban,
   Users, TrendingUp, LogOut, Shield, Target, Settings, AlertTriangle, Building2, Trophy, Calendar, Bell,
-  CheckSquare, BookOpen, ClipboardList, UserCheck
+  CheckSquare, BookOpen, ClipboardList, UserCheck,
+  ShieldAlert, User as UserIcon, LogIn, Clock
 } from "lucide-react";
 import { ProfileImageModal } from "../ui/ProfileImageModal";
 import { CalendarPopover } from "../ui/CalendarPopover";
@@ -57,6 +58,11 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
           { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
           { id: 'projects', label: 'My Projects', icon: FolderKanban },
           { id: 'ranking', label: 'Rankings', icon: Trophy },
+          { id: 'assigned-board', label: 'Assigned Board', icon: CheckSquare },
+          { id: 'logs', label: 'Past Logs History', icon: Clock },
+          { id: 'mistakes', label: 'Mistakes', icon: ShieldAlert },
+          { id: 'profile', label: 'Profile', icon: UserIcon },
+          { id: 'requests', label: 'Request', icon: LogIn },
         ];
       case 'tech_lead':
         return [
@@ -89,6 +95,34 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
 
   const navItems = getNavItems();
 
+  const getInternPath = (id: string) => {
+    switch (id) {
+      case 'dashboard': return '/dashboard';
+      case 'projects': return '/projects';
+      case 'ranking': return '/dashboard/ranking';
+      case 'assigned-board': return '/dashboard/assigned-board';
+      case 'logs': return '/dashboard/logs';
+      case 'mistakes': return '/dashboard/mistakes';
+      case 'profile': return '/dashboard/profile';
+      case 'requests': return '/dashboard/requests';
+      default: return `/${id}`;
+    }
+  };
+
+  const handleNavClick = (e: React.MouseEvent, item: { id: string }) => {
+    e.preventDefault();
+    setActiveTab(item.id);
+    if (role === 'super_admin') {
+      router.push(`/superadmin/${item.id}`);
+    } else if (role === 'manager') {
+      router.push('/manager');
+    } else if (role === 'tech_lead') {
+      router.push(`/dashboard?tab=${item.id}`);
+    } else if (role === 'intern') {
+      window.open(getInternPath(item.id), '_blank', 'noopener,noreferrer');
+    }
+  };
+
   return (
     <div className={`min-h-screen ${GRADIENT_CLASSES.page} text-slate-900 dark:text-slate-100 transition-colors duration-200`}>
 
@@ -111,30 +145,16 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
             const Icon = item.icon;
             const active = activeTab === item.id;
             return (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => {
-                  setActiveTab(item.id);
-                  if (role === 'super_admin') {
-                    router.push(`/superadmin/${item.id}`);
-                  } else if (role === 'manager') {
-                    router.push('/manager');
-                  } else if (role === 'tech_lead') {
-                    router.push(`/dashboard?tab=${item.id}`);
-                  } else if (role === 'intern') {
-                    if (item.id === 'dashboard') router.push(`/dashboard`);
-                    else if (item.id === 'projects') router.push(`/projects`);
-                     else if (item.id === 'ranking') router.push(`/dashboard/ranking`);
-                    else router.push(`/${item.id}`);
-                  }
-                }}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold transition-all duration-150 ${
-                  active 
-                    ? 'bg-white/10 text-teal-300' 
-                    : 'text-slate-300 hover:text-white hover:bg-white/10'
-                }`}
-              >
+               <button
+                 key={item.id}
+                 type="button"
+                 onClick={(e) => handleNavClick(e, item)}
+                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold transition-all duration-150 ${
+                   active 
+                     ? 'bg-white/10 text-teal-300' 
+                     : 'text-slate-300 hover:text-white hover:bg-white/10'
+                 }`}
+               >
                 <Icon className={`h-4.5 w-4.5 ${active ? 'text-teal-300' : 'text-slate-400'}`} />
                 {item.label}
               </button>
@@ -252,30 +272,16 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
             const Icon = item.icon;
             const active = activeTab === item.id;
             return (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => {
-                  setActiveTab(item.id);
-                  if (role === 'super_admin') {
-                    router.push(`/superadmin/${item.id}`);
-                  } else if (role === 'manager') {
-                    router.push('/manager');
-                  } else if (role === 'tech_lead') {
-                    router.push(`/dashboard?tab=${item.id}`);
-                  } else if (role === 'intern') {
-                    if (item.id === 'dashboard') router.push(`/dashboard`);
-                    else if (item.id === 'projects') router.push(`/projects`);
-                     else if (item.id === 'ranking') router.push(`/dashboard/ranking`);
-                    else router.push(`/${item.id}`);
-                  }
-                }}
-                className={`flex flex-col items-center gap-1 py-1 px-3 rounded-lg text-[9px] font-semibold transition ${
-                  active 
-                    ? 'text-teal-300 bg-white/10' 
-                    : 'text-slate-400 hover:text-slate-200'
-                }`}
-              >
+               <button
+                 key={item.id}
+                 type="button"
+                 onClick={(e) => handleNavClick(e, item)}
+                 className={`flex flex-col items-center gap-1 py-1 px-3 rounded-lg text-[9px] font-semibold transition ${
+                   active 
+                     ? 'text-teal-300 bg-white/10' 
+                     : 'text-slate-400 hover:text-slate-200'
+                 }`}
+               >
                 <Icon className="h-4 w-4" />
                 {item.label}
               </button>

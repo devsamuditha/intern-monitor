@@ -32,12 +32,12 @@ const GlassStat: React.FC<GlassStatProps> = ({
   return (
     <div className={combinedClassName}>
       <div className="flex items-center gap-4">
-        <div className={`p-3.5 rounded-2xl ${colors.bg}`}>
-          <Icon className={`w-6 h-6 ${colors.text}`} />
+        <div className="p-3.5 rounded-2xl">
+          <Icon className={`w-5 h-5 ${colors.text}`} />
         </div>
         <div className="flex-1">
-          <p className="text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest">{label}</p>
-          <p className="text-2xl font-black text-slate-900 dark:text-white mt-1 tracking-tight">{value}</p>
+          <p className="text-[9px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest">{label}</p>
+          <p className="text-xl font-black text-slate-900 dark:text-white mt-1 tracking-tight">{value}</p>
         </div>
       </div>
     </div>

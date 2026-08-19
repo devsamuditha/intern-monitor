@@ -85,7 +85,7 @@ export const DailyLogTimeline: React.FC<DailyLogTimelineProps> = ({
           filteredLogs.map(log => {
             const relativeMark = marks.find(m => m.related_log_id === log.id);
             return (
-              <div key={log.id} className="pl-6 border-l-2 border-teal-200 dark:border-teal-800 space-y-2">
+              <div key={log.id} className="relative pl-6 border-l-2 border-teal-200 dark:border-teal-800 space-y-2">
                 {/* Timeline dot */}
                 <span className="absolute left-[-5px] top-1 h-2.5 w-2.5 rounded-full bg-teal-500 ring-4 ring-white dark:ring-slate-950" />
 

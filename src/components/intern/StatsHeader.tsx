@@ -25,13 +25,13 @@ export const StatsHeader: React.FC<StatsHeaderProps> = ({
   totalLogs
 }) => {
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-[40px]">
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 mb-[40px]">
       {/* Streak card */}
       <motion.div
         variants={fadeInUp}
         {...hoverLift}
       >
-        <GlassStat icon={Flame} label="Journal Streak" value={streak > 0 ? `${streak}-Day Streak 🔥` : '0-Day Streak '} iconColor="amber" />
+        <GlassStat icon={Flame} label="Journal Streak" value={streak > 0 ? `${streak}-Day Streak` : '0-Day Streak '} iconColor="amber" />
       </motion.div>
 
       {/* Avg Marks card */}
@@ -39,7 +39,7 @@ export const StatsHeader: React.FC<StatsHeaderProps> = ({
         variants={fadeInUp}
         {...hoverLift}
       >
-        <GlassStat icon={Award} label="Average Score" value={avgMark !== null && avgMark > 0 ? `${avgMark.toFixed(1)} / 5.0 ` : 'No scores yet ⭐'} iconColor="teal" />
+        <GlassStat icon={Award} label="Average Score" value={avgMark !== null && avgMark > 0 ? `${avgMark.toFixed(1)} / 5.0 ` : 'No scores yet '} iconColor="teal" />
       </motion.div>
 
       {/* Completed Tasks */}

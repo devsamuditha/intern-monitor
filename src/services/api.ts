@@ -451,6 +451,17 @@ export const api = {
     return handleResponse(res);
   },
 
+  getDaySessions: async (internId?: string, limit?: number): Promise<DaySession[]> => {
+    const params = new URLSearchParams();
+    if (internId) params.append("intern_id", internId);
+    if (limit) params.append("limit", String(limit));
+    const url = `/api/day-sessions?${params.toString()}`;
+    const res = await fetchWithDedup(url, {
+      headers: await getAuthHeaders()
+    });
+    return handleResponse(res);
+  },
+
   startDaySession: async (data: {
     intern_id: string;
     today_project?: string;

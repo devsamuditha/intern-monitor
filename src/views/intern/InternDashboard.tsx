@@ -71,6 +71,7 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
   const updateTaskStatusMutation = useUpdateTaskStatus(user.id);
   const router = useRouter();
   const [showAutoLogout, setShowAutoLogout] = useState(false);
+  const [dayEnded, setDayEnded] = useState(false);
 
   const logs = data?.logs ?? [];
   const tasks = data?.tasks ?? [];
@@ -215,8 +216,12 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
           schema: 'public',
           table: 'DaySession',
           filter: `intern_id=eq.${user.id}`,
-        }, () => {
-          refetch();
+         }, () => {
+          refetch().catch((err: any) => {
+            if (!(err?.status === 403 && typeof err?.message === "string" && err.message.includes("inactive"))) {
+              console.error("Dashboard refetch failed:", err);
+            }
+          });
         })
         .subscribe();
       subscriptionChannel = channel;
@@ -285,6 +290,15 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
         git_link: startGitLink.trim() || undefined,
       });
       setShowStartDayModal(false);
+      const ist = getISTDate();
+      const istMinutes = ist.getHours() * 60 + ist.getMinutes();
+      const isBefore930 = istMinutes < 9 * 60 + 30;
+      showToast(
+        isBefore930
+          ? "Your day successfully started before 9:30 AM. Good morning!"
+          : "Your day successfully started.",
+        "success"
+      );
       if (onRefreshStats) onRefreshStats();
     } catch (err) {
       console.error("Start day failed", err);
@@ -317,6 +331,8 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
 
     try {
       await endDayMutation.mutateAsync({ intern_id: user.id });
+      setDayEnded(true);
+      showToast("You ended the day.", "success");
       if (onRefreshStats) onRefreshStats();
     } catch (err: any) {
       alert(err.message || "End day failed");
@@ -466,6 +482,7 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
             onEndDay={handleEndDayClick}
             hasLogToday={hasLogToday}
             activeTask={activeTask}
+            dayEnded={dayEnded}
           />
 
           <StartDayModal
