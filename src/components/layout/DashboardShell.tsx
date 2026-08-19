@@ -10,11 +10,14 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "../../context/AuthContext";
 import { 
   LayoutDashboard, FolderKanban,
-  Users, TrendingUp, LogOut, Shield, Target, Settings, AlertTriangle, Building2, Trophy, Calendar, Bell
+  Users, TrendingUp, LogOut, Shield, Target, Settings, AlertTriangle, Building2, Trophy, Calendar, Bell,
+  CheckSquare, BookOpen, ClipboardList, UserCheck
 } from "lucide-react";
 import { ProfileImageModal } from "../ui/ProfileImageModal";
 import { CalendarPopover } from "../ui/CalendarPopover";
 import { NotificationBell } from "../notifications/NotificationBell";
+import { GLASS_VARIANTS, GRADIENT_CLASSES } from "../ui/theme/ThemeTokens";
+import { GlassTabBar } from "../ui/glass/GlassTabBar";
 
 interface DashboardShellProps {
   children: React.ReactNode;
@@ -58,7 +61,12 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
       case 'tech_lead':
         return [
           { id: 'team_overview', label: 'Team Overview', icon: Users },
+          { id: 'review_queue', label: 'Review Queue & Grading Desk', icon: CheckSquare },
+          { id: 'intern_summary', label: 'Intern Summary (Daily Journal)', icon: BookOpen },
+          { id: 'ranking', label: 'Rankings', icon: Trophy },
           { id: 'projects', label: 'Projects', icon: FolderKanban },
+          { id: 'manager_assignments', label: 'Manager Assign Projects', icon: ClipboardList },
+          { id: 'interns', label: 'Interns', icon: UserCheck },
         ];
       case 'manager':
         return [
@@ -82,7 +90,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
   const navItems = getNavItems();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-teal-950 via-cyan-950 to-emerald-950 text-slate-900 dark:text-slate-100 transition-colors duration-200">
+    <div className={`min-h-screen ${GRADIENT_CLASSES.page} text-slate-900 dark:text-slate-100 transition-colors duration-200`}>
 
       {/* Sidebar - Desktop (fixed to screen) */}
       <aside className="hidden md:flex md:flex-col md:w-64 md:h-screen md:fixed md:top-0 md:left-0 md:z-40 bg-white/10 dark:bg-slate-900/10 backdrop-blur-xl border-r border-white/20 dark:border-slate-700/30 overflow-y-auto">
@@ -113,11 +121,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
                   } else if (role === 'manager') {
                     router.push('/manager');
                   } else if (role === 'tech_lead') {
-                    if (item.id === 'projects') {
-                      router.push('/projects');
-                    } else {
-                      router.push('/team');
-                    }
+                    router.push(`/dashboard?tab=${item.id}`);
                   } else if (role === 'intern') {
                     if (item.id === 'dashboard') router.push(`/dashboard`);
                     else if (item.id === 'projects') router.push(`/projects`);
@@ -140,34 +144,31 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
 
         {/* Bottom Profile Row */}
         <div className="p-4 border-t border-white/20 dark:border-slate-700/30 space-y-2">
-          <div className="flex items-center justify-between p-2.5 bg-white/10 dark:bg-slate-900/10 border border-white/20 dark:border-slate-700/30 rounded-xl">
-            <button
-              onClick={() => router.push('/notifications')}
-              type="button"
-              className="flex items-center gap-2 text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/10 px-2 py-1.5 rounded-lg transition"
-              title="Notifications"
-            >
-              <Bell className="h-4 w-4" />
-              All Notifications
-            </button>
-            <NotificationBell />
-          </div>
-         <div className="flex items-center gap-3 p-2.5 bg-white/10 dark:bg-slate-900/10 border border-white/20 dark:border-slate-700/30 rounded-xl cursor-pointer" onClick={() => setShowProfileModal(true)}>
+          <button
+            onClick={() => router.push('/notifications')}
+            type="button"
+            className="flex items-center gap-2 text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/10 px-2 py-1.5 rounded-lg transition w-full"
+            title="Notifications"
+          >
+            <Bell className="h-4 w-4" />
+            All Notifications
+          </button>
+          <div className="flex items-center gap-3 p-2.5 bg-white/10 dark:bg-slate-900/10 border border-white/20 dark:border-slate-700/30 rounded-xl cursor-pointer" onClick={() => setShowProfileModal(true)}>
               <img src={user?.avatar ?? '/favicon.ico'} alt={user?.name ?? 'Avatar'} className="h-9 w-9 rounded-full object-cover border border-white/20 dark:border-slate-700/30" referrerPolicy="no-referrer" />
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-bold truncate text-white">{user?.name ?? 'User'}</p>
                 <p className="text-[9px] text-slate-400 capitalize truncate">{user?.role ?? ''}</p>
               </div>
                {user && (
-                 <button 
-                   onClick={(e) => handleLogout(e)}
-                   type="button"
-                   className="p-1.5 hover:bg-white/10 text-slate-400 hover:text-rose-400 rounded-lg transition"
-                   title="Logout"
-                 >
-                   <LogOut className="h-4 w-4" />
-                 </button>
-               )}
+                  <button 
+                    onClick={(e) => handleLogout(e)}
+                    type="button"
+                    className="p-1.5 hover:bg-white/10 text-slate-400 hover:text-rose-400 rounded-lg transition"
+                    title="Logout"
+                  >
+                    <LogOut className="h-4 w-4" />
+                  </button>
+                )}
             </div>
           </div>
         </aside>
@@ -213,10 +214,12 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
                  }`}
                  title="My Calendar"
                >
-                 <Calendar className="h-4 w-4" />
-               </button>
+                  <Calendar className="h-4 w-4" />
+                </button>
 
-              {/* Profile Avatar */}
+               <NotificationBell />
+
+               {/* Profile Avatar */}
               <button
                 onClick={() => setShowProfileModal(true)}
                 type="button"
@@ -259,11 +262,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
                   } else if (role === 'manager') {
                     router.push('/manager');
                   } else if (role === 'tech_lead') {
-                    if (item.id === 'projects') {
-                      router.push('/projects');
-                    } else {
-                      router.push('/team');
-                    }
+                    router.push(`/dashboard?tab=${item.id}`);
                   } else if (role === 'intern') {
                     if (item.id === 'dashboard') router.push(`/dashboard`);
                     else if (item.id === 'projects') router.push(`/projects`);

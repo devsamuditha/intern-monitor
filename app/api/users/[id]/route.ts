@@ -12,7 +12,6 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   let user;
   try {
     user = await withAuth(request);
-    requireSuperAdmin(user);
   } catch (err: any) {
     const status = err.message.includes("Forbidden") ? 403 : err.message.includes("Unauthorized") ? 401 : 500;
     return NextResponse.json({ error: err.message }, { status });
@@ -30,11 +29,36 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
   try {
     const prisma = getPrisma();
-    const oldUser = await prisma.user.findUnique({
+    const oldUser = await prisma.user.findFirst({
       where: { id, ...scopeToOrganization({}, user) },
-      select: SAFE_USER_SELECT,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        avatarUrl: true,
+        techLeadId: true,
+        isActive: true,
+        organizationId: true,
+      },
     });
     if (!oldUser) return NextResponse.json({ error: "User not found" }, { status: 404 });
+
+    // Authorization check
+    if (user.role !== Role.SUPER_ADMIN) {
+      if (oldUser.role !== Role.INTERN) {
+        return NextResponse.json({ error: "Forbidden: You are not authorized to edit this user's role." }, { status: 403 });
+      }
+      if (user.role === Role.TECH_LEAD && oldUser.techLeadId !== user.id) {
+        return NextResponse.json({ error: "Forbidden: You can only edit your own assigned interns." }, { status: 403 });
+      }
+      if (role !== undefined && role.toUpperCase() !== "INTERN") {
+        return NextResponse.json({ error: "Forbidden: You cannot change this user's role." }, { status: 403 });
+      }
+      if (assigned_tech_lead_id !== undefined && assigned_tech_lead_id !== user.id && user.role === Role.TECH_LEAD) {
+        return NextResponse.json({ error: "Forbidden: You can only assign this intern to yourself." }, { status: 403 });
+      }
+    }
     const updateData: any = {};
     if (name !== undefined) updateData.name = name;
     if (role !== undefined) updateData.role = role.toUpperCase() as Role;
@@ -62,7 +86,6 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   let user;
   try {
     user = await withAuth(request);
-    requireSuperAdmin(user);
   } catch (err: any) {
     const status = err.message.includes("Forbidden") ? 403 : err.message.includes("Unauthorized") ? 401 : 500;
     return NextResponse.json({ error: err.message }, { status });
@@ -77,15 +100,24 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
   try {
     const prisma = getPrisma();
-     const userToDelete = await prisma.user.findFirst({
+    const userToDelete = await prisma.user.findFirst({
       where: { id, ...scopeToOrganization({}, user) },
-      select: { name: true, email: true, role: true },
+      select: { id: true, name: true, email: true, role: true, techLeadId: true },
     });
     if (!userToDelete) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
+    // Authorization check
+    if (user.role !== Role.SUPER_ADMIN) {
+      if (userToDelete.role !== Role.INTERN) {
+        return NextResponse.json({ error: "Forbidden: You are not authorized to delete this user." }, { status: 403 });
+      }
+      if (user.role === Role.TECH_LEAD && userToDelete.techLeadId !== user.id) {
+        return NextResponse.json({ error: "Forbidden: You can only delete your own assigned interns." }, { status: 403 });
+      }
+    }
+
     await prisma.user.delete({ where: { id } });
     await logAudit(prisma, user.id, "USER_DELETED", "USER", id, { name: userToDelete.name, email: userToDelete.email, role: userToDelete.role }, undefined, user.organizationId as string);
-    
     return NextResponse.json({ success: true, message: "User deleted successfully" });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });

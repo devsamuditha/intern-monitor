@@ -25,6 +25,44 @@ export const GRADIENT_CLASSES = {
   login: 'bg-gradient-to-br from-teal-950 via-cyan-950 to-emerald-950',
 };
 
+export const PASTEL_TEXT = {
+  primary: 'text-pink-100',
+  secondary: 'text-blue-200',
+  muted: 'text-slate-300',
+  accent: 'text-teal-200',
+  success: 'text-green-200',
+  warning: 'text-amber-200',
+  danger: 'text-rose-200',
+  info: 'text-indigo-200',
+  heading: 'text-purple-100',
+  label: 'text-cyan-200',
+};
+
+export const GLASS_VARIANTS = {
+  card: 'bg-white/10 dark:bg-slate-900/10 backdrop-blur-xl border border-white/20 dark:border-slate-700/30 rounded-2xl',
+  panel: 'bg-white/15 dark:bg-slate-900/15 backdrop-blur-2xl border border-white/25 dark:border-slate-700/40 rounded-3xl',
+  section: 'bg-white/10 dark:bg-slate-900/10 backdrop-blur-xl border border-white/20 dark:border-slate-700/30 rounded-2xl',
+  column: 'bg-white/5 dark:bg-slate-900/5 backdrop-blur-lg border border-white/10 dark:border-slate-700/20 rounded-2xl',
+  input: 'bg-white/10 dark:bg-slate-900/10 border border-white/20 dark:border-slate-700/30 rounded-xl text-pink-100 placeholder:text-slate-500 focus:ring-teal-400/30',
+  button: {
+    primary: 'bg-teal-500/80 hover:bg-teal-400/80 text-white backdrop-blur-sm border border-white/20 rounded-xl shadow-lg shadow-teal-500/10',
+    secondary: 'bg-white/10 hover:bg-white/20 text-blue-200 border border-white/20 rounded-xl backdrop-blur-sm',
+    ghost: 'text-blue-200 hover:text-pink-100 hover:bg-white/10 rounded-lg',
+  },
+  table: 'bg-white/10 dark:bg-slate-900/10 backdrop-blur-xl border border-white/20 dark:border-slate-700/30 rounded-2xl overflow-hidden',
+  sidebar: 'bg-white/10 dark:bg-slate-900/10 backdrop-blur-2xl border-r border-white/20 dark:border-slate-700/30',
+  header: 'bg-white/10 dark:bg-slate-900/10 backdrop-blur-2xl border-b border-white/20 dark:border-slate-700/30',
+  modal: 'bg-white/10 dark:bg-slate-900/10 backdrop-blur-2xl border border-white/25 dark:border-slate-700/40 rounded-3xl',
+};
+
+export const PASTEL_SHADOWS = {
+  card: 'shadow-lg shadow-teal-500/5',
+  panel: 'shadow-xl shadow-teal-500/10',
+  accent: 'shadow-md shadow-blue-500/10',
+  danger: 'shadow-md shadow-rose-500/10',
+  success: 'shadow-md shadow-green-500/10',
+};
+
 export const QUICK_LINK_COLORS: Record<string, {
   bg: string;
   bgDark: string;

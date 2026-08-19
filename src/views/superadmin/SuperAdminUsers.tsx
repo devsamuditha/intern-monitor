@@ -240,7 +240,7 @@ export const SuperAdminUsers: React.FC<SuperAdminUsersProps> = ({ currentUser })
                       value={user.role.toLowerCase()}
                       onChange={(e) => handleRoleChange(user.id, e.target.value.toUpperCase() as UserRole)}
                       disabled={confirmLoading || user.id === currentUser.id}
-                      className="text-[10px] font-bold uppercase tracking-wider bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-505/20 disabled:opacity-50 cursor-pointer"
+                      className="text-[10px] font-bold uppercase tracking-wider bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500/20 disabled:opacity-50 cursor-pointer"
                     >
                       <option value="intern">Intern</option>
                       <option value="tech_lead">Tech Lead</option>
@@ -262,7 +262,7 @@ export const SuperAdminUsers: React.FC<SuperAdminUsersProps> = ({ currentUser })
                         value={user.assigned_tech_lead_id || ''}
                         onChange={(e) => handleReassignTechLead(user.id, e.target.value || null)}
                         disabled={confirmLoading || creating}
-                        className="text-[10px] font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500/20 disabled:opacity-50 cursor-pointer"
+                        className="text-[10px] font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500/20 disabled:opacity-50 cursor-pointer"
                       >
                         <option value="">Unassigned</option>
                         {techLeads.map((tl) => (

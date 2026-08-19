@@ -77,7 +77,7 @@ export const StartDayModal: React.FC<StartDayModalProps> = ({
               <div>
                 <select
                   disabled
-                  className="w-full text-xs rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-white/50 focus:outline-none"
+                  className="w-full text-xs rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-white/50 focus:outline-none disabled:opacity-50"
                 >
                   <option>No projects assigned</option>
                 </select>
@@ -89,7 +89,7 @@ export const StartDayModal: React.FC<StartDayModalProps> = ({
                   required
                   value={startProject}
                   onChange={(e) => setStartProject(e.target.value)}
-                  className="w-full text-xs rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 appearance-none"
+                  className="w-full text-xs rounded-xl border border-white/20 bg-white/10 text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-400/30 focus:border-teal-300 appearance-none"
                 >
                   <option value="" disabled>Select a project...</option>
                   {assignedProjects.map((proj) => (

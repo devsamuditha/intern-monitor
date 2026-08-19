@@ -78,6 +78,7 @@ export async function GET(request: NextRequest) {
     const istMinutes = istNow.getHours() * 60 + istNow.getMinutes();
     const deadline130Passed = istMinutes >= 14 * 60 + 30;
     const deadline500Passed = istMinutes >= 17 * 60;
+    const deadline530Passed = istMinutes >= 17 * 60 + 30;
 
     const rosterData = targetInterns.map((intern: any) => {
       const iLogs = allLogs.filter((l: any) => l.internId === intern.id);
@@ -124,6 +125,7 @@ export async function GET(request: NextRequest) {
         lastSubmission: lastSub,
         missingLog130: deadline130Passed && !submittedLogToday,
         missingLog500: deadline500Passed && !submittedLogToday,
+        missingLog530: deadline530Passed && !submittedLogToday,
         streak: realStreak,
         avgMark: iAvgMark,
         avgWorkingHours,

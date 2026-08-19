@@ -20,6 +20,10 @@ import {
   ChevronRight, Star, Calendar, ShieldCheck,
   BarChart3, X, CheckCircle2, Layers, Zap, User as UserIcon, RefreshCw, AlertTriangle
 } from 'lucide-react';
+import {
+  GLASS_VARIANTS, PASTEL_TEXT, PASTEL_SHADOWS, GRADIENT_CLASSES
+} from '../../components/ui/theme/ThemeTokens';
+import { GlassTabBar, GlassPanel, GlassCard, GlassStat } from '../../components/ui/glass';
 import { formatDate } from '../../utils/helpers';
 import { scaleIn } from '../../utils/motion';
 
@@ -135,79 +139,47 @@ export const ManagerOverview: React.FC<ManagerOverviewProps> = ({ currentUser })
   const sortedHours = [...rosterData].slice().sort((a: any, b: any) => (b.avgWorkingHours || 0) - (a.avgWorkingHours || 0));
 
   return (
-    <div id="manager-dashboard-root" className="min-h-[calc(100vh-5rem)] bg-gradient-to-br from-teal-950 via-cyan-950 to-emerald-950">
+    <div id="manager-dashboard-root" className={`min-h-[calc(100vh-5rem)] ${GRADIENT_CLASSES.page}`}>
       <div className="relative z-10 space-y-6">
 
       {/* Executive Control Header */}
-      <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-slate-700/30 rounded-3xl p-6 md:p-8 shadow-lg shadow-teal-500/5 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-        <div className="space-y-2">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-50 dark:bg-purple-950/40 border border-purple-100 dark:border-purple-900/40 text-xs font-bold text-purple-700 dark:text-purple-300">
-            <Building className="h-3.5 w-3.5" /> Company-wide Engineering Oversight
+      <GlassPanel>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+          <div className="space-y-2">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-50 dark:bg-purple-950/40 border border-purple-100 dark:border-purple-900/40 text-xs font-bold text-purple-700 dark:text-purple-300">
+              <Building className="h-3.5 w-3.5" /> Company-wide Engineering Oversight
+            </div>
+            <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Executive Control Desk</h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xl">
+              Centralized telemetry detailing software engineering intern check-in compliance, mentor grading history, and user role administration computed from real database records.
+            </p>
           </div>
-          <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Executive Control Desk</h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xl">
-            Centralized telemetry detailing software engineering intern check-in compliance, mentor grading history, and user role administration computed from real database records.
-          </p>
-        </div>
 
-        {/* Top Badges */}
-        <div className="flex flex-wrap gap-3 shrink-0">
-          <div className="p-3 bg-teal-50 dark:bg-teal-950/30 border border-teal-100 dark:border-teal-900/35 rounded-2xl text-center min-w-[100px]">
-            <p className="text-[18px] font-black text-teal-700 dark:text-teal-400">{complianceRate}%</p>
-            <p className="text-[8px] uppercase font-bold text-teal-500 mt-0.5">Org Compliance</p>
-          </div>
-          <div className="p-3 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900/35 rounded-2xl text-center min-w-[100px]">
-            <p className="text-[18px] font-black text-emerald-700 dark:text-emerald-400">{avgMarks} ⭐</p>
-            <p className="text-[8px] uppercase font-bold text-emerald-500 mt-0.5">Average Score</p>
-          </div>
-        </div>
-      </div>
+          {/* Top Badges */}
+          <div className="flex flex-wrap gap-3 shrink-0">
+            <div className="p-3 bg-teal-50 dark:bg-teal-950/30 border border-teal-100 dark:border-teal-900/35 rounded-2xl text-center min-w-[100px]">
+              <p className="text-[18px] font-black text-teal-700 dark:text-teal-400">{complianceRate}%</p>
+              <p className="text-[8px] uppercase font-bold text-teal-500 mt-0.5">Org Compliance</p>
+            </div>
+            <div className="p-3 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900/35 rounded-2xl text-center min-w-[100px]">
+              <p className="text-[18px] font-black text-emerald-700 dark:text-emerald-400">{avgMarks} ⭐</p>
+               <p className="text-[8px] uppercase font-bold text-emerald-500 mt-0.5">Average Score</p>
+             </div>
+           </div>
+           </div>
+         </GlassPanel>
 
       {/* Main Tab Switcher */}
-      <div className="flex border-b border-white/20 dark:border-slate-700/30 gap-2 overflow-x-auto">
-        <button
-          onClick={() => setActiveTab('telemetry')}
-          className={`px-5 py-3 text-xs font-bold rounded-t-2xl transition flex items-center gap-2 border-t-2 ${
-            activeTab === 'telemetry'
-              ? 'bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-teal-600 text-teal-700 dark:text-teal-400 border-x border-white/20 dark:border-slate-700/30 shadow-lg shadow-teal-500/5'
-              : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
-          }`}
-        >
-          <BarChart3 className="h-4 w-4" /> Org-Wide Metrics & Telemetry
-        </button>
-
-        <button
-          onClick={() => setActiveTab('users')}
-          className={`px-5 py-3 text-xs font-bold rounded-t-2xl transition flex items-center gap-2 border-t-2 ${
-            activeTab === 'users'
-              ? 'bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-teal-600 text-teal-700 dark:text-teal-400 border-x border-white/20 dark:border-slate-700/30 shadow-lg shadow-teal-500/5'
-              : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
-          }`}
-        >
-          <ShieldCheck className="h-4 w-4" /> SuperAdmin User & Access Control
-        </button>
-
-        <button
-          onClick={() => setActiveTab('upcoming_projects')}
-          className={`px-5 py-3 text-xs font-bold rounded-t-2xl transition flex items-center gap-2 border-t-2 ${
-            activeTab === 'upcoming_projects'
-              ? 'bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-teal-600 text-teal-700 dark:text-teal-400 border-x border-white/20 dark:border-slate-700/30 shadow-lg shadow-teal-500/5'
-              : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
-          }`}
-        >
-          <Calendar className="h-4 w-4" /> Upcoming Projects Pipeline
-        </button>
-        <button
-          onClick={() => setActiveTab('task_assignments')}
-          className={`px-5 py-3 text-xs font-bold rounded-t-2xl transition flex items-center gap-2 border-t-2 ${
-            activeTab === 'task_assignments'
-              ? 'bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-teal-600 text-teal-700 dark:text-teal-400 border-x border-white/20 dark:border-slate-700/30 shadow-lg shadow-teal-500/5'
-              : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
-          }`}
-        >
-          <Calendar className="h-4 w-4" /> Task Assignments
-        </button>
-      </div>
+      <GlassTabBar
+        tabs={[
+          { id: 'telemetry', label: 'Org-Wide Metrics & Telemetry', icon: BarChart3 },
+          { id: 'users', label: 'SuperAdmin User & Access Control', icon: ShieldCheck },
+          { id: 'upcoming_projects', label: 'Upcoming Projects Pipeline', icon: Calendar },
+          { id: 'task_assignments', label: 'Task Assignments', icon: Calendar },
+        ]}
+        activeTab={activeTab}
+        onTabChange={(tabId) => setActiveTab(tabId as any)}
+      />
 
       {activeTab === 'users' ? (
         <UserManagement currentUser={currentUser} onRefresh={invalidateDashboard} />
@@ -219,45 +191,53 @@ export const ManagerOverview: React.FC<ManagerOverviewProps> = ({ currentUser })
         <>
           {/* Stats Widgets Grid */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl p-5 rounded-2xl border border-white/20 dark:border-slate-700/30 shadow-lg shadow-teal-500/5 flex items-center gap-4">
-              <div className="bg-purple-50 dark:bg-purple-950/40 text-purple-600 p-3 rounded-xl">
-                <Users className="h-6 w-6" />
+            <GlassCard shadow="card">
+              <div className="flex items-center gap-4">
+                <div className="bg-purple-50 dark:bg-purple-950/40 text-purple-600 p-3 rounded-xl">
+                  <Users className="h-6 w-6" />
+                </div>
+                <div>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase">Tech Mentors</p>
+                  <p className="text-lg font-black text-slate-900 dark:text-white mt-0.5">{techLeads.length} Active</p>
+                </div>
               </div>
-              <div>
-                <p className="text-[10px] text-slate-400 font-bold uppercase">Tech Mentors</p>
-                <p className="text-lg font-black text-slate-900 dark:text-white mt-0.5">{techLeads.length} Active</p>
-              </div>
-            </div>
+            </GlassCard>
 
-            <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl p-5 rounded-2xl border border-white/20 dark:border-slate-700/30 shadow-lg shadow-teal-500/5 flex items-center gap-4">
-              <div className="bg-teal-50 dark:bg-teal-950/40 text-teal-600 p-3 rounded-xl">
-                <Users className="h-6 w-6" />
+            <GlassCard shadow="card">
+              <div className="flex items-center gap-4">
+                <div className="bg-teal-50 dark:bg-teal-950/40 text-teal-600 p-3 rounded-xl">
+                  <Users className="h-6 w-6" />
+                </div>
+                <div>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase">Intern Headcount</p>
+                  <p className="text-lg font-black text-slate-900 dark:text-white mt-0.5">{rosterData.length} Total</p>
+                </div>
               </div>
-              <div>
-                <p className="text-[10px] text-slate-400 font-bold uppercase">Intern Headcount</p>
-                <p className="text-lg font-black text-slate-900 dark:text-white mt-0.5">{rosterData.length} Total</p>
-              </div>
-            </div>
+            </GlassCard>
 
-            <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl p-5 rounded-2xl border border-white/20 dark:border-slate-700/30 shadow-lg shadow-teal-500/5 flex items-center gap-4">
-              <div className="bg-emerald-50 dark:bg-emerald-950/40 text-emerald-500 p-3 rounded-xl">
-                <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 inline-block animate-pulse shrink-0" />
+            <GlassCard shadow="card">
+              <div className="flex items-center gap-4">
+                <div className="bg-emerald-50 dark:bg-emerald-950/40 text-emerald-500 p-3 rounded-xl">
+                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 inline-block animate-pulse shrink-0" />
+                </div>
+                <div>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase">Presence Now</p>
+                  <p className="text-lg font-black text-emerald-600 mt-0.5">{activeCount} Coding</p>
+                </div>
               </div>
-              <div>
-                <p className="text-[10px] text-slate-400 font-bold uppercase">Presence Now</p>
-                <p className="text-lg font-black text-emerald-600 mt-0.5">{activeCount} Coding</p>
-              </div>
-            </div>
+            </GlassCard>
 
-            <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl p-5 rounded-2xl border border-white/20 dark:border-slate-700/30 shadow-lg shadow-teal-500/5 flex items-center gap-4">
-              <div className="bg-blue-50 dark:bg-blue-950/40 text-blue-500 p-3 rounded-xl">
-                <Clock className="h-6 w-6" />
+            <GlassCard shadow="card">
+              <div className="flex items-center gap-4">
+                <div className="bg-blue-50 dark:bg-blue-950/40 text-blue-500 p-3 rounded-xl">
+                  <Clock className="h-6 w-6" />
+                </div>
+                <div>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase">Journal Entries</p>
+                  <p className="text-lg font-black text-slate-900 dark:text-white mt-0.5">{totalLogs} Submits</p>
+                </div>
               </div>
-              <div>
-                <p className="text-[10px] text-slate-400 font-bold uppercase">Journal Entries</p>
-                <p className="text-lg font-black text-slate-900 dark:text-white mt-0.5">{totalLogs} Submits</p>
-              </div>
-            </div>
+            </GlassCard>
           </div>
 
           <InternAttendanceFeed
@@ -271,7 +251,7 @@ export const ManagerOverview: React.FC<ManagerOverviewProps> = ({ currentUser })
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
             {/* Average Intern Marks */}
-            <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl p-6 rounded-2xl border border-white/20 dark:border-slate-700/30 shadow-lg shadow-teal-500/5 space-y-4">
+            <GlassPanel>
               <div>
                 <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
                   Average Intern Marks <Star className="h-4 w-4 text-teal-600" />
@@ -302,10 +282,10 @@ export const ManagerOverview: React.FC<ManagerOverviewProps> = ({ currentUser })
                   ))
                 )}
               </div>
-            </div>
+            </GlassPanel>
 
             {/* Average Working Hours */}
-            <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl p-6 rounded-2xl border border-white/20 dark:border-slate-700/30 shadow-lg shadow-teal-500/5 space-y-4">
+            <GlassPanel>
               <div>
                 <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
                   Working Hours (Last 7 Days) <Clock className="h-4 w-4 text-emerald-600" />
@@ -339,13 +319,12 @@ export const ManagerOverview: React.FC<ManagerOverviewProps> = ({ currentUser })
                     );
                   })
                 )}
-              </div>
-            </div>
+               </div>
+             </GlassPanel>
+           </div>
 
-          </div>
-
-          {/* Tech Leads Team Performance Summary Table */}
-          <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl rounded-2xl shadow-lg shadow-teal-500/5 border border-white/20 dark:border-slate-700/30 p-6 space-y-4">
+           {/* Tech Leads Team Performance Summary Table */}
+           <GlassPanel>
             <div>
               <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <Users className="h-4 w-4 text-purple-600" /> Tech Lead Mentors & Team History
@@ -398,10 +377,10 @@ export const ManagerOverview: React.FC<ManagerOverviewProps> = ({ currentUser })
                 );
               })}
             </div>
-          </div>
+          </GlassPanel>
 
           {/* Directory & Oversight Roster */}
-          <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl rounded-2xl shadow-lg shadow-teal-500/5 border border-white/20 dark:border-slate-700/30 p-6 space-y-4">
+          <GlassPanel>
             <div>
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">Active Corporate Intern Directory</h3>
               <p className="text-xs text-slate-400">Click on any row to inspect an intern's full history (daily log commits, assigned boards, marks, or direct comments).</p>
@@ -508,9 +487,9 @@ export const ManagerOverview: React.FC<ManagerOverviewProps> = ({ currentUser })
                 </tbody>
               </table>
             </div>
-          </div>
-        </>
-      )}
+           </GlassPanel>
+       </>
+     )}
 
       {/* Tech Lead Team History Drilldown Modal */}
       <AnimatePresence>

@@ -269,7 +269,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ currentUser, onR
             <select
               value={roleFilter}
               onChange={(e) => setRoleFilter(e.target.value as any)}
-              className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-xs font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+              className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
             >
               <option value="all">👥 All Roles</option>
               <option value="intern">💻 Software Interns</option>
@@ -435,7 +435,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ currentUser, onR
                   <select
                     value={editRole}
                     onChange={(e) => setEditRole(e.target.value as UserRole)}
-                    className="w-full text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-3.5 py-2 text-slate-900 dark:text-white font-semibold focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    className="w-full text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3.5 py-2 text-slate-900 dark:text-white font-semibold focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
                   >
                     <option value="intern">💻 Intern (Submits daily logs & tasks)</option>
                     <option value="tech_lead">⚡ Tech Lead (Reviews code & assigns tasks)</option>
@@ -445,14 +445,14 @@ export const UserManagement: React.FC<UserManagementProps> = ({ currentUser, onR
 
                 {editRole === 'intern' && (
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">
-                      Assigned Tech Lead / Mentor
-                    </label>
-                    <select
-                      value={editTechLeadId}
-                      onChange={(e) => setEditTechLeadId(e.target.value)}
-                      className="w-full text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-3.5 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
-                    >
+                      <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">
+                        Assigned Tech Lead / Mentor
+                      </label>
+                      <select
+                        value={editTechLeadId}
+                        onChange={(e) => setEditTechLeadId(e.target.value)}
+                        className="w-full text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3.5 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
+                      >
                       <option value="">Unassigned</option>
                       {techLeads.map(tl => (
                         <option key={tl.id} value={tl.id}>{tl.name}</option>
@@ -553,7 +553,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ currentUser, onR
                   <select
                     value={newRole}
                     onChange={(e) => setNewRole(e.target.value as UserRole)}
-                    className="w-full text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-3.5 py-2 text-slate-900 dark:text-white font-semibold focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    className="w-full text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3.5 py-2 text-slate-900 dark:text-white font-semibold focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
                   >
                     <option value="intern">💻 Software Intern</option>
                     <option value="tech_lead">⚡ Tech Lead / Mentor</option>
@@ -563,14 +563,14 @@ export const UserManagement: React.FC<UserManagementProps> = ({ currentUser, onR
 
                 {newRole === 'intern' && (
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">
-                      Assign Tech Lead / Mentor
-                    </label>
-                    <select
-                      value={newTechLeadId}
-                      onChange={(e) => setNewTechLeadId(e.target.value)}
-                       className="w-full text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-3.5 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
-                     >
+                      <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">
+                        Assign Tech Lead / Mentor
+                      </label>
+                      <select
+                        value={newTechLeadId}
+                        onChange={(e) => setNewTechLeadId(e.target.value)}
+                         className="w-full text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3.5 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
+                       >
                       <option value="">Unassigned</option>
                       {techLeads.map(tl => (
                         <option key={tl.id} value={tl.id}>{tl.name}</option>

@@ -31,14 +31,21 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!user) return;
 
-    const defaultTab =
+    let initialTab = "";
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      initialTab = params.get("tab") || "";
+    }
+
+    const defaultTab = initialTab || (
       user.role === "tech_lead"
         ? "team_overview"
         : user.role === "manager"
         ? "analytics"
         : user?.role === "super_admin"
         ? "overview"
-        : "dashboard";
+        : "dashboard"
+    );
 
     if (activeTab !== defaultTab) {
       setActiveTab(defaultTab);
@@ -55,7 +62,7 @@ export default function DashboardPage() {
             return <InternDashboard user={user} />;
         }
       case "tech_lead":
-        return <TeamOverview currentUser={user} />;
+        return <TeamOverview currentUser={user} activeTab={activeTab} />;
       case "manager":
         if (activeTab === "all_projects") {
           return <MyProjects currentUser={user} readOnly />;

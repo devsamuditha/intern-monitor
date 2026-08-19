@@ -7,6 +7,7 @@ import {
   LayoutDashboard, FolderKanban,
   Users, TrendingUp, LogOut, Shield, Target, Settings, AlertTriangle, Trophy
 } from "lucide-react";
+import { GLASS_VARIANTS, PASTEL_TEXT } from "@/src/components/ui/theme/ThemeTokens";
 
 interface DashboardShellProps {
   children: React.ReactNode;
@@ -70,8 +71,8 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex transition-colors duration-200">
-      <aside className="hidden md:flex flex-col w-64 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-r border-white/20 dark:border-slate-700/30 shrink-0">
+    <div className={`min-h-screen ${GLASS_VARIANTS.sidebar} text-slate-900 dark:text-slate-100 flex transition-colors duration-200`}>
+      <aside className="hidden md:flex flex-col w-64 shrink-0">
         <div className="h-20 flex items-center px-6 border-b border-white/20 dark:border-slate-700/30 gap-2.5">
           <div className="bg-teal-600 text-white p-2 rounded-xl shadow-lg shadow-teal-100 dark:shadow-none">
             <Target className="h-5 w-5" />
@@ -106,7 +107,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
         <div className="p-4 border-t border-white/20 dark:border-slate-700/30 space-y-2">
           <div className="p-3 bg-teal-50/50 dark:bg-teal-950/10 rounded-xl border border-teal-100/30 dark:border-teal-900/10">
             <p className="text-[10px] text-teal-700 dark:text-teal-400 font-semibold leading-relaxed font-mono">
-              💡 Use the top menu to switch roles instantly and test different dashboard interfaces!
+              Use the top menu to switch roles instantly and test different dashboard interfaces!
             </p>
           </div>
 
@@ -128,7 +129,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
       </aside>
 
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="h-20 bg-white dark:bg-slate-900 border-b border-white/20 dark:border-slate-700/30 flex items-center justify-between px-8 z-10">
+        <header className="h-20 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-white/20 dark:border-slate-700/30 flex items-center justify-between px-8 z-10">
           <div className="flex items-center gap-2">
             <span className="md:hidden bg-teal-600 text-white p-1 rounded-md shrink-0">
               <Target className="h-4 w-4" />
@@ -170,7 +171,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
           </div>
         </header>
 
-        <div className="md:hidden flex bg-white dark:bg-slate-900 border-b border-white/20 dark:border-slate-700/30 px-4 py-2 justify-around gap-1 shrink-0 overflow-x-auto">
+        <div className="md:hidden flex bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-white/20 dark:border-slate-700/30 px-4 py-2 justify-around gap-1 shrink-0 overflow-x-auto">
           {navItems.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.id);
@@ -202,4 +203,3 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
 };
 
 export default DashboardShell;
-

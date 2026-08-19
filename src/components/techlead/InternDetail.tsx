@@ -281,7 +281,7 @@ export const InternDetail: React.FC<InternDetailProps> = ({ internId, currentUse
   return (
     <div id="intern-detail-drilldown" className="space-y-6">
       {/* Back & Profile Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-lg shadow-teal-500/5">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-lg shadow-teal-500/5">
         <div className="flex items-center gap-4">
           <button 
             onClick={onBack}
@@ -320,7 +320,7 @@ export const InternDetail: React.FC<InternDetailProps> = ({ internId, currentUse
         </div>
 
         {/* Stats strip */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 border-t md:border-t-0 md:border-l border-slate-200 dark:border-slate-800 pt-4 md:pt-0 md:pl-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 border-t lg:border-t-0 lg:border-l border-slate-200 dark:border-slate-800 pt-4 lg:pt-0 lg:pl-8">
           <div>
             <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Avg Marks</p>
             <p className="text-lg font-extrabold text-teal-600 dark:text-teal-400 flex items-center gap-1 mt-0.5">
@@ -393,7 +393,7 @@ export const InternDetail: React.FC<InternDetailProps> = ({ internId, currentUse
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-3 text-xs">
             <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800 space-y-1">
               <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
                 <FolderGit2 className="h-3.5 w-3.5 text-teal-400" /> Today Project

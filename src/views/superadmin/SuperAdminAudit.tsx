@@ -237,7 +237,7 @@ export const SuperAdminAudit: React.FC<SuperAdminAuditProps> = ({ currentUser })
             <select
               value={filters.action}
               onChange={(e) => handleFilterChange('action', e.target.value)}
-              className="w-full text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
+              className="w-full text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
             >
               <option value="">All Actions</option>
               {ACTION_OPTIONS.map((a) => (
@@ -250,7 +250,7 @@ export const SuperAdminAudit: React.FC<SuperAdminAuditProps> = ({ currentUser })
             <select
               value={filters.targetType}
               onChange={(e) => handleFilterChange('targetType', e.target.value)}
-              className="w-full text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
+              className="w-full text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
             >
               <option value="">All Types</option>
               {TARGET_TYPE_OPTIONS.map((t) => (
@@ -263,7 +263,7 @@ export const SuperAdminAudit: React.FC<SuperAdminAuditProps> = ({ currentUser })
             <select
               value={filters.actorId}
               onChange={(e) => handleFilterChange('actorId', e.target.value)}
-              className="w-full text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
+              className="w-full text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
             >
               <option value="">All Actors</option>
               {uniqueActors.map((u) => (

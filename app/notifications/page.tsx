@@ -7,7 +7,7 @@ import { useAuth } from "@/src/context/AuthContext";
 import { useSettings } from "@/src/context/SettingsContext";
 import { useNotifications } from "@/src/context/NotificationContext";
 import { api } from "@/src/services/api";
-import { CheckCircle, AlertCircle, Bell, VolumeX, Volume2, Check } from "lucide-react";
+import { CheckCircle, AlertCircle, Bell, VolumeX, Volume2, Check, Trash2 } from "lucide-react";
 
 const FILTERS = ["all", "unread"] as const;
 type FilterType = (typeof FILTERS)[number];
@@ -17,7 +17,7 @@ export default function NotificationsPage() {
   const { user } = useAuth();
   const { settings } = useSettings();
   const [activeTab, setActiveTab] = useState("notifications");
-  const { notifications, unreadCount, markAsRead, markAllAsRead, isLoading } = useNotifications();
+  const { notifications, unreadCount, markAsRead, markAllAsRead, clearAll, isLoading } = useNotifications();
   const [filter, setFilter] = useState<FilterType>("all");
   const [typeFilter, setTypeFilter] = useState<string | null>(null);
   const [mutedTypes, setMutedTypes] = useState<string[]>([]);
@@ -104,6 +104,20 @@ export default function NotificationsPage() {
             >
               <Check className="h-4 w-4" />
               Mark All Read
+            </button>
+          )}
+          {notifications.length > 0 && (
+            <button
+              onClick={async () => {
+                if (window.confirm('Delete all notifications permanently?')) {
+                  await clearAll();
+                }
+              }}
+              className="flex items-center gap-2 px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold rounded-xl transition"
+              type="button"
+            >
+              <Trash2 className="h-4 w-4" />
+              Clear All
             </button>
           )}
         </div>

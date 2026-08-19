@@ -7,7 +7,7 @@ import React from 'react';
 import { motion } from 'motion/react';
 import { Flame, Award, CheckSquare, Clock } from 'lucide-react';
 import { fadeInUp, hoverLift } from '../../utils/motion';
-import { ThemedIcon } from '../../components/ui/ThemedIcon';
+import GlassStat from '../../components/ui/glass/GlassStat';
 
 interface StatsHeaderProps {
   streak: number;
@@ -30,60 +30,32 @@ export const StatsHeader: React.FC<StatsHeaderProps> = ({
       <motion.div
         variants={fadeInUp}
         {...hoverLift}
-        className="bg-white/10 backdrop-blur-xl  rounded-2xl p-3 shadow-lg shadow-teal-500/5 flex items-center gap-1 transition-all duration-200"
       >
-        <div className=" text-amber-300 p-3 rounded-xl">
-          <ThemedIcon icon={Flame} color="amber" size={24} fill />
-        </div>
-        <div>
-          <p className="text-[9px] text-teal-100 font-bold uppercase tracking-wide">Journal Streak</p>
-          <p className="text-[15px] font-black text-white mt-0.5">{streak > 0 ? `${streak}-Day Streak 🔥` : '0-Day Streak '}</p>
-        </div>
+        <GlassStat icon={Flame} label="Journal Streak" value={streak > 0 ? `${streak}-Day Streak 🔥` : '0-Day Streak '} iconColor="amber" />
       </motion.div>
 
       {/* Avg Marks card */}
       <motion.div
         variants={fadeInUp}
         {...hoverLift}
-        className="bg-white/10 backdrop-blur-xl rounded-2xl p-3 shadow-lg shadow-teal-500/5 flex items-center gap-1 transition-all duration-200"
       >
-        <div className=" text-teal-300 p-3 rounded-xl">
-          <ThemedIcon icon={Award} color="teal" size={24} />
-        </div>
-        <div>
-          <p className="text-[9px] text-teal-100 font-bold uppercase tracking-wide">Average Score</p>
-          <p className="text-[15px] font-black text-white mt-0.5">{avgMark !== null && avgMark > 0 ? `${avgMark.toFixed(1)} / 5.0 ` : 'No scores yet ⭐'}</p>
-        </div>
+        <GlassStat icon={Award} label="Average Score" value={avgMark !== null && avgMark > 0 ? `${avgMark.toFixed(1)} / 5.0 ` : 'No scores yet ⭐'} iconColor="teal" />
       </motion.div>
 
       {/* Completed Tasks */}
       <motion.div
         variants={fadeInUp}
         {...hoverLift}
-        className="bg-white/10 backdrop-blur-xl rounded-2xl p-3 shadow-lg shadow-teal-500/5 flex items-center gap-1 transition-all duration-200"
       >
-        <div className=" text-emerald-300 p-3 rounded-xl">
-          <ThemedIcon icon={CheckSquare} color="emerald" size={24} />
-        </div>
-        <div>
-          <p className="text-[9px] text-teal-100 font-bold uppercase tracking-wide">Tasks Completed</p>
-          <p className="text-[15px] font-black text-white mt-0.5">{completedTasksCount} / {totalTasks}</p>
-        </div>
+        <GlassStat icon={CheckSquare} label="Tasks Completed" value={`${completedTasksCount} / ${totalTasks}`} iconColor="emerald" />
       </motion.div>
 
       {/* Total Logs */}
       <motion.div
         variants={fadeInUp}
         {...hoverLift}
-        className="bg-white/10 backdrop-blur-xl rounded-2xl p-3 shadow-lg shadow-teal-500/5 flex items-center gap-1 transition-all duration-200"
       >
-        <div className=" text-teal-300 p-3 rounded-xl">
-          <ThemedIcon icon={Clock} color="teal" size={24} />
-        </div>
-        <div>
-          <p className="text-[9px] text-teal-100 font-bold uppercase tracking-wide">Logs Submitted</p>
-          <p className="text-[15px] font-black text-white mt-0.5">{totalLogs} entries</p>
-        </div>
+        <GlassStat icon={Clock} label="Logs Submitted" value={`${totalLogs} entries`} iconColor="teal" />
       </motion.div>
     </div>
   );

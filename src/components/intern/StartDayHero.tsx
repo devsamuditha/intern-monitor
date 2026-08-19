@@ -182,7 +182,7 @@ export const StartDayHero: React.FC<StartDayHeroProps> = ({
 
       {/* Display Active/Completed Today Session details */}
       {todaySession && (todaySession.today_project || todaySession.today_plan || todaySession.questions || todaySession.git_link || activeTask) && (
-        <div className="mt-4 pt-4 border-t border-slate-700/60 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3 text-xs">
+        <div className="mt-4 pt-4 border-t border-slate-700/60 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-5 gap-3 text-xs">
           {todaySession.today_project && (
             <div className="p-3 rounded-xl bg-white/5 border border-white/10 space-y-1">
               <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">

@@ -711,6 +711,14 @@ export const api = {
     return handleResponse(res);
   },
 
+  clearAllNotifications: async (): Promise<{ success: boolean; count: number }> => {
+    const res = await fetchWithDedup("/api/notifications/clear-all", {
+      method: "DELETE",
+      headers: await getAuthHeaders()
+    });
+    return handleResponse(res);
+  },
+
    createNotification: async (data: {
     userId: string;
     type: string;

@@ -12,7 +12,8 @@ import { scaleIn } from '../../utils/motion';
 import { TrendingUp, Users, Flag, Activity, RefreshCw, Server, Shield, AlertTriangle, ArrowRight, BarChart3, Award, Clock, Target, Zap, Globe, Code, Terminal, Rocket, Layers, ChevronRight } from 'lucide-react';
 import { getSupabaseClient } from '../../lib/supabaseClient';
 import { useQueryClient } from '@tanstack/react-query';
-import { QUICK_LINK_COLORS } from '../../components/ui/theme/ThemeTokens';
+import { QUICK_LINK_COLORS, GLASS_VARIANTS, PASTEL_TEXT } from '../../components/ui/theme/ThemeTokens';
+import { GlassPanel, GlassCard } from '../../components/ui/glass';
 import { useEffect } from 'react';
 
 interface SuperAdminOverviewProps {
@@ -114,7 +115,7 @@ export const SuperAdminOverview: React.FC<SuperAdminOverviewProps> = ({ currentU
 
       {/* Header Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl p-6 rounded-2xl border border-white/20 dark:border-slate-700/30 shadow-lg shadow-teal-500/5">
+        <GlassPanel>
           <div className="flex items-center gap-4">
             <div className="p-3 bg-teal-50 dark:bg-teal-950/40 rounded-xl">
               <Globe className="h-6 w-6 text-teal-600 dark:text-teal-400" />
@@ -132,9 +133,9 @@ export const SuperAdminOverview: React.FC<SuperAdminOverviewProps> = ({ currentU
               </div>
             ))}
           </div>
-        </div>
+        </GlassPanel>
 
-        <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl p-6 rounded-2xl border border-white/20 dark:border-slate-700/30 shadow-lg shadow-teal-500/5">
+        <GlassPanel>
           <div className="flex items-center gap-4">
             <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 rounded-xl">
               <Activity className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
@@ -160,9 +161,9 @@ export const SuperAdminOverview: React.FC<SuperAdminOverviewProps> = ({ currentU
               </div>
             </>
           )}
-        </div>
+        </GlassPanel>
 
-        <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl p-6 rounded-2xl border border-white/20 dark:border-slate-700/30 shadow-lg shadow-teal-500/5">
+        <GlassPanel>
           <div className="flex items-center gap-4">
             <div className="p-3 bg-amber-50 dark:bg-amber-950/40 rounded-xl">
               <Award className="h-6 w-6 text-amber-600 dark:text-amber-400" />
@@ -185,7 +186,7 @@ export const SuperAdminOverview: React.FC<SuperAdminOverviewProps> = ({ currentU
               </div>
             ))}
           </div>
-        </div>
+        </GlassPanel>
       </div>
 
       {/* Charts Row */}
@@ -193,7 +194,7 @@ export const SuperAdminOverview: React.FC<SuperAdminOverviewProps> = ({ currentU
         
         {/* Submissions Volume Chart */}
         {overview?.recentAuditLogs && (
-          <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl p-6 rounded-2xl border border-white/20 dark:border-slate-700/30 shadow-lg shadow-teal-500/5 space-y-4">
+          <GlassPanel>
             <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
               Recent Activity <Activity className="h-4 w-4 text-teal-600" />
             </h3>
@@ -214,11 +215,11 @@ export const SuperAdminOverview: React.FC<SuperAdminOverviewProps> = ({ currentU
                 <p className="text-xs text-slate-400 text-center py-4">No recent activity</p>
               )}
             </div>
-          </div>
+          </GlassPanel>
         )}
 
         {/* Top Technologies */}
-        <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl p-6 rounded-2xl border border-white/20 dark:border-slate-700/30 shadow-lg shadow-teal-500/5 space-y-4">
+        <GlassPanel>
           <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
             Popular Technologies <Code className="h-4 w-4 text-teal-600" />
           </h3>
@@ -246,14 +247,14 @@ export const SuperAdminOverview: React.FC<SuperAdminOverviewProps> = ({ currentU
               <p className="text-xs text-slate-400 text-center py-4">No technology data available</p>
             )}
           </div>
-        </div>
+        </GlassPanel>
       </div>
 
       {/* Needs Attention + Quick Links Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         
         {/* Moderation Alert */}
-        <div className="bg-rose-50/70 dark:bg-rose-950/20 backdrop-blur-xl p-6 rounded-2xl border border-rose-200/30 dark:border-rose-900/30 shadow-lg shadow-rose-500/5 space-y-4 cursor-pointer hover:bg-rose-100/70 dark:hover:bg-rose-950/30 transition" onClick={() => handleNavigate('/superadmin/moderation')}>
+        <GlassPanel className="cursor-pointer hover:bg-white/20 dark:hover:bg-slate-900/20 transition" onClick={() => handleNavigate('/superadmin/moderation')}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-rose-100 dark:bg-rose-950/40 rounded-xl">
@@ -269,10 +270,10 @@ export const SuperAdminOverview: React.FC<SuperAdminOverviewProps> = ({ currentU
           <div className="flex items-center gap-1 text-[10px] text-rose-600 dark:text-rose-400 font-semibold">
             View Moderation Queue <ChevronRight className="h-3 w-3" />
           </div>
-        </div>
+        </GlassPanel>
 
         {/* Quick Links */}
-        <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl p-6 rounded-2xl border border-white/20 dark:border-slate-700/30 shadow-lg shadow-teal-500/5 space-y-4">
+        <GlassPanel>
           <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
             <Shield className="h-4 w-4 text-teal-600" /> Quick Links
           </h3>
@@ -310,13 +311,10 @@ export const SuperAdminOverview: React.FC<SuperAdminOverviewProps> = ({ currentU
               );
             })}
           </div>
-        </div>
+        </GlassPanel>
       </div>
     </motion.div>
   );
 };
 
-
-
 export default SuperAdminOverview;
-

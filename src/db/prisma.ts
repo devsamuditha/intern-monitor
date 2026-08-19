@@ -6,12 +6,12 @@ declare global {
 
 export function getPrisma(): PrismaClient {
   const isProduction = process.env.NODE_ENV === 'production';
-  const dbUrl = isProduction ? process.env.DATABASE_URL : process.env.DIRECT_URL;
+  // Use the pooled connection (DATABASE_URL) for both dev and prod clients
+  // DIRECT_URL should only be used by prisma CLI for migrations
+  const dbUrl = process.env.DATABASE_URL;
 
   if (!dbUrl) {
-    throw new Error(
-      `Missing ${isProduction ? 'DATABASE_URL' : 'DIRECT_URL'} environment variable.`
-    );
+    throw new Error('Missing DATABASE_URL environment variable.');
   }
 
   if (!global.prisma) {

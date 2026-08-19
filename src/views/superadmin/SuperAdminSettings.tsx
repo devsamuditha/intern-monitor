@@ -174,7 +174,7 @@ export const SuperAdminSettings: React.FC = () => {
                       value={currentValue || '1-5'}
                       onChange={(e) => handleSelectChange(settingDef.key, e.target.value)}
                       disabled={saving === settingDef.key}
-                      className="text-xs font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500/20 disabled:opacity-50 cursor-pointer"
+                      className="text-xs font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500/20 disabled:opacity-50 cursor-pointer"
                     >
                       <option value="1-5">1–5 Stars</option>
                       <option value="1-10">1–10 Stars</option>

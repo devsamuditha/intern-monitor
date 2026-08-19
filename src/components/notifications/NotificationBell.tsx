@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { Bell, X, ChevronDown, ChevronUp, VolumeX, Volume2 } from 'lucide-react';
+import { Bell, X, ChevronDown, ChevronUp, VolumeX, Volume2, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useNotifications } from '@/src/context/NotificationContext';
 import { api } from '@/src/services/api';
@@ -11,10 +11,11 @@ interface NotificationBellProps {
 }
 
 export const NotificationBell: React.FC<NotificationBellProps> = ({ onToggle }) => {
-  const { unreadCount, markAsRead, notifications } = useNotifications();
+  const { unreadCount, markAsRead, notifications, clearAll } = useNotifications();
   const [isOpen, setIsOpen] = useState(false);
   const [showMuteSection, setShowMuteSection] = useState(false);
   const [mutedTypes, setMutedTypes] = useState<string[]>([]);
+  const [isClearing, setIsClearing] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
@@ -70,6 +71,19 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ onToggle }) 
     router.push('/notifications');
   };
 
+  const handleClearAll = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isClearing || notifications.length === 0) return;
+    if (!window.confirm('Delete all notifications permanently?')) return;
+    setIsClearing(true);
+    try {
+      await clearAll();
+      setIsOpen(false);
+    } finally {
+      setIsClearing(false);
+    }
+  };
+
   return (
     <div className="relative">
       <button
@@ -105,6 +119,14 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ onToggle }) 
                     {showMuteSection ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                   </button>
                 )}
+                <button
+                  onClick={handleClearAll}
+                  disabled={isClearing || notifications.length === 0}
+                  className="text-slate-400 hover:text-rose-400 transition disabled:opacity-50"
+                  title="Clear all notifications"
+                >
+                  {isClearing ? <span className="text-[10px]">...</span> : <Trash2 className="h-4 w-4" />}
+                </button>
                 <button
                   onClick={() => setIsOpen(false)}
                   className="text-slate-400 hover:text-white transition"

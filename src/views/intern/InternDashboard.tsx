@@ -27,7 +27,9 @@ import {
   LastJournalReminderModal,
   FinalWarningModal
 } from '../../components/intern';
-import { formatDate } from '../../utils/helpers';
+ import { formatDate } from '../../utils/helpers';
+ import { GRADIENT_CLASSES, PASTEL_TEXT, GLASS_VARIANTS } from '../../components/ui/theme/ThemeTokens';
+ import GlassColumn from '../../components/ui/glass/GlassColumn';
  import { useInternDashboard, useSubmitLog, useStartDaySession, useEndDaySession, useUpdateTaskStatus, useRequestEarlyExit } from '@/src/hooks/queries/useDashboardQueries';
 
 interface InternDashboardProps {
@@ -435,7 +437,7 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
       <motion.div
         key="dashboard"
         id="intern-workspace-root"
-        className="min-h-[calc(100vh-5rem)] bg-gradient-to-br from-teal-950 via-cyan-950 to-emerald-950"
+        className={`min-h-[calc(100vh-5rem)] ${GRADIENT_CLASSES.page}`}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3, delay: 0.1 }}
@@ -447,10 +449,8 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className={`flex items-center gap-2 px-4 py-3 rounded-xl border text-xs font-semibold ${
-                  toast.type === 'success'
-                    ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-900/30 text-emerald-700 dark:text-emerald-300'
-                    : 'bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-900/30 text-rose-700 dark:text-rose-300'
+                className={`flex items-center gap-2 px-4 py-3 text-xs font-semibold ${GLASS_VARIANTS.card} ${
+                  toast.type === 'success' ? PASTEL_TEXT.success : PASTEL_TEXT.danger
                 }`}
               >
                 {toast.type === 'success' ? <CheckCircle2 className="h-4 w-4" /> : <XCircle className="h-4 w-4" />}
@@ -537,14 +537,14 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
             {/* Left Column: Log Form & Flagged Mistakes */}
-            <div className="lg:col-span-5 space-y-6 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-4">
+            <GlassColumn className="lg:col-span-5 space-y-6 p-4">
               <DailyLogForm user={user} onSuccess={handleLogSubmitSuccess} todaySession={todaySession} projects={projects} />
 
               <FlaggedMistakesBanner mistakes={mistakes} />
-            </div>
+            </GlassColumn>
 
             {/* Right Column: Timelines, Tasks, Feedback */}
-            <div className="lg:col-span-7 space-y-6 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-4">
+            <GlassColumn className="lg:col-span-7 space-y-6 p-4">
 
               <TasksBoard
                 tasks={tasks}
@@ -560,7 +560,7 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
                 dateFilter={dateFilter}
                 setDateFilter={setDateFilter}
               />
-            </div>
+            </GlassColumn>
           </div>
         </div>
       </motion.div>

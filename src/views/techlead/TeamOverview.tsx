@@ -15,24 +15,33 @@ import { ProjectEditModal } from '../../components/techlead/ProjectEditModal';
 import { RankingChart } from '../../components/intern/RankingChart';
 import { ManagerAssignments } from '../../components/techlead/ManagerAssignments';
 import { InternAttendanceFeed } from '../../components/attendance/InternAttendanceFeed';
+import { InternDailySummary } from '../../components/techlead/InternDailySummary';
 import { getSupabaseClient } from '../../lib/supabaseClient';
 import {
   Users, CheckCircle, Clock, Star, Flame, AlertTriangle,
   TrendingUp, Sparkles, ChevronRight, Check, X, ShieldCheck,
   Zap, Sun, CheckCircle2, MessageSquare, PlusCircle, Github, ExternalLink, CheckSquare, Calendar, LogOut, Trash2, Trophy
 } from 'lucide-react';
+import {
+  GLASS_VARIANTS, PASTEL_TEXT, PASTEL_SHADOWS
+} from '../../components/ui/theme/ThemeTokens';
+import { GlassTabBar, GlassPanel, GlassCard } from '../../components/ui/glass';
 import { formatDate } from '../../utils/helpers';
 import { scaleIn } from '../../utils/motion';
 import { useApproveEarlyExit } from '../../hooks/queries/useDashboardQueries';
 
+import { InternsManagement } from '../../components/techlead/InternsManagement';
+import { TechLeadProjects } from '../../components/techlead/TechLeadProjects';
+import { InternDailyJournalSummary } from '../../components/techlead/InternDailyJournalSummary';
+
 interface TeamOverviewProps {
   currentUser: User;
+  activeTab?: string;
 }
 
-export const TeamOverview: React.FC<TeamOverviewProps> = ({ currentUser }) => {
+export const TeamOverview: React.FC<TeamOverviewProps> = ({ currentUser, activeTab = 'team_overview' }) => {
   const queryClient = useQueryClient();
   const [selectedInternId, setSelectedInternId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'queue' | 'roster' | 'upcoming_projects' | 'manager_assignments'>('roster');
   const [lastNotifiedInternId, setLastNotifiedInternId] = useState<string | null>(null);
 
   const { data: analytics, isLoading: loading } = useQuery({
@@ -165,12 +174,418 @@ export const TeamOverview: React.FC<TeamOverviewProps> = ({ currentUser }) => {
   const allUsers = usersQuery.data || [];
   const allTasks = tasksQuery.data || [];
 
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'team_overview':
+        return (
+          <>
+            {/* Today's Intern Attendance & Start Day Feed */}
+            <InternDailySummary
+              rosterData={rosterData}
+              onInternSelect={(id) => setSelectedInternId(id)}
+            />
+
+            <InternAttendanceFeed
+              rosterData={rosterData}
+              onInternSelect={(id) => setSelectedInternId(id)}
+              canApproveEarlyExit={true}
+              onApproveEarlyExit={async (sessionId) => { await approveEarlyExitMutation.mutateAsync({ session_id: sessionId }); }}
+            />
+
+            {/* MISSING 1:30 PM JOURNAL COMPLIANCE */}
+            {(() => {
+              const missing130 = rosterData.filter((r: any) => r.missingLog130);
+              return (
+                <GlassPanel className="border border-rose-200/60 dark:border-rose-900/50 bg-white/60 dark:bg-slate-900/40 hover:shadow-lg hover:shadow-rose-500/5 transition-all duration-300 p-6 rounded-3xl">
+                  <div className="mb-4">
+                    <h3 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
+                      <AlertTriangle className="h-4 w-4 text-rose-500" />
+                      Missing 1:30 PM Journal
+                      {missing130.length > 0 && (
+                        <span className="px-2 py-0.5 rounded-md bg-rose-100 dark:bg-rose-900/60 text-rose-700 dark:text-rose-300 text-[10px] font-black uppercase tracking-widest animate-pulse ml-2 shadow-sm">
+                          {missing130.length} Missing
+                        </span>
+                      )}
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Interns who have not submitted their daily journal past the 1:30 PM IST deadline.</p>
+                  </div>
+
+                  {missing130.length === 0 ? (
+                    <div className="py-10 text-center space-y-3">
+                      <div className="bg-emerald-50 dark:bg-emerald-950/50 p-4 rounded-full w-14 h-14 flex items-center justify-center mx-auto text-emerald-500">
+                        <CheckCircle2 className="h-7 w-7" />
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-sm font-bold text-slate-900 dark:text-white">All caught up!</p>
+                        <p className="text-xs text-slate-400 max-w-md mx-auto leading-relaxed">
+                          Every intern has submitted their 1:30 PM journal today.
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="border-b border-slate-200 dark:border-slate-800 text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+                            <th className="pb-3 font-semibold">Intern</th>
+                            <th className="pb-3 font-semibold">Session</th>
+                            <th className="pb-3 font-semibold">Last Submission</th>
+                            <th className="pb-3 font-semibold text-right">Status</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                          {missing130.map((row: any) => {
+                            const sess = row.todaySession;
+                            const isActive = sess?.status === 'active';
+                            const isCompleted = sess?.status === 'completed';
+
+                            return (
+                              <tr
+                                key={row.intern.id}
+                                onClick={() => setSelectedInternId(row.intern.id)}
+                                className="group hover:bg-rose-50/50 dark:hover:bg-rose-900/10 cursor-pointer transition-colors duration-200"
+                              >
+                                <td className="py-3 pr-2">
+                                  <div className="flex items-center gap-3">
+                                    <img src={row.intern.avatar} alt={row.intern.name} className="h-8 w-8 rounded-full object-cover border" referrerPolicy="no-referrer" />
+                                    <div className="min-w-0">
+                                      <p className="text-xs font-bold text-slate-900 dark:text-white truncate group-hover:text-amber-700 dark:group-hover:text-amber-400">{row.intern.name}</p>
+                                      <p className="text-[10px] text-slate-400 truncate">{row.intern.email}</p>
+                                    </div>
+                                  </div>
+                                </td>
+
+                                <td className="py-3.5 px-2">
+                                  <div className="flex items-center gap-1.5">
+                                    {isActive ? (
+                                      <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold flex items-center gap-1 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping inline-block" />
+                                        Started {sess.started_at}
+                                      </span>
+                                    ) : isCompleted ? (
+                                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400">
+                                        Ended {sess.ended_at}
+                                      </span>
+                                    ) : (
+                                      <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
+                                        Not started
+                                      </span>
+                                    )}
+                                  </div>
+                                </td>
+
+                                <td className="py-3.5 px-2">
+                                  <span className="text-xs font-bold text-slate-800 dark:text-white">{row.lastSubmission}</span>
+                                </td>
+
+                                <td className="py-3.5 pl-2 text-right">
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 border border-rose-200 dark:border-rose-800 animate-pulse">
+                                    <AlertTriangle className="h-3 w-3" />
+                                    Missing 1:30 PM Log
+                                  </span>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </GlassPanel>
+              );
+            })()}
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              {/* Roster Table */}
+              <GlassPanel className="lg:col-span-8 border border-slate-200/60 dark:border-slate-700/60 hover:shadow-lg transition-all duration-300 p-6 rounded-3xl bg-white/60 dark:bg-slate-900/40">
+                <div className="mb-5">
+                  <h3 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
+                    <Users className="h-4 w-4 text-teal-500" /> Intern Roster
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Click into an intern card to review journal commits, award marks, or leave mentors feedback.</p>
+                </div>
+
+                <div className="hidden md:block overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-b border-slate-200 dark:border-slate-800 text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+                        <th className="pb-3 font-semibold">Intern name</th>
+                        <th className="pb-3 font-semibold">Today's Start Day</th>
+                        <th className="pb-3 font-semibold">Log Streak</th>
+                        <th className="pb-3 font-semibold">Average Stars</th>
+                        <th className="pb-3 font-semibold text-right">Sprint Progress</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                      {rosterData.length === 0 ? (
+                        <tr>
+                          <td colSpan={5} className="py-12 text-center space-y-3">
+                            <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-2xl w-14 h-14 flex items-center justify-center mx-auto text-slate-400 shadow-inner">
+                              <Users className="h-7 w-7" />
+                            </div>
+                            <div className="space-y-1">
+                              <p className="text-sm font-black text-slate-900 dark:text-white">No interns assigned yet 👥</p>
+                              <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto leading-relaxed">
+                                No interns yet — invite your team to get started! Once interns register and log entries, their profiles and sprint telemetry will appear here.
+                              </p>
+                            </div>
+                          </td>
+                        </tr>
+                      ) : (
+                        rosterData.map((row: any) => {
+                          const sess = row.todaySession;
+                          const isActive = sess?.status === 'active';
+                          const isCompleted = sess?.status === 'completed';
+
+                          return (
+                            <tr 
+                              key={row.intern.id}
+                              onClick={() => setSelectedInternId(row.intern.id)}
+                              className="group hover:bg-slate-50/80 dark:hover:bg-slate-800/50 cursor-pointer transition-colors duration-200"
+                            >
+                              {/* Name & Avatar */}
+                              <td className="py-3.5 pr-2">
+                                <div className="flex items-center gap-3">
+                                  <img src={row.intern.avatar} alt={row.intern.name} className="h-8 w-8 rounded-full object-cover border" referrerPolicy="no-referrer" />
+                                  <div className="min-w-0">
+                                    <p className="text-xs font-bold text-slate-900 dark:text-white truncate group-hover:text-teal-700 dark:group-hover:text-teal-400">{row.intern.name}</p>
+                                    <p className="text-[10px] text-slate-400 truncate">{row.intern.email}</p>
+                                  </div>
+                                </div>
+                              </td>
+
+                              {/* Start Day Status */}
+                              <td className="py-3.5 px-2">
+                                <div className="flex items-center gap-1.5">
+                                  {isActive ? (
+                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold flex items-center gap-1 ${
+                                      sess?.is_late
+                                        ? 'bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800'
+                                        : 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
+                                    }`}>
+                                      <span className={`w-1.5 h-1.5 rounded-full animate-ping inline-block ${sess?.is_late ? 'bg-amber-500' : 'bg-emerald-500'}`} />
+                                      {sess?.is_late ? 'Late Started ' : 'Started '}{sess.started_at}
+                                    </span>
+                                  ) : isCompleted ? (
+                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400">
+                                      Ended {sess.ended_at}
+                                    </span>
+                                  ) : (
+                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
+                                      Not started
+                                    </span>
+                                  )}
+                                </div>
+                              </td>
+
+                              {/* Streak */}
+                              <td className="py-3.5 px-2">
+                                <div className="flex items-center gap-1">
+                                  <Flame className={`h-4 w-4 ${row.streak > 0 ? 'text-amber-500 fill-amber-500' : 'text-slate-300'}`} />
+                                  <span className="text-xs font-bold text-slate-800 dark:text-white">{row.streak} days</span>
+                                </div>
+                              </td>
+
+                              {/* Score */}
+                              <td className="py-3.5 px-2">
+                                <div className="flex items-center gap-1 text-teal-600 dark:text-teal-400 font-bold text-xs">
+                                  {row.avgMark} <Star className="h-3.5 w-3.5 fill-teal-500 text-teal-500" />
+                                </div>
+                              </td>
+
+                              {/* Task score compliance */}
+                              <td className="py-3.5 pl-2 text-right">
+                                <div className="inline-flex items-center gap-2">
+                                  <div className="text-right">
+                                    <p className="text-[10px] font-bold text-slate-800 dark:text-white">
+                                      {row.completedTasks} / {row.totalTasks} Done
+                                    </p>
+                                    <p className="text-[9px] text-slate-400">
+                                      {row.unresolvedMistakesCount > 0 
+                                        ? `${row.unresolvedMistakesCount} blunders flagged` 
+                                        : 'All clean'}
+                                    </p>
+                                  </div>
+                                  <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-teal-700 dark:group-hover:text-teal-400 transition" />
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Mobile card fallback */}
+                <div className="md:hidden space-y-3">
+                  {rosterData.length === 0 ? (
+                    <div className="py-12 text-center space-y-3">
+                      <div className="bg-slate-50 dark:bg-slate-950 p-4 rounded-full w-14 h-14 flex items-center justify-center mx-auto text-slate-400">
+                        <Users className="h-7 w-7" />
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-sm font-bold text-slate-900 dark:text-white">No interns assigned yet 👥</p>
+                        <p className="text-xs text-slate-400 max-w-md mx-auto leading-relaxed">
+                          No interns yet — invite your team to get started! Once interns register and log entries, their profiles and sprint telemetry will appear here.
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    rosterData.map((row: any) => {
+                      const sess = row.todaySession;
+                      const isActive = sess?.status === 'active';
+                      const isCompleted = sess?.status === 'completed';
+
+                      return (
+                        <GlassCard
+                          key={row.intern.id}
+                          onClick={() => setSelectedInternId(row.intern.id)}
+                          shadow="card"
+                          className="group cursor-pointer p-5 rounded-3xl border border-slate-200/60 dark:border-slate-700/60 hover:border-teal-300 dark:hover:border-teal-700 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 bg-white/80 dark:bg-slate-900/80"
+                        >
+                          <div className="flex items-center gap-4 mb-4">
+                            <div className="relative">
+                              <img src={row.intern.avatar} alt={row.intern.name} className="h-12 w-12 rounded-full object-cover border-2 border-white dark:border-slate-800 shadow-sm group-hover:border-teal-200 transition-colors" referrerPolicy="no-referrer" />
+                              {isActive && <div className="absolute -bottom-1 -right-1 h-4 w-4 bg-emerald-500 border-2 border-white dark:border-slate-900 rounded-full"></div>}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm font-black text-slate-900 dark:text-white truncate group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">{row.intern.name}</p>
+                              <p className="text-[11px] text-slate-500 truncate mt-0.5">{row.intern.email}</p>
+                            </div>
+                            <div className="bg-slate-50 dark:bg-slate-800 p-2.5 rounded-2xl group-hover:bg-teal-50 dark:group-hover:bg-teal-900/30 transition-colors">
+                              <ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-teal-600" />
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-3 mb-4">
+                            <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-2xl flex items-center gap-3 border border-slate-100 dark:border-slate-800/50">
+                              <Flame className={`h-4 w-4 ${row.streak > 0 ? 'text-amber-500 fill-amber-500' : 'text-slate-300'}`} />
+                              <div>
+                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Streak</p>
+                                <p className="text-xs font-black text-slate-800 dark:text-white">{row.streak} <span className="text-[10px] font-bold text-slate-400">days</span></p>
+                              </div>
+                            </div>
+                            <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-2xl flex items-center gap-3 border border-slate-100 dark:border-slate-800/50">
+                              <Star className={`h-4 w-4 ${row.avgMark > 0 ? 'text-teal-500 fill-teal-500' : 'text-slate-300'}`} />
+                              <div>
+                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Score</p>
+                                <p className="text-xs font-black text-slate-800 dark:text-white">{row.avgMark > 0 ? row.avgMark : '-'}</p>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
+                            <div className="flex items-center gap-2">
+                              <CheckSquare className="h-4 w-4 text-slate-400" />
+                              <span className="text-xs font-black text-slate-700 dark:text-slate-300">
+                                {row.completedTasks}/{row.totalTasks} Tasks
+                              </span>
+                            </div>
+                            {row.unresolvedMistakesCount > 0 ? (
+                              <span className="px-2.5 py-1 bg-rose-50 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400 border border-rose-200 dark:border-rose-800/50 rounded-xl text-[10px] font-black flex items-center gap-1.5 shadow-sm">
+                                <AlertTriangle className="h-3.5 w-3.5" /> {row.unresolvedMistakesCount} Flags
+                              </span>
+                            ) : (
+                              <span className="px-2.5 py-1 bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/50 rounded-xl text-[10px] font-black flex items-center gap-1.5 shadow-sm">
+                                <ShieldCheck className="h-3.5 w-3.5" /> Clean
+                              </span>
+                            )}
+                          </div>
+                        </GlassCard>
+                      );
+                    })
+                  )}
+                </div>
+              </GlassPanel>
+
+              {/* High level team trends */}
+              <div className="lg:col-span-4 space-y-6">
+                {/* Intern Rankings */}
+                <RankingChart currentUserId={currentUser.id} />
+
+
+
+                {/* Tech Tag distribution */}
+                <GlassPanel className="p-6 rounded-3xl border border-slate-200/60 dark:border-slate-700/60 hover:shadow-lg transition-all duration-300 bg-white/60 dark:bg-slate-900/40">
+                  <div className="mb-5">
+                    <h3 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
+                      <Zap className="h-4 w-4 text-amber-500" /> Trending Technologies
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Stack distribution across submitted intern journals.</p>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2.5">
+                    {mostUsedTechs.length === 0 ? (
+                      <p className="text-xs text-slate-400 italic">No logs parsed for tech stacks yet.</p>
+                    ) : (
+                      mostUsedTechs.map((tech: any) => (
+                        <span 
+                          key={tech.name} 
+                          className="px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-300 flex items-center gap-2 font-bold hover:bg-teal-50 hover:border-teal-200 hover:text-teal-700 dark:hover:bg-teal-900/30 dark:hover:border-teal-800 transition-colors cursor-default"
+                        >
+                          <span>{tech.name}</span>
+                          <span className="px-2 py-0.5 rounded-lg bg-white dark:bg-slate-900 text-[10px] text-slate-500 dark:text-slate-400 font-black shadow-sm">
+                            {tech.count}
+                          </span>
+                        </span>
+                      ))
+                    )}
+                  </div>
+                </GlassPanel>
+              </div>
+            </div>
+          </>
+        );
+      case 'review_queue':
+        return (
+          <ReviewQueue
+            currentUser={currentUser}
+            onSelectIntern={(internId) => setSelectedInternId(internId)}
+          />
+        );
+      case 'intern_summary':
+        return (
+          <InternDailyJournalSummary
+            currentUser={currentUser}
+          />
+        );
+      case 'ranking':
+        return (
+          <div className="max-w-4xl mx-auto">
+            <RankingChart currentUserId={currentUser.id} />
+          </div>
+        );
+      case 'projects':
+        return (
+          <TechLeadProjects
+            currentUser={currentUser}
+          />
+        );
+      case 'manager_assignments':
+        return (
+          <ManagerAssignments
+            currentUser={currentUser}
+            allUsers={allUsers}
+            allTasks={allTasks}
+            onRefresh={invalidateDashboard}
+          />
+        );
+      case 'interns':
+        return (
+          <InternsManagement
+            currentUser={currentUser}
+          />
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
     <div id="techlead-overview-root" className="space-y-6">
-      
       {/* Welcome Banner */}
       <div className="bg-gradient-to-r from-teal-600 to-teal-700 text-white rounded-3xl p-6 md:p-8 relative overflow-hidden shadow-sm">
-        {/* Background art blur */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-2xl -mr-16 -mt-16" />
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1">
@@ -187,607 +602,44 @@ export const TeamOverview: React.FC<TeamOverviewProps> = ({ currentUser }) => {
             <p className="text-xs font-semibold text-teal-100">Today's Check-in compliance</p>
             <div className="relative h-14 w-14 shrink-0 flex items-center justify-center font-bold text-sm bg-teal-900/40 rounded-full border border-teal-500">
               {complianceRate}%
-              {/* Radial gradient loader */}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Stats row */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-slate-700/30 rounded-2xl p-4 shadow-lg shadow-teal-500/5">
-          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wide">Roster Interns</p>
-          <p className="text-lg font-black text-slate-800 dark:text-white mt-1">{rosterData.length} assigned</p>
-        </div>
-        <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-slate-700/30 rounded-2xl p-4 shadow-lg shadow-teal-500/5">
-          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wide">Working Now</p>
-          <p className="text-lg font-black text-emerald-600 mt-1">{activeCount} online</p>
-        </div>
-        <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-slate-700/30 rounded-2xl p-4 shadow-lg shadow-teal-500/5">
-          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wide">Average Score</p>
-          <p className="text-lg font-black text-teal-600 dark:text-teal-400 mt-1 flex items-center gap-1">
-            {avgMarks} <Star className="h-4 w-4 fill-teal-500 text-teal-500" />
-          </p>
-        </div>
-        <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-slate-700/30 rounded-2xl p-4 shadow-lg shadow-teal-500/5">
-          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wide">Total Submissions</p>
-          <p className="text-lg font-black text-slate-800 dark:text-white mt-1">{totalLogs} logged</p>
-        </div>
-      </div>
-
-      {/* Main Navigation Tabs */}
-      <div className="flex border-b border-white/20 dark:border-slate-700/30 gap-2 overflow-x-auto">
-        <button
-          onClick={() => setActiveTab('roster')}
-          className={`px-5 py-3 text-xs font-bold rounded-t-2xl transition flex items-center gap-2 border-t-2 ${
-            activeTab === 'roster'
-              ? 'bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-teal-600 text-teal-700 dark:text-teal-400 border-x border-white/20 dark:border-slate-700/30 shadow-lg shadow-teal-500/5'
-              : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
-          }`}
-        >
-          <Users className="h-4 w-4" /> Team Roster & Attendance Feed
-        </button>
-        <button
-          onClick={() => setActiveTab('queue')}
-          className={`px-5 py-3 text-xs font-bold rounded-t-2xl transition flex items-center gap-2 border-t-2 ${
-            activeTab === 'queue'
-              ? 'bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-teal-600 text-teal-700 dark:text-teal-400 border-x border-white/20 dark:border-slate-700/30 shadow-lg shadow-teal-500/5'
-              : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
-          }`}
-        >
-          <CheckSquare className="h-4 w-4" /> Review Queue & Grading Desk
-        </button>
-        <button
-          onClick={() => setActiveTab('upcoming_projects')}
-          className={`px-5 py-3 text-xs font-bold rounded-t-2xl transition flex items-center gap-2 border-t-2 ${
-            activeTab === 'upcoming_projects'
-              ? 'bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-teal-600 text-teal-700 dark:text-teal-400 border-x border-white/20 dark:border-slate-700/30 shadow-lg shadow-teal-500/5'
-              : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
-          }`}
-        >
-          <Calendar className="h-4 w-4" /> Upcoming Projects
-        </button>
-        <button
-          onClick={() => setActiveTab('manager_assignments')}
-          className={`px-5 py-3 text-xs font-bold rounded-t-2xl transition flex items-center gap-2 border-t-2 ${
-            activeTab === 'manager_assignments'
-              ? 'bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-teal-600 text-teal-700 dark:text-teal-400 border-x border-white/20 dark:border-slate-700/30 shadow-lg shadow-teal-500/5'
-              : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
-          }`}
-        >
-          <Calendar className="h-4 w-4" /> Manager Assignments
-        </button>
-      </div>
-
-      {activeTab === 'roster' ? (
-        <>
-          <InternAttendanceFeed
-            rosterData={rosterData}
-            onInternSelect={(id) => setSelectedInternId(id)}
-            canApproveEarlyExit={true}
-            onApproveEarlyExit={async (sessionId) => { await approveEarlyExitMutation.mutateAsync({ session_id: sessionId }); }}
-          />
-
-      {/* MISSING 1:30 PM JOURNAL COMPLIANCE */}
-      {(() => {
-        const missing130 = rosterData.filter((r: any) => r.missingLog130);
-        return (
-          <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl rounded-2xl shadow-lg shadow-teal-500/5 border border-white/20 dark:border-slate-700/30 p-6 space-y-4">
-            <div>
-              <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                Missing 1:30 PM Journal
-                {missing130.length > 0 && (
-                  <span className="px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 text-[10px] font-extrabold uppercase tracking-wider animate-pulse">
-                    {missing130.length} Missing
-                  </span>
-                )}
-              </h3>
-              <p className="text-xs text-slate-400">Interns who have not submitted their daily journal past the 1:30 PM IST deadline.</p>
-            </div>
-
-            {missing130.length === 0 ? (
-              <div className="py-10 text-center space-y-3">
-                <div className="bg-emerald-50 dark:bg-emerald-950/50 p-4 rounded-full w-14 h-14 flex items-center justify-center mx-auto text-emerald-500">
-                  <CheckCircle2 className="h-7 w-7" />
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-bold text-slate-900 dark:text-white">All caught up!</p>
-                  <p className="text-xs text-slate-400 max-w-md mx-auto leading-relaxed">
-                    Every intern has submitted their 1:30 PM journal today.
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="border-b border-slate-200 dark:border-slate-800 text-[10px] uppercase font-bold text-slate-400 tracking-wider">
-                      <th className="pb-3 font-semibold">Intern</th>
-                      <th className="pb-3 font-semibold">Session</th>
-                      <th className="pb-3 font-semibold">Last Submission</th>
-                      <th className="pb-3 font-semibold text-right">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-white/30 dark:divide-slate-700/30">
-                    {missing130.map((row: any) => {
-                      const sess = row.todaySession;
-                      const isActive = sess?.status === 'active';
-                      const isCompleted = sess?.status === 'completed';
-
-                      return (
-                        <tr
-                          key={row.intern.id}
-                          onClick={() => setSelectedInternId(row.intern.id)}
-                          className="group hover:bg-slate-50/70 dark:hover:bg-slate-950/60 cursor-pointer transition duration-150"
-                        >
-                          <td className="py-3 pr-2">
-                            <div className="flex items-center gap-3">
-                              <img src={row.intern.avatar} alt={row.intern.name} className="h-8 w-8 rounded-full object-cover border" referrerPolicy="no-referrer" />
-                              <div className="min-w-0">
-                                <p className="text-xs font-bold text-slate-900 dark:text-white truncate group-hover:text-amber-700 dark:group-hover:text-amber-400">{row.intern.name}</p>
-                                <p className="text-[10px] text-slate-400 truncate">{row.intern.email}</p>
-                              </div>
-                            </div>
-                          </td>
-
-                          <td className="py-3.5 px-2">
-                            <div className="flex items-center gap-1.5">
-                              {isActive ? (
-                                <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold flex items-center gap-1 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping inline-block" />
-                                  Started {sess.started_at}
-                                </span>
-                              ) : isCompleted ? (
-                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400">
-                                  Ended {sess.ended_at}
-                                </span>
-                              ) : (
-                                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
-                                  Not started
-                                </span>
-                              )}
-                            </div>
-                          </td>
-
-                          <td className="py-3.5 px-2">
-                            <span className="text-xs font-bold text-slate-800 dark:text-white">{row.lastSubmission}</span>
-                          </td>
-
-                          <td className="py-3.5 pl-2 text-right">
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 border border-rose-200 dark:border-rose-800 animate-pulse">
-                              <AlertTriangle className="h-3 w-3" />
-                              Missing 1:30 PM Log
-                            </span>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        );
-      })()}
-
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
-        {/* Roster Table */}
-        <div className="lg:col-span-8 bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl rounded-2xl shadow-lg shadow-teal-500/5 border border-white/20 dark:border-slate-700/30 p-6 space-y-4">
-          <div>
-            <h3 className="text-sm font-bold text-slate-900 dark:text-white">Intern Roster</h3>
-            <p className="text-xs text-slate-400">Click into an intern card to review journal commits, award marks, or leave mentors feedback.</p>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-slate-200 dark:border-slate-800 text-[10px] uppercase font-bold text-slate-400 tracking-wider">
-                  <th className="pb-3 font-semibold">Intern name</th>
-                  <th className="pb-3 font-semibold">Today's Start Day</th>
-                  <th className="pb-3 font-semibold">Log Streak</th>
-                  <th className="pb-3 font-semibold">Average Stars</th>
-                  <th className="pb-3 font-semibold text-right">Sprint Progress</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/30 dark:divide-slate-700/30">
-                {rosterData.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="py-12 text-center space-y-3">
-                      <div className="bg-slate-50 dark:bg-slate-950 p-4 rounded-full w-14 h-14 flex items-center justify-center mx-auto text-slate-400">
-                        <Users className="h-7 w-7" />
-                      </div>
-                      <div className="space-y-1">
-                        <p className="text-sm font-bold text-slate-900 dark:text-white">No interns assigned yet 👥</p>
-                        <p className="text-xs text-slate-400 max-w-md mx-auto leading-relaxed">
-                          No interns yet — invite your team to get started! Once interns register and log entries, their profiles and sprint telemetry will appear here.
-                        </p>
-                      </div>
-                    </td>
-                  </tr>
-                ) : (
-                  rosterData.map((row: any) => {
-                    const sess = row.todaySession;
-                    const isActive = sess?.status === 'active';
-                    const isCompleted = sess?.status === 'completed';
-
-                    return (
-                      <tr 
-                        key={row.intern.id}
-                        onClick={() => setSelectedInternId(row.intern.id)}
-                        className="group hover:bg-slate-50/70 dark:hover:bg-slate-950/60 cursor-pointer transition duration-150"
-                      >
-                        {/* Name & Avatar */}
-                        <td className="py-3.5 pr-2">
-                          <div className="flex items-center gap-3">
-                            <img src={row.intern.avatar} alt={row.intern.name} className="h-8 w-8 rounded-full object-cover border" referrerPolicy="no-referrer" />
-                            <div className="min-w-0">
-                               <p className="text-xs font-bold text-slate-900 dark:text-white truncate group-hover:text-teal-700 dark:group-hover:text-teal-400">{row.intern.name}</p>
-                              <p className="text-[10px] text-slate-400 truncate">{row.intern.email}</p>
-                            </div>
-                          </div>
-                        </td>
-
-                        {/* Start Day Status */}
-                        <td className="py-3.5 px-2">
-                          <div className="flex items-center gap-1.5">
-                            {isActive ? (
-                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold flex items-center gap-1 ${
-                                sess?.is_late
-                                  ? 'bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800'
-                                  : 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
-                              }`}>
-                                <span className={`w-1.5 h-1.5 rounded-full animate-ping inline-block ${sess?.is_late ? 'bg-amber-500' : 'bg-emerald-500'}`} />
-                                {sess?.is_late ? 'Late Started ' : 'Started '}{sess.started_at}
-                              </span>
-                            ) : isCompleted ? (
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400">
-                                Ended {sess.ended_at}
-                              </span>
-                            ) : (
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
-                                Not started
-                              </span>
-                            )}
-                          </div>
-                        </td>
-
-                        {/* Streak */}
-                        <td className="py-3.5 px-2">
-                          <div className="flex items-center gap-1">
-                            <Flame className={`h-4 w-4 ${row.streak > 0 ? 'text-amber-500 fill-amber-500' : 'text-slate-300'}`} />
-                            <span className="text-xs font-bold text-slate-800 dark:text-white">{row.streak} days</span>
-                          </div>
-                        </td>
-
-                        {/* Score */}
-                        <td className="py-3.5 px-2">
-                          <div className="flex items-center gap-1 text-teal-600 dark:text-teal-400 font-bold text-xs">
-                            {row.avgMark} <Star className="h-3.5 w-3.5 fill-teal-500 text-teal-500" />
-                          </div>
-                        </td>
-
-                        {/* Task score compliance */}
-                        <td className="py-3.5 pl-2 text-right">
-                          <div className="inline-flex items-center gap-2">
-                            <div className="text-right">
-                              <p className="text-[10px] font-bold text-slate-800 dark:text-white">
-                                {row.completedTasks} / {row.totalTasks} Done
-                              </p>
-                              <p className="text-[9px] text-slate-400">
-                                {row.unresolvedMistakesCount > 0 
-                                  ? `${row.unresolvedMistakesCount} blunders flagged` 
-                                  : 'All clean'}
-                              </p>
-                            </div>
-                            <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-teal-700 dark:group-hover:text-teal-400 transition" />
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* High level team trends */}
-        <div className="lg:col-span-4 space-y-6">
-          {/* Intern Rankings */}
-          <RankingChart currentUserId={currentUser.id} />
-
-          {/* Custom SVG Bar Chart */}
-          <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl rounded-2xl shadow-lg shadow-teal-500/5 border border-white/20 dark:border-slate-700/30 p-6 space-y-3.5">
-            <div>
-              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
-                Submissions (Last 7 Days) <TrendingUp className="h-4 w-4 text-teal-600" />
-              </h3>
-            </div>
-
-            <div className="h-32 flex items-end justify-between pt-4 border-b pb-1 border-slate-200 dark:border-slate-800">
-              {submissionTrend.map((t: any, idx: number) => {
-                const maxCount = Math.max(...submissionTrend.map((d: any) => d.count), 1);
-                const pct = (t.count / maxCount) * 100;
-                return (
-                  <div key={idx} className="flex flex-col items-center flex-1 group relative">
-                    {/* Tooltip */}
-                    <div className="absolute bottom-full mb-1 bg-slate-950 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow opacity-0 group-hover:opacity-100 transition whitespace-nowrap z-10">
-                      {t.count} logs
-                    </div>
-                    {/* Bar */}
-                    <div 
-                      className="w-4 bg-teal-500 hover:bg-teal-600 rounded-t-sm transition-all duration-300"
-                      style={{ height: `${Math.max(pct, 10)}%` }}
-                    />
-                    {/* Date */}
-                    <span className="text-[8px] text-slate-400 mt-1 truncate max-w-[36px] font-mono">
-                      {t.date.substring(8, 10)}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-            <p className="text-[10px] text-slate-400 text-center">Dates mapped relative to sprint timeline.</p>
-          </div>
-
-          {/* Tech Tag distribution */}
-          <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl rounded-2xl shadow-lg shadow-teal-500/5 border border-white/20 dark:border-slate-700/30 p-6 space-y-4">
-            <div>
-              <h3 className="text-sm font-bold text-slate-900 dark:text-white">Trending Technologies</h3>
-              <p className="text-[11px] text-slate-400">Stack distribution across submitted intern journals.</p>
-            </div>
-
-            <div className="flex flex-wrap gap-1.5">
-              {mostUsedTechs.length === 0 ? (
-                <p className="text-xs text-slate-400 italic">No logs parsed for tech stacks yet.</p>
-              ) : (
-                mostUsedTechs.map((tech: any) => (
-                    <span 
-                      key={tech.name} 
-                      className="px-2.5 py-1 rounded-xl bg-teal-50 dark:bg-teal-950/30 border border-teal-200 dark:border-teal-900/40 text-xs text-teal-700 dark:text-teal-300 flex items-center gap-1.5 font-medium"
-                    >
-                      <span>{tech.name}</span>
-                      <span className="px-1.5 py-0.5 rounded-full bg-teal-100 dark:bg-teal-950/80 text-[10px] text-teal-700 dark:text-teal-400 font-bold">
-                      {tech.count}
-                    </span>
-                  </span>
-                ))
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-    </>
-  ) : activeTab === 'queue' ? (
-    <ReviewQueue
-      currentUser={currentUser}
-      onSelectIntern={(internId) => setSelectedInternId(internId)}
-    />
-  ) : activeTab === 'manager_assignments' ? (
-    <ManagerAssignments
-      currentUser={currentUser}
-      allUsers={allUsers}
-      allTasks={allTasks}
-      onRefresh={invalidateDashboard}
-    />
-  ) : (
-    <UpcomingProjectsView currentUser={currentUser} />
-  )}
-    </div>
-  );
-};
-
-
-
-
-export default TeamOverview;
-
-const UpcomingProjectsView: React.FC<{ currentUser: User }> = ({ currentUser }) => {
-  const router = useRouter();
-  const queryClient = useQueryClient();
-  const { data: projects = [], isLoading: loading } = useQuery({
-    queryKey: ["projects", "upcoming"],
-    queryFn: () => api.getProjects({ status: 'upcoming' }),
-  });
-  const { data: techLeads = [] } = useQuery({
-    queryKey: ["public-tech-leads"],
-    queryFn: () => api.getPublicTechLeads(),
-  });
-  const { data: interns = [] } = useQuery({
-    queryKey: ["public-interns"],
-    queryFn: () => api.getPublicInterns(),
-  });
-
-  const [editingProject, setEditingProject] = useState<Project | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const handleDeleteProject = async (projectId: string, projectName: string) => {
-    if (!confirm(`Are you sure you want to delete "${projectName}"? This will remove all related logs and data permanently.`)) {
-      return;
-    }
-    try {
-      await api.deleteProject(projectId);
-      queryClient.invalidateQueries({ queryKey: ["projects"] });
-      queryClient.invalidateQueries({ queryKey: ["projects", "upcoming"] });
-      queryClient.invalidateQueries({ queryKey: ["analytics", currentUser.id] });
-    } catch (err: any) {
-      alert(err.message || "Failed to delete project.");
-    }
-  };
-
-  const handleEditProject = async (data: {
-    id: string;
-    name: string;
-    description: string;
-    github_url: string;
-    tech_stack: string[];
-    screenshots: string[];
-    status: ProjectStatus;
-    start_date?: string;
-    end_date?: string;
-    assigned_tech_lead_ids: string[];
-    assigned_intern_ids: string[];
-  }) => {
-    try {
-      setIsSubmitting(true);
-      await api.saveProject(data);
-      queryClient.invalidateQueries({ queryKey: ["projects"] });
-      queryClient.invalidateQueries({ queryKey: ["projects", "upcoming"] });
-      queryClient.invalidateQueries({ queryKey: ["analytics", currentUser.id] });
-      setEditingProject(null);
-    } catch (err: any) {
-      alert(err.message || "Failed to update project.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="text-center py-20">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600 mx-auto"></div>
-      </div>
-    );
-  }
-
-  return (
-    <div id="upcoming-projects-techlead-root" className="space-y-6">
-      <div className="bg-white/10 dark:bg-slate-900/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 dark:border-slate-700/30 shadow-lg shadow-teal-500/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            Upcoming Projects <Calendar className="h-5 w-5 text-teal-400" />
-          </h2>
-          <p className="text-xs text-slate-300">
-            Projects scheduled by management for the upcoming sprint.
-          </p>
-        </div>
-        <button
-          onClick={() => router.push('/projects')}
-          className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold rounded-xl flex items-center gap-1.5 transition active:scale-95 shadow-sm"
-        >
-          <PlusCircle className="h-4 w-4" /> Create Project
-        </button>
-      </div>
-
-      {projects.length === 0 ? (
-        <div className="bg-white/10 dark:bg-slate-900/10 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-slate-700/30 p-12 text-center space-y-3">
-          <div className="bg-white/10 p-4 rounded-full w-14 h-14 flex items-center justify-center mx-auto text-slate-400">
-            <Calendar className="h-7 w-7" />
-          </div>
-          <div className="space-y-1">
-            <p className="text-sm font-bold text-white">No upcoming projects scheduled yet</p>
-            <p className="text-xs text-slate-300 max-w-sm mx-auto">
-              Check back later or ask your manager to add upcoming projects to the pipeline.
+      {/* Stats row - only on team_overview */}
+      {activeTab === 'team_overview' && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <GlassCard shadow="card" className="hover:-translate-y-1 hover:shadow-lg transition-all duration-300 border border-slate-200/60 dark:border-slate-700/60 p-5 rounded-3xl bg-white/80 dark:bg-slate-900/80">
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 font-extrabold uppercase tracking-widest mb-1.5">Roster Interns</p>
+            <p className="text-3xl font-black text-slate-900 dark:text-white flex items-baseline gap-1.5">
+              {rosterData.length} <span className="text-xs font-bold text-slate-400 lowercase">assigned</span>
             </p>
-          </div>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {projects.map((proj) => {
-            const leads = techLeads.filter(l => proj.assigned_tech_lead_ids?.includes(l.id));
-            return (
-              <motion.div
-                key={proj.id}
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-white/10 dark:bg-slate-900/10 backdrop-blur-xl border border-white/20 dark:border-slate-700/30 rounded-2xl overflow-hidden shadow-lg shadow-teal-500/5 flex flex-col hover:shadow-md transition duration-250 group"
-              >
-                <div className="h-44 bg-slate-100 dark:bg-slate-950 relative overflow-hidden shrink-0">
-                  <img
-                    src={proj.screenshots[0] || "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=600&q=80"}
-                    alt={proj.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    referrerPolicy="no-referrer"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
-                    <a
-                      href={proj.github_url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-white text-[11px] font-bold flex items-center gap-1 hover:underline"
-                    >
-                      <Github className="h-4 w-4" /> View Repo codebase
-                    </a>
-                  </div>
-                </div>
-
-                <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
-                  <div className="space-y-1.5">
-                    <h3 className="font-extrabold text-white leading-tight">{proj.name}</h3>
-                    <p className="text-xs text-slate-300 line-clamp-3 leading-relaxed">{proj.description}</p>
-                  </div>
-
-                  <div className="space-y-3 pt-3 border-t border-white/20 dark:border-slate-700/30">
-                    {proj.tech_stack.length > 0 && (
-                      <div className="flex flex-wrap gap-1">
-                        {proj.tech_stack.map(tech => (
-                          <span key={tech} className="px-2 py-0.5 rounded bg-white/10 border border-white/20 text-[9px] font-semibold text-teal-200">
-                            {tech}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-
-                    <div className="flex flex-col gap-1 text-[10px] text-slate-300">
-                      {proj.start_date && (
-                        <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> Starts: {new Date(proj.start_date).toLocaleDateString()}</span>
-                      )}
-                      {leads.length > 0 && (
-                        <span className="flex items-center gap-1"><Users className="h-3 w-3" /> Assigned to: {leads.map(l => l.name).join(', ')}</span>
-                      )}
-                    </div>
-
-                    <div className="flex items-center justify-between pt-1">
-                      <a
-                        href={proj.github_url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-xs font-bold text-slate-300 hover:text-teal-300 flex items-center gap-1.5"
-                      >
-                        <Github className="h-4 w-4" /> Repo
-                      </a>
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setEditingProject(proj);
-                          }}
-                          className="px-2.5 py-1.5 hover:bg-white/10 text-[10px] font-bold text-teal-300 rounded-lg flex items-center gap-1"
-                          title="Edit Project"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteProject(proj.id, proj.name);
-                          }}
-                          className="px-2.5 py-1.5 hover:bg-rose-500/20 text-[10px] font-bold text-rose-300 rounded-lg flex items-center gap-1 transition"
-                          title="Delete Project"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" /> Delete
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            );
-          })}
+          </GlassCard>
+          <GlassCard shadow="card" className="hover:-translate-y-1 hover:shadow-lg hover:shadow-emerald-500/10 transition-all duration-300 border border-emerald-200/60 dark:border-emerald-800/50 p-5 rounded-3xl bg-emerald-50/50 dark:bg-emerald-900/20">
+            <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-extrabold uppercase tracking-widest mb-1.5">Working Now</p>
+            <p className="text-3xl font-black text-emerald-600 dark:text-emerald-400 flex items-baseline gap-1.5">
+              {activeCount} <span className="text-xs font-bold text-emerald-600/70 dark:text-emerald-400/70 lowercase">online</span>
+            </p>
+          </GlassCard>
+          <GlassCard shadow="card" className="hover:-translate-y-1 hover:shadow-lg hover:shadow-teal-500/10 transition-all duration-300 border border-teal-200/60 dark:border-teal-800/50 p-5 rounded-3xl bg-teal-50/50 dark:bg-teal-900/20">
+            <p className="text-[11px] text-teal-600 dark:text-teal-400 font-extrabold uppercase tracking-widest mb-1.5">Average Score</p>
+            <p className="text-3xl font-black text-teal-600 dark:text-teal-400 flex items-center gap-2">
+              {avgMarks} <Star className="h-6 w-6 fill-teal-500 text-teal-500 mb-0.5" />
+            </p>
+          </GlassCard>
+          <GlassCard shadow="card" className="hover:-translate-y-1 hover:shadow-lg hover:shadow-indigo-500/10 transition-all duration-300 border border-indigo-200/60 dark:border-indigo-800/50 p-5 rounded-3xl bg-indigo-50/50 dark:bg-indigo-900/20">
+            <p className="text-[11px] text-indigo-600 dark:text-indigo-400 font-extrabold uppercase tracking-widest mb-1.5">Total Submits</p>
+            <p className="text-3xl font-black text-indigo-600 dark:text-indigo-400 flex items-baseline gap-1.5">
+              {totalLogs} <span className="text-xs font-bold text-indigo-600/70 dark:text-indigo-400/70 lowercase">logged</span>
+            </p>
+          </GlassCard>
         </div>
       )}
-      <ProjectEditModal
-        show={!!editingProject}
-        onClose={() => setEditingProject(null)}
-        project={editingProject}
-        techLeads={techLeads}
-        interns={interns}
-        onSubmit={handleEditProject}
-        submitting={isSubmitting}
-      />
+
+      {renderTabContent()}
     </div>
   );
 };
 
-
+export default TeamOverview;

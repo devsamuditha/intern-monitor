@@ -367,7 +367,7 @@ export const ReviewQueue: React.FC<ReviewQueueProps> = ({ currentUser, onSelectI
 
       {/* Filter and Control Toolbar */}
       <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 p-4 shadow-lg shadow-teal-500/5 space-y-3">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-3">
           
           {/* Status Filter */}
           <div>
@@ -375,7 +375,7 @@ export const ReviewQueue: React.FC<ReviewQueueProps> = ({ currentUser, onSelectI
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as QueueStatusFilter)}
-              className="w-full px-3 py-1.5 rounded-xl border border-white/20 bg-white/5 text-xs font-semibold text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+              className="w-full px-3 py-1.5 rounded-xl border border-white/20 bg-white/10 text-xs font-semibold text-white focus:outline-none focus:ring-2 focus:ring-teal-400/30 focus:border-teal-300"
             >
               <option value="pending">⏳ Pending Review Only</option>
               <option value="reviewed">✅ Reviewed & Graded Only</option>
@@ -389,7 +389,7 @@ export const ReviewQueue: React.FC<ReviewQueueProps> = ({ currentUser, onSelectI
             <select
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value as QueueItemType)}
-              className="w-full px-3 py-1.5 rounded-xl border border-white/20 bg-white/5 text-xs font-semibold text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+              className="w-full px-3 py-1.5 rounded-xl border border-white/20 bg-white/10 text-xs font-semibold text-white focus:outline-none focus:ring-2 focus:ring-teal-400/30 focus:border-teal-300"
             >
               <option value="all">📁 All Types (Logs & Tasks)</option>
               <option value="log">📝 Daily Journals Only</option>
@@ -403,7 +403,7 @@ export const ReviewQueue: React.FC<ReviewQueueProps> = ({ currentUser, onSelectI
             <select
               value={selectedInternFilter}
               onChange={(e) => setSelectedInternFilter(e.target.value)}
-              className="w-full px-3 py-1.5 rounded-xl border border-white/20 bg-white/5 text-xs font-semibold text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+              className="w-full px-3 py-1.5 rounded-xl border border-white/20 bg-white/10 text-xs font-semibold text-white focus:outline-none focus:ring-2 focus:ring-teal-400/30 focus:border-teal-300"
             >
               <option value="all">👥 All Assigned Interns</option>
               {interns.map(i => (
@@ -442,7 +442,7 @@ export const ReviewQueue: React.FC<ReviewQueueProps> = ({ currentUser, onSelectI
             <select
               value={itemsPerPage}
               onChange={(e) => setItemsPerPage(Number(e.target.value))}
-              className="px-2 py-1 rounded-lg border border-white/20 bg-white/5 text-xs text-white font-semibold"
+              className="px-2 py-1 rounded-lg border border-white/20 bg-white/10 text-xs text-white font-semibold focus:outline-none focus:ring-2 focus:ring-teal-400/30 focus:border-teal-300"
             >
               <option value={5}>5 per page</option>
               <option value={10}>10 per page</option>

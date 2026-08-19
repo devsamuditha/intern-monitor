@@ -260,7 +260,7 @@ export const UpcomingProjectsManager: React.FC<UpcomingProjectsManagerProps> = (
                   <select
                     value={status}
                     onChange={(e) => setStatus(e.target.value as 'planned' | 'upcoming' | 'active')}
-                    className="w-full text-xs rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-white appearance-none focus:outline-none focus:ring-2 focus:ring-teal-400/30 focus:border-teal-300"
+                    className="w-full text-xs rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-white appearance-none focus:outline-none focus:ring-2 focus:ring-teal-400/30 focus:border-teal-300"
                   >
                     <option value="planned">Planned</option>
                     <option value="upcoming">Upcoming</option>
@@ -380,7 +380,7 @@ export const UpcomingProjectsManager: React.FC<UpcomingProjectsManagerProps> = (
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
           {projects.map((proj) => {
             const leads = techLeads.filter(l => proj.assigned_tech_lead_ids?.includes(l.id));
             return (

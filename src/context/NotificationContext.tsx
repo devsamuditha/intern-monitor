@@ -23,6 +23,7 @@ interface NotificationContextType {
   refreshNotifications: () => Promise<void>;
   markAsRead: (id: string) => Promise<void>;
   markAllAsRead: () => Promise<any>;
+  clearAll: () => Promise<{ success: boolean; count: number }>;
   isLoading: boolean;
 }
 
@@ -70,6 +71,18 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode; userId?
     }
   }, []);
 
+  const clearAll = useCallback(async () => {
+    try {
+      const result = await api.clearAllNotifications();
+      setNotifications([]);
+      setUnreadCount(0);
+      return result;
+    } catch (e) {
+      console.error('Failed to clear notifications:', e);
+      throw e;
+    }
+  }, []);
+
   useEffect(() => {
     refreshNotifications();
     const interval = setInterval(refreshNotifications, 60000);
@@ -99,7 +112,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode; userId?
   }, [refreshNotifications]);
 
   return (
-    <NotificationContext.Provider value={{ notifications, unreadCount, refreshNotifications, markAsRead, markAllAsRead, isLoading }}>
+    <NotificationContext.Provider value={{ notifications, unreadCount, refreshNotifications, markAsRead, markAllAsRead, clearAll, isLoading }}>
       {children}
     </NotificationContext.Provider>
   );
@@ -114,6 +127,7 @@ export const useNotifications = () => {
       refreshNotifications: async () => {},
       markAsRead: async () => {},
       markAllAsRead: async () => ({ success: true, count: 0 }),
+      clearAll: async () => ({ success: true, count: 0 }),
       isLoading: false,
     };
   }

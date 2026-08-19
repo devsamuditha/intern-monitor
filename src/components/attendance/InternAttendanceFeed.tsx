@@ -11,6 +11,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { formatDate } from "@/src/utils/helpers";
+import GlassPanel from "../ui/glass/GlassPanel";
 
 interface InternAttendanceFeedProps {
   rosterData: any[];
@@ -52,13 +53,13 @@ export const InternAttendanceFeed: React.FC<InternAttendanceFeedProps> = ({
   const activeCount = rosterData.filter((r: any) => r.todaySession?.status === "active").length;
 
   return (
-    <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-slate-700/30 rounded-2xl p-6 shadow-sm space-y-4">
+    <GlassPanel variant="section" className="p-6 gap-4 bg-white/70 dark:bg-slate-900/70 shadow-sm">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <div className="bg-emerald-50 dark:bg-emerald-950/50 p-2 rounded-xl text-emerald-600 dark:text-emerald-400">
             <Zap className="h-5 w-5 fill-emerald-500/20 text-emerald-500" />
           </div>
-          <div>
+          <div className="min-w-0">
             <h3 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
               Today&apos;s Intern Attendance & Start Day Feed
               <span className="px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-[10px] font-extrabold uppercase">
@@ -80,7 +81,7 @@ export const InternAttendanceFeed: React.FC<InternAttendanceFeedProps> = ({
         </button>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
         {rosterData.length === 0 ? (
           <p className="text-xs text-slate-400 py-4 italic">No interns assigned to display attendance feed.</p>
         ) : (
@@ -103,7 +104,7 @@ export const InternAttendanceFeed: React.FC<InternAttendanceFeedProps> = ({
                     : "bg-slate-50/50 dark:bg-slate-950/40 border-dashed border-slate-200 dark:border-slate-800 hover:border-teal-400"
                 }`}
               >
-                <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center justify-between gap-3 sm:gap-2 flex-wrap">
                   <div className="flex items-center gap-2.5 min-w-0">
                     <div className="relative">
                       <img
@@ -127,16 +128,16 @@ export const InternAttendanceFeed: React.FC<InternAttendanceFeedProps> = ({
                       e.stopPropagation();
                       onInternSelect(row.intern.id);
                     }}
-                    className="px-2 py-1 rounded-lg bg-teal-50 dark:bg-teal-950/60 text-teal-600 dark:text-teal-400 text-[10px] font-bold hover:bg-teal-100 dark:hover:bg-teal-900 transition shrink-0"
+                    className="px-2 py-1 rounded-lg bg-teal-50 dark:bg-teal-950/60 text-teal-600 dark:text-teal-400 text-[10px] font-bold hover:bg-teal-100 dark:hover:bg-teal-900 transition shrink-0 self-start"
                   >
                     View
                   </button>
                 </div>
 
-                <div className="pt-2 border-t border-slate-200/60 dark:border-slate-800/60 flex items-center justify-between text-[10px]">
-                  <div className="flex items-center gap-1 font-semibold">
+                <div className="pt-2 border-t border-slate-200/60 dark:border-slate-800/60 flex items-center justify-between gap-1.5 flex-wrap text-[10px]">
+                  <div className="flex items-center gap-1 font-semibold min-w-0">
                     {isActive ? (
-                      <span className="text-emerald-700 dark:text-emerald-400 font-extrabold flex items-center gap-1">
+                      <span className="text-emerald-700 dark:text-emerald-400 font-extrabold flex items-center gap-1 truncate">
                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping inline-block" />
                         Started {sess.started_at}
                         {sess?.is_late && (
@@ -247,6 +248,6 @@ export const InternAttendanceFeed: React.FC<InternAttendanceFeedProps> = ({
           })
         )}
       </div>
-    </div>
+    </GlassPanel>
   );
 };

@@ -9,7 +9,6 @@ export async function POST(request: NextRequest) {
   let user;
   try {
     user = await withAuth(request);
-    requireRole(user, [Role.MANAGER, Role.SUPER_ADMIN]);
   } catch (err: any) {
     const status = err.message.includes("Forbidden") ? 403 : 401;
     return NextResponse.json({ error: err.message }, { status });
@@ -20,6 +19,17 @@ export async function POST(request: NextRequest) {
     body = await validateBody(RegisterUserSchema)(request);
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 400 });
+  }
+
+  // Authorize based on role
+  if (user.role === Role.TECH_LEAD) {
+    if (body.role.toUpperCase() !== "INTERN") {
+      return NextResponse.json({ error: "Tech leads are only authorized to register interns." }, { status: 403 });
+    }
+    // Force the techLeadId to be the registering Tech Lead
+    body.techLeadId = user.id;
+  } else if (user.role !== Role.MANAGER && user.role !== Role.SUPER_ADMIN) {
+    return NextResponse.json({ error: "Forbidden: Unauthorized to register users." }, { status: 403 });
   }
 
   try {

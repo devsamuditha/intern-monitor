@@ -61,7 +61,7 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
     if (project) {
       setName(project.name);
       setDescription(project.description);
-      setGithubUrl(project.github_url);
+      setGithubUrl(project.github_url || '');
       setTechStack(project.tech_stack.join(', '));
       setScreenshotUrl(project.screenshots[0] || '');
       setScreenshotPreview(project.screenshots[0] || null);
@@ -74,8 +74,21 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
         : 'upcoming';
       setStatus(validStatus);
       setError('');
+    } else {
+      setName('');
+      setDescription('');
+      setGithubUrl('');
+      setTechStack('');
+      setScreenshotUrl('');
+      setScreenshotPreview(null);
+      setStartDate('');
+      setEndDate('');
+      setAssignedTechLeadIds([]);
+      setAssignedInternIds([]);
+      setStatus('upcoming');
+      setError('');
     }
-  }, [project]);
+  }, [project, show]);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -110,7 +123,7 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
     }
 
     await onSubmit({
-      id: project!.id,
+      id: project?.id || '',
       name: name.trim(),
       description: description.trim(),
       github_url: githubUrl.trim(),
@@ -124,7 +137,7 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
     });
   };
 
-  if (!show || !project) return null;
+  if (!show) return null;
 
   return (
     <AnimatePresence>
@@ -134,10 +147,10 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
           initial="initial"
           animate="animate"
           exit="exit"
-          className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl max-w-2xl w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto"
+          className="bg-slate-900/90 backdrop-blur-xl border border-white/20 rounded-2xl max-w-2xl w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto"
         >
-          <div className="flex justify-between items-center pb-3 border-b border-white/20 mb-4">
-            <h3 className="text-base font-extrabold text-white">Edit Project</h3>
+          <div className="flex justify-between items-center pb-3 border-b border-white/10 mb-4">
+            <h3 className="text-base font-extrabold text-white">{project ? 'Edit Project' : 'Create Project'}</h3>
             <button onClick={onClose} className="p-1 text-slate-400 hover:text-white rounded-lg">
               <X className="h-5 w-5" />
             </button>
@@ -217,7 +230,7 @@ export const ProjectEditModal: React.FC<ProjectEditModalProps> = ({
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value as any)}
-                className="w-full text-xs rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-teal-400/30 focus:border-teal-300"
+                className="w-full text-xs rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-teal-400/30 focus:border-teal-300"
               >
                 <option value="planned">Planned</option>
                 <option value="upcoming">Upcoming</option>

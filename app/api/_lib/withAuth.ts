@@ -50,10 +50,10 @@ export async function withAuth(request: NextRequest) {
 
     return dbUser;
   } catch (error: any) {
-    // Preserve auth errors, but log and surface a generic error for DB failures
+    // Preserve auth errors, but log and surface a descriptive error for DB failures
     if (error instanceof AuthError) throw error;
     logger.error({ err: error, userId: payload?.userId }, "withAuth: database error");
-    throw new Error("Internal Server Error");
+    throw new Error(`Internal Server Error: ${error.message || 'Database lookup failed'}`);
   }
 }
 
