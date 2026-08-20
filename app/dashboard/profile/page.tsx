@@ -140,16 +140,18 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        <ProfileImageModal
-          userId={user.id}
-          currentAvatarUrl={user.avatar ?? '/favicon.ico'}
-          onClose={() => setShowProfileModal(false)}
-          onUploaded={(newUrl) => {
-            user.avatar = newUrl;
-            refreshCurrentUser();
-            setShowProfileModal(false);
-          }}
-        />
+        {showProfileModal && (
+          <ProfileImageModal
+            userId={user.id}
+            currentAvatarUrl={user.avatar ?? '/favicon.ico'}
+            onClose={() => setShowProfileModal(false)}
+            onUploaded={(newUrl) => {
+              user.avatar = newUrl;
+              refreshCurrentUser();
+              setShowProfileModal(false)}
+            }
+          />
+        )}
       </div>
     </DashboardShell>
   );

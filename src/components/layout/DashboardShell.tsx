@@ -67,8 +67,8 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
       case 'tech_lead':
         return [
           { id: 'team_overview', label: 'Team Overview', icon: Users },
-          { id: 'review_queue', label: 'Review Queue & Grading Desk', icon: CheckSquare },
-          { id: 'intern_summary', label: 'Intern Summary (Daily Journal)', icon: BookOpen },
+          { id: 'review_queue', label: 'Review Queue', icon: CheckSquare },
+          { id: 'intern_summary', label: 'Intern Summary', icon: BookOpen },
           { id: 'ranking', label: 'Rankings', icon: Trophy },
           { id: 'projects', label: 'Projects', icon: FolderKanban },
           { id: 'manager_assignments', label: 'Manager Assign Projects', icon: ClipboardList },

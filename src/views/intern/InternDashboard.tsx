@@ -216,7 +216,19 @@ export const InternDashboard: React.FC<InternDashboardProps> = ({ user, onRefres
           schema: 'public',
           table: 'DaySession',
           filter: `intern_id=eq.${user.id}`,
-         }, () => {
+        }, () => {
+          refetch().catch((err: any) => {
+            if (!(err?.status === 403 && typeof err?.message === "string" && err.message.includes("inactive"))) {
+              console.error("Dashboard refetch failed:", err);
+            }
+          });
+        })
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'Task',
+          filter: `assigned_to=eq.${user.id}`,
+        }, () => {
           refetch().catch((err: any) => {
             if (!(err?.status === 403 && typeof err?.message === "string" && err.message.includes("inactive"))) {
               console.error("Dashboard refetch failed:", err);
