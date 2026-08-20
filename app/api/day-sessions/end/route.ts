@@ -45,6 +45,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Cannot end day before 5:00 PM without Tech Lead approval." }, { status: 403 });
     }
 
+    if (istMinutes > 17 * 60 + 30) {
+      return NextResponse.json({ error: "Cannot end day after 5:30 PM." }, { status: 403 });
+    }
+
     // Check if a DailyLog was submitted today after 4:30 PM (16:30 -> 16 * 60 + 30)
     // For simplicity, we just check if they submitted any log today (which satisfies 'hasLogToday' in frontend).
     // Or we could strictly enforce 4:30 - 5:00 PM submission if we check the DailyLog createdAt.

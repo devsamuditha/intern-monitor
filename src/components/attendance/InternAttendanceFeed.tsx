@@ -10,8 +10,8 @@ import {
   Github,
   ExternalLink,
 } from "lucide-react";
-import { formatDate } from "@/src/utils/helpers";
 import GlassPanel from "../ui/glass/GlassPanel";
+import { parseTimeToMinutes } from "@/app/api/_lib/mappers";
 
 interface InternAttendanceFeedProps {
   rosterData: any[];
@@ -27,6 +27,9 @@ export const InternAttendanceFeed: React.FC<InternAttendanceFeedProps> = ({
   onApproveEarlyExit,
 }) => {
   const [isApprovingAll, setIsApprovingAll] = useState(false);
+
+  const EARLY_END_MINUTES = 17 * 60;
+  const LATE_END_MINUTES = 17 * 60 + 30;
 
   const pendingCount = rosterData.filter(
     (r: any) => r.todaySession?.earlyExitRequested && !r.todaySession?.earlyExitApproved
@@ -89,8 +92,6 @@ export const InternAttendanceFeed: React.FC<InternAttendanceFeedProps> = ({
             const sess = row.todaySession;
             const isActive = sess?.status === "active";
             const isCompleted = sess?.status === "completed";
-            const hasSubmittedToday =
-              row.lastSubmission === formatDate(new Date().toISOString().split("T")[0]);
 
             return (
               <div
@@ -136,60 +137,55 @@ export const InternAttendanceFeed: React.FC<InternAttendanceFeedProps> = ({
 
                 <div className="pt-2 border-t border-slate-200/60 dark:border-slate-800/60 flex items-center justify-between gap-1.5 flex-wrap text-[10px]">
                   <div className="flex items-center gap-1 font-semibold min-w-0">
-                    {isActive ? (
+                    <span className="text-slate-500 dark:text-slate-400 font-semibold shrink-0">Day Start:</span>
+                    {isActive || isCompleted ? (
                       <span className="text-emerald-700 dark:text-emerald-400 font-extrabold flex items-center gap-1 truncate">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping inline-block" />
-                        Started {sess.started_at}
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping inline-block shrink-0" />
+                        <span className="truncate">Started {sess.started_at}</span>
                         {sess?.is_late && (
                           <span className="px-1.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-amber-500/20 text-amber-400 border border-amber-500/30">
                             LATE
                           </span>
                         )}
                       </span>
-                    ) : isCompleted ? (
-                      <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1">
-                        <CheckCircle2 className="h-3 w-3 text-teal-500" />
-                        Ended {sess.ended_at}
-                      </span>
                     ) : (
-                      <span className="text-slate-400 flex items-center gap-1">
-                        <Sun className="h-3 w-3 text-amber-500" />
-                        Not started yet
+                      <span className="text-[10px] font-semibold flex items-center gap-1 text-amber-600 dark:text-amber-400 truncate">
+                        <Sun className="h-3 w-3 text-amber-500 shrink-0" />
+                        <span>Not started</span>
                       </span>
                     )}
                   </div>
 
-                  <span
-                    className={`px-1.5 py-0.5 rounded text-[9px] font-bold flex items-center gap-0.5 ${
-                      sess?.missedFinalJournal
-                        ? "bg-rose-500/20 text-rose-400 border border-rose-500/30 animate-pulse"
-                        : row.missingLog500
-                        ? "bg-rose-500/20 text-rose-400 border border-rose-500/30 animate-pulse"
-                        : row.missingLog130
-                        ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
-                        : hasSubmittedToday
-                        ? "bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300"
-                        : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"
-                    }`}
-                  >
-                    {sess?.missedFinalJournal ? (
-                      <>
-                        <AlertTriangle className="h-3 w-3" /> Missed Final Journal
-                      </>
-                    ) : row.missingLog500 ? (
-                      <>
-                        <AlertTriangle className="h-3 w-3" /> Missing Log
-                      </>
-                    ) : row.missingLog130 ? (
-                      <>
-                        <AlertTriangle className="h-3 w-3" /> Missing Log (1:30 PM)
-                      </>
-                    ) : hasSubmittedToday ? (
-                      <>Log Submitted 📝</>
-                    ) : (
-                      <>Pending Log ⏳</>
-                    )}
-                  </span>
+                  {isActive ? (
+                    <span className="px-1.5 py-0.5 rounded text-[9px] font-bold flex items-center gap-0.5 bg-amber-500/20 text-amber-400 border border-amber-500/30 shrink-0">
+                      <AlertTriangle className="h-3 w-3" /> Day not ended
+                    </span>
+                  ) : isCompleted && sess.ended_at ? (
+                    (() => {
+                      const endMinutes = parseTimeToMinutes(sess.ended_at);
+                      if (endMinutes < EARLY_END_MINUTES) {
+                        return (
+                          <span className="px-1.5 py-0.5 rounded text-[9px] font-bold flex items-center gap-0.5 bg-amber-500/20 text-amber-400 border border-amber-500/30 shrink-0">
+                            <AlertTriangle className="h-3 w-3" /> Ended Early {sess.ended_at}
+                          </span>
+                        );
+                      }
+                      if (endMinutes <= LATE_END_MINUTES) {
+                        return (
+                          <span className="px-1.5 py-0.5 rounded text-[9px] font-bold flex items-center gap-0.5 bg-teal-50 text-teal-700 dark:bg-teal-950/40 dark:text-teal-300 shrink-0">
+                            <CheckCircle2 className="h-3 w-3" /> Ended {sess.ended_at}
+                          </span>
+                        );
+                      }
+                      return (
+                        <span className="px-1.5 py-0.5 rounded text-[9px] font-bold flex items-center gap-0.5 bg-rose-500/20 text-rose-400 border border-rose-500/30 shrink-0">
+                          <AlertTriangle className="h-3 w-3" /> Ended After Hours {sess.ended_at}
+                        </span>
+                      );
+                    })()
+                  ) : (
+                    <span className="text-[10px] font-semibold text-slate-400 shrink-0">Not started</span>
+                  )}
                 </div>
 
                 {sess && (sess.today_project || sess.today_plan || sess.git_link) && (

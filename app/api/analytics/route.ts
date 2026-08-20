@@ -53,6 +53,10 @@ export async function GET(request: NextRequest) {
       where: scopeToOrganization({ internId: { in: internIds } }, user),
       select: { id: true, internId: true, resolved: true, organizationId: true },
     });
+    const allProjects = await prisma.project.findMany({
+      where: scopeToOrganization({}, user),
+      select: { id: true, name: true, assignedInternIds: true, organizationId: true },
+    });
     const todaySessions = await (prisma as any).daySession.findMany({
       where: scopeToOrganization({ date: todayStr }, user),
       select: { id: true, internId: true, status: true, startedAt: true, endedAt: true, earlyExitRequested: true, earlyExitReason: true, earlyExitApproved: true, missedFinalJournal: true, organizationId: true },
@@ -113,6 +117,9 @@ export async function GET(request: NextRequest) {
         }
       }
 
+      const assignedProject = allProjects.find((p: any) => (p.assignedInternIds || []).includes(intern.id));
+      const assignedProjectName = assignedProject ? assignedProject.name : "Unassigned";
+
       return {
         intern: {
           id: intern.id,
@@ -126,6 +133,8 @@ export async function GET(request: NextRequest) {
         missingLog130: deadline130Passed && !submittedLogToday,
         missingLog500: deadline500Passed && !submittedLogToday,
         missingLog530: deadline530Passed && !submittedLogToday,
+        submittedLogToday,
+        assignedProjectName,
         streak: realStreak,
         avgMark: iAvgMark,
         avgWorkingHours,

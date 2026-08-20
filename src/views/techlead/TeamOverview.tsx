@@ -15,12 +15,11 @@ import { ProjectEditModal } from '../../components/techlead/ProjectEditModal';
 import { RankingChart } from '../../components/intern/RankingChart';
 import { ManagerAssignments } from '../../components/techlead/ManagerAssignments';
 import { InternAttendanceFeed } from '../../components/attendance/InternAttendanceFeed';
-import { InternDailySummary } from '../../components/techlead/InternDailySummary';
 import { getSupabaseClient } from '../../lib/supabaseClient';
 import {
-  Users, CheckCircle, Clock, Star, Flame, AlertTriangle,
-  TrendingUp, Sparkles, ChevronRight, Check, X, ShieldCheck,
-  Zap, Sun, CheckCircle2, MessageSquare, PlusCircle, Github, ExternalLink, CheckSquare, Calendar, LogOut, Trash2, Trophy
+  Users, CheckCircle, Clock, Star, AlertTriangle,
+  TrendingUp, Sparkles, ChevronRight, Check, X,
+  Zap, Sun, CheckCircle2, MessageSquare, PlusCircle, Github, ExternalLink, CheckSquare, Calendar, LogOut, Trash2, Trophy, FolderOpen
 } from 'lucide-react';
 import {
   GLASS_VARIANTS, PASTEL_TEXT, PASTEL_SHADOWS
@@ -179,12 +178,6 @@ export const TeamOverview: React.FC<TeamOverviewProps> = ({ currentUser, activeT
       case 'team_overview':
         return (
           <>
-            {/* Today's Intern Attendance & Start Day Feed */}
-            <InternDailySummary
-              rosterData={rosterData}
-              onInternSelect={(id) => setSelectedInternId(id)}
-            />
-
             <InternAttendanceFeed
               rosterData={rosterData}
               onInternSelect={(id) => setSelectedInternId(id)}
@@ -192,108 +185,6 @@ export const TeamOverview: React.FC<TeamOverviewProps> = ({ currentUser, activeT
               onApproveEarlyExit={async (sessionId) => { await approveEarlyExitMutation.mutateAsync({ session_id: sessionId }); }}
             />
 
-            {/* MISSING 1:30 PM JOURNAL COMPLIANCE */}
-            {(() => {
-              const missing130 = rosterData.filter((r: any) => r.missingLog130);
-              return (
-                <GlassPanel className="border border-rose-200/60 dark:border-rose-900/50 bg-white/60 dark:bg-slate-900/40 hover:shadow-lg hover:shadow-rose-500/5 transition-all duration-300 p-6 rounded-3xl">
-                  <div className="mb-4">
-                    <h3 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
-                      <AlertTriangle className="h-4 w-4 text-rose-500" />
-                      Missing 1:30 PM Journal
-                      {missing130.length > 0 && (
-                        <span className="px-2 py-0.5 rounded-md bg-rose-100 dark:bg-rose-900/60 text-rose-700 dark:text-rose-300 text-[10px] font-black uppercase tracking-widest animate-pulse ml-2 shadow-sm">
-                          {missing130.length} Missing
-                        </span>
-                      )}
-                    </h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Interns who have not submitted their daily journal past the 1:30 PM IST deadline.</p>
-                  </div>
-
-                  {missing130.length === 0 ? (
-                    <div className="py-10 text-center space-y-3">
-                      <div className="bg-emerald-50 dark:bg-emerald-950/50 p-4 rounded-full w-14 h-14 flex items-center justify-center mx-auto text-emerald-500">
-                        <CheckCircle2 className="h-7 w-7" />
-                      </div>
-                      <div className="space-y-1">
-                        <p className="text-sm font-bold text-slate-900 dark:text-white">All caught up!</p>
-                        <p className="text-xs text-slate-400 max-w-md mx-auto leading-relaxed">
-                          Every intern has submitted their 1:30 PM journal today.
-                        </p>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-left border-collapse">
-                        <thead>
-                          <tr className="border-b border-slate-200 dark:border-slate-800 text-[10px] uppercase font-bold text-slate-400 tracking-wider">
-                            <th className="pb-3 font-semibold">Intern</th>
-                            <th className="pb-3 font-semibold">Session</th>
-                            <th className="pb-3 font-semibold">Last Submission</th>
-                            <th className="pb-3 font-semibold text-right">Status</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                          {missing130.map((row: any) => {
-                            const sess = row.todaySession;
-                            const isActive = sess?.status === 'active';
-                            const isCompleted = sess?.status === 'completed';
-
-                            return (
-                              <tr
-                                key={row.intern.id}
-                                onClick={() => setSelectedInternId(row.intern.id)}
-                                className="group hover:bg-rose-50/50 dark:hover:bg-rose-900/10 cursor-pointer transition-colors duration-200"
-                              >
-                                <td className="py-3 pr-2">
-                                  <div className="flex items-center gap-3">
-                                    <img src={row.intern.avatar} alt={row.intern.name} className="h-8 w-8 rounded-full object-cover border" referrerPolicy="no-referrer" />
-                                    <div className="min-w-0">
-                                      <p className="text-xs font-bold text-slate-900 dark:text-white truncate group-hover:text-amber-700 dark:group-hover:text-amber-400">{row.intern.name}</p>
-                                      <p className="text-[10px] text-slate-400 truncate">{row.intern.email}</p>
-                                    </div>
-                                  </div>
-                                </td>
-
-                                <td className="py-3.5 px-2">
-                                  <div className="flex items-center gap-1.5">
-                                    {isActive ? (
-                                      <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold flex items-center gap-1 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping inline-block" />
-                                        Started {sess.started_at}
-                                      </span>
-                                    ) : isCompleted ? (
-                                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400">
-                                        Ended {sess.ended_at}
-                                      </span>
-                                    ) : (
-                                      <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
-                                        Not started
-                                      </span>
-                                    )}
-                                  </div>
-                                </td>
-
-                                <td className="py-3.5 px-2">
-                                  <span className="text-xs font-bold text-slate-800 dark:text-white">{row.lastSubmission}</span>
-                                </td>
-
-                                <td className="py-3.5 pl-2 text-right">
-                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 border border-rose-200 dark:border-rose-800 animate-pulse">
-                                    <AlertTriangle className="h-3 w-3" />
-                                    Missing 1:30 PM Log
-                                  </span>
-                                </td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-                </GlassPanel>
-              );
-            })()}
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
               {/* Roster Table */}
@@ -310,10 +201,10 @@ export const TeamOverview: React.FC<TeamOverviewProps> = ({ currentUser, activeT
                     <thead>
                       <tr className="border-b border-slate-200 dark:border-slate-800 text-[10px] uppercase font-bold text-slate-400 tracking-wider">
                         <th className="pb-3 font-semibold">Intern name</th>
-                        <th className="pb-3 font-semibold">Today's Start Day</th>
-                        <th className="pb-3 font-semibold">Log Streak</th>
-                        <th className="pb-3 font-semibold">Average Stars</th>
-                        <th className="pb-3 font-semibold text-right">Sprint Progress</th>
+                        <th className="pb-3 font-semibold">1:30 PM Journal</th>
+                        <th className="pb-3 font-semibold">5:00 PM Journal</th>
+                        <th className="pb-3 font-semibold">Mistakes</th>
+                        <th className="pb-3 font-semibold text-right">Assigned Project</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -354,59 +245,69 @@ export const TeamOverview: React.FC<TeamOverviewProps> = ({ currentUser, activeT
                                 </div>
                               </td>
 
-                              {/* Start Day Status */}
+                              {/* 1:30 PM Journal */}
                               <td className="py-3.5 px-2">
-                                <div className="flex items-center gap-1.5">
-                                  {isActive ? (
-                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold flex items-center gap-1 ${
-                                      sess?.is_late
-                                        ? 'bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800'
-                                        : 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
-                                    }`}>
-                                      <span className={`w-1.5 h-1.5 rounded-full animate-ping inline-block ${sess?.is_late ? 'bg-amber-500' : 'bg-emerald-500'}`} />
-                                      {sess?.is_late ? 'Late Started ' : 'Started '}{sess.started_at}
+                                {(() => {
+                                  if (row.submittedLogToday) {
+                                    return (
+                                      <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 flex items-center gap-1">
+                                        <CheckCircle className="h-3 w-3" /> Submitted
+                                      </span>
+                                    );
+                                  }
+                                  if (row.missingLog130) {
+                                    return (
+                                      <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200 dark:border-rose-800 flex items-center gap-1">
+                                        <X className="h-3 w-3" /> Missing
+                                      </span>
+                                    );
+                                  }
+                                  return (
+                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 flex items-center gap-1">
+                                      <Clock className="h-3 w-3" /> Pending
                                     </span>
-                                  ) : isCompleted ? (
-                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400">
-                                      Ended {sess.ended_at}
-                                    </span>
-                                  ) : (
-                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
-                                      Not started
-                                    </span>
-                                  )}
-                                </div>
+                                  );
+                                })()}
                               </td>
 
-                              {/* Streak */}
+                              {/* 5:00 PM Journal */}
+                              <td className="py-3.5 px-2">
+                                {(() => {
+                                  if (row.submittedLogToday) {
+                                    return (
+                                      <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 flex items-center gap-1">
+                                        <CheckCircle className="h-3 w-3" /> Submitted
+                                      </span>
+                                    );
+                                  }
+                                  if (row.missingLog500) {
+                                    return (
+                                      <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200 dark:border-rose-800 flex items-center gap-1">
+                                        <X className="h-3 w-3" /> Missing
+                                      </span>
+                                    );
+                                  }
+                                  return (
+                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 flex items-center gap-1">
+                                      <Clock className="h-3 w-3" /> Pending
+                                    </span>
+                                  );
+                                })()}
+                              </td>
+
+                              {/* Mistakes */}
                               <td className="py-3.5 px-2">
                                 <div className="flex items-center gap-1">
-                                  <Flame className={`h-4 w-4 ${row.streak > 0 ? 'text-amber-500 fill-amber-500' : 'text-slate-300'}`} />
-                                  <span className="text-xs font-bold text-slate-800 dark:text-white">{row.streak} days</span>
+                                  <AlertTriangle className={`h-4 w-4 ${row.unresolvedMistakesCount > 0 ? 'text-rose-500 fill-rose-500' : 'text-slate-300'}`} />
+                                  <span className="text-xs font-bold text-slate-800 dark:text-white">{row.unresolvedMistakesCount}</span>
                                 </div>
                               </td>
 
-                              {/* Score */}
-                              <td className="py-3.5 px-2">
-                                <div className="flex items-center gap-1 text-teal-600 dark:text-teal-400 font-bold text-xs">
-                                  {row.avgMark} <Star className="h-3.5 w-3.5 fill-teal-500 text-teal-500" />
-                                </div>
-                              </td>
-
-                              {/* Task score compliance */}
+                              {/* Assigned Project */}
                               <td className="py-3.5 pl-2 text-right">
-                                <div className="inline-flex items-center gap-2">
-                                  <div className="text-right">
-                                    <p className="text-[10px] font-bold text-slate-800 dark:text-white">
-                                      {row.completedTasks} / {row.totalTasks} Done
-                                    </p>
-                                    <p className="text-[9px] text-slate-400">
-                                      {row.unresolvedMistakesCount > 0 
-                                        ? `${row.unresolvedMistakesCount} blunders flagged` 
-                                        : 'All clean'}
-                                    </p>
-                                  </div>
-                                  <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-teal-700 dark:group-hover:text-teal-400 transition" />
+                                <div className="flex items-center justify-end gap-1.5">
+                                  <FolderOpen className="h-4 w-4 text-slate-400" />
+                                  <span className="text-xs font-bold text-slate-800 dark:text-white truncate max-w-[140px]">{row.assignedProjectName}</span>
                                 </div>
                               </td>
                             </tr>
@@ -458,40 +359,39 @@ export const TeamOverview: React.FC<TeamOverviewProps> = ({ currentUser, activeT
                             </div>
                           </div>
 
-                          <div className="grid grid-cols-2 gap-3 mb-4">
-                            <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-2xl flex items-center gap-3 border border-slate-100 dark:border-slate-800/50">
-                              <Flame className={`h-4 w-4 ${row.streak > 0 ? 'text-amber-500 fill-amber-500' : 'text-slate-300'}`} />
-                              <div>
-                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Streak</p>
-                                <p className="text-xs font-black text-slate-800 dark:text-white">{row.streak} <span className="text-[10px] font-bold text-slate-400">days</span></p>
-                              </div>
-                            </div>
-                            <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-2xl flex items-center gap-3 border border-slate-100 dark:border-slate-800/50">
-                              <Star className={`h-4 w-4 ${row.avgMark > 0 ? 'text-teal-500 fill-teal-500' : 'text-slate-300'}`} />
-                              <div>
-                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Score</p>
-                                <p className="text-xs font-black text-slate-800 dark:text-white">{row.avgMark > 0 ? row.avgMark : '-'}</p>
-                              </div>
-                            </div>
-                          </div>
+                           <div className="grid grid-cols-2 gap-3 mb-4">
+                             <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-2xl flex items-center gap-3 border border-slate-100 dark:border-slate-800/50">
+                               <CheckCircle className={`h-4 w-4 ${row.submittedLogToday ? 'text-emerald-500 fill-emerald-500' : 'text-slate-300'}`} />
+                               <div>
+                                 <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">1:30 PM Journal</p>
+                                 <p className="text-[10px] font-black text-slate-800 dark:text-white">
+                                   {row.submittedLogToday ? 'Submitted' : row.missingLog130 ? 'Missing' : 'Pending'}
+                                 </p>
+                               </div>
+                             </div>
+                             <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-2xl flex items-center gap-3 border border-slate-100 dark:border-slate-800/50">
+                               <CheckCircle className={`h-4 w-4 ${row.submittedLogToday ? 'text-emerald-500 fill-emerald-500' : 'text-slate-300'}`} />
+                               <div>
+                                 <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">5:00 PM Journal</p>
+                                 <p className="text-[10px] font-black text-slate-800 dark:text-white">
+                                   {row.submittedLogToday ? 'Submitted' : row.missingLog500 ? 'Missing' : 'Pending'}
+                                 </p>
+                               </div>
+                             </div>
+                           </div>
 
-                          <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
-                            <div className="flex items-center gap-2">
-                              <CheckSquare className="h-4 w-4 text-slate-400" />
-                              <span className="text-xs font-black text-slate-700 dark:text-slate-300">
-                                {row.completedTasks}/{row.totalTasks} Tasks
-                              </span>
-                            </div>
-                            {row.unresolvedMistakesCount > 0 ? (
-                              <span className="px-2.5 py-1 bg-rose-50 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400 border border-rose-200 dark:border-rose-800/50 rounded-xl text-[10px] font-black flex items-center gap-1.5 shadow-sm">
-                                <AlertTriangle className="h-3.5 w-3.5" /> {row.unresolvedMistakesCount} Flags
-                              </span>
-                            ) : (
-                              <span className="px-2.5 py-1 bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/50 rounded-xl text-[10px] font-black flex items-center gap-1.5 shadow-sm">
-                                <ShieldCheck className="h-3.5 w-3.5" /> Clean
-                              </span>
-                            )}
-                          </div>
+                           <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
+                             <div className="flex items-center gap-2">
+                               <AlertTriangle className="h-4 w-4 text-slate-400" />
+                               <span className="text-xs font-black text-slate-700 dark:text-slate-300">
+                                 {row.unresolvedMistakesCount} Mistakes
+                               </span>
+                             </div>
+                             <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300">
+                               <FolderOpen className="h-4 w-4 text-slate-400" />
+                               <span className="text-[10px] font-black truncate max-w-[120px]">{row.assignedProjectName}</span>
+                             </div>
+                           </div>
                         </GlassCard>
                       );
                     })
@@ -584,28 +484,6 @@ export const TeamOverview: React.FC<TeamOverviewProps> = ({ currentUser, activeT
 
   return (
     <div id="techlead-overview-root" className="space-y-6">
-      {/* Welcome Banner */}
-      <div className="bg-gradient-to-r from-teal-600 to-teal-700 text-white rounded-3xl p-6 md:p-8 relative overflow-hidden shadow-sm">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-2xl -mr-16 -mt-16" />
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="space-y-1">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/15 text-xs font-semibold">
-              <ShieldCheck className="h-4 w-4 text-emerald-400" /> Authorized Tech Lead Reviewer
-            </div>
-            <h2 className="text-xl md:text-2xl font-black tracking-tight mt-2">Hello, {currentUser.name}! 👋</h2>
-            <p className="text-xs text-teal-100 max-w-md">
-              Review and score daily learning journals, assign target sprint tasks, flag security concerns, and mentor your software engineering interns.
-            </p>
-          </div>
-          
-          <div className="bg-white/10 border border-white/10 p-4 rounded-2xl backdrop-blur-sm flex items-center gap-4">
-            <p className="text-xs font-semibold text-teal-100">Today's Check-in compliance</p>
-            <div className="relative h-14 w-14 shrink-0 flex items-center justify-center font-bold text-sm bg-teal-900/40 rounded-full border border-teal-500">
-              {complianceRate}%
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* Stats row - only on team_overview */}
       {activeTab === 'team_overview' && (
