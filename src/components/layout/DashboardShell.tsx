@@ -119,7 +119,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
     } else if (role === 'tech_lead') {
       router.push(`/dashboard?tab=${item.id}`);
     } else if (role === 'intern') {
-      window.open(getInternPath(item.id), '_blank', 'noopener,noreferrer');
+      router.push(getInternPath(item.id));
     }
   };
 
